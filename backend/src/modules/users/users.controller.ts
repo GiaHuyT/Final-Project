@@ -3,9 +3,9 @@ import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
-  @UseGuards(JwtAuthGuard) 
+  @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Req() req) {
-    return req.user; 
+    return req.user;
   }
 }
