@@ -1,0 +1,164 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --- NHÓM NGƯỜI DÙNG & TÀI KHOẢN ---
+model User {
+  id                Int      @id @default(autoincrement())
+  username          String   @unique
+  email             String   @unique
+  password          String
+  fullName          String?
+  avatar            String?
+  phone             String?
+  role              Role     @default(CUSTOMER)
+  isApprovedVendor  Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  // Quan hệ đối xứng (Sửa lỗi tại đây)
+  addresses         Address[]
+  products          Product[]       
+  orders            Order[]         
+  auctions          Auction[]       
+  bids              AuctionBid[]    
+  serviceProfiles   ServiceProfile? 
+  reviews           Review[]
+  notifications     Notification[]
+  favorites         Favorite[]      // <--- Dòng này là dòng còn thiếu gây lỗi P1012
+}
+
+enum Role {
+  ADMIN
+  VENDOR
+  CUSTOMER
+  GUEST
+}
+
+model Address {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  detail    String
+  isDefault Boolean @default(false)
+}
+
+// --- NHÓM SẢN PHẨM & MUA BÁN ---
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  status      Boolean  @default(true)
+  vendorId    Int
+  vendor      User     @relation(fields: [vendorId], references: [id])
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+  createdAt   DateTime @default(now())
+  
+  orderItems  OrderItem[]
+  favorites   Favorite[]
+}
+
+// --- NHÓM ĐẤU GIÁ ---
+model Auction {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String?
+  startPrice     Float
+  currentPrice   Float?
+  startTime      DateTime
+  endTime        DateTime
+  status         String   @default("PENDING")
+  vendorId       Int
+  vendor         User     @relation(fields: [vendorId], references: [id])
+  bids           AuctionBid[]
+}
+
+model AuctionBid {
+  id          Int      @id @default(autoincrement())
+  auctionId   Int
+  auction     Auction  @relation(fields: [auctionId], references: [id])
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  bidAmount   Float
+  createdAt   DateTime @default(now())
+}
+
+// --- NHÓM DỊCH VỤ ---
+model ServiceProfile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+  serviceType String   
+  experience  String?
+  isApproved  Boolean  @default(false)
+  vehicles    Vehicle[]
+}
+
+model Vehicle {
+  id          Int      @id @default(autoincrement())
+  profileId   Int
+  profile     ServiceProfile @relation(fields: [profileId], references: [id])
+  type        String   
+  description String?
+}
+
+// --- NHÓM GIAO DỊCH & TƯƠNG TÁC ---
+model Order {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  customer    User     @relation(fields: [customerId], references: [id])
+  totalPrice  Float
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  rating    Int
+  targetId  Int      
+  createdAt DateTime @default(now())
+}
+
+model Favorite {
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  @@id([userId, productId])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
