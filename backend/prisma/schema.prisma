@@ -1,3 +1,4 @@
+// --- CẤU HÌNH KẾT NỐI ---
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -10,17 +11,17 @@ generator client {
 // --- NHÓM NGƯỜI DÙNG & TÀI KHOẢN ---
 model User {
   id                Int      @id @default(autoincrement())
-  username          String   @unique
-  email             String   @unique
+  username          String   // Tên hiển thị trên hệ thống
+  email             String?  @unique // Có thể dùng đăng nhập, để trống nếu dùng phone
+  phonenumber             String?  @unique // Có thể dùng đăng nhập, để trống nếu dùng email
   password          String
   fullName          String?
   avatar            String?
-  phone             String?
   role              Role     @default(CUSTOMER)
   isApprovedVendor  Boolean  @default(false)
   createdAt         DateTime @default(now())
 
-  // Quan hệ đối xứng (Sửa lỗi tại đây)
+  // Quan hệ đối xứng
   addresses         Address[]
   products          Product[]       
   orders            Order[]         
@@ -29,7 +30,7 @@ model User {
   serviceProfiles   ServiceProfile? 
   reviews           Review[]
   notifications     Notification[]
-  favorites         Favorite[]      // <--- Dòng này là dòng còn thiếu gây lỗi P1012
+  favorites         Favorite[]      
 }
 
 enum Role {
@@ -101,7 +102,7 @@ model ServiceProfile {
   id          Int      @id @default(autoincrement())
   userId      Int      @unique
   user        User     @relation(fields: [userId], references: [id])
-  serviceType String   
+  serviceType String
   experience  String?
   isApproved  Boolean  @default(false)
   vehicles    Vehicle[]
@@ -111,7 +112,7 @@ model Vehicle {
   id          Int      @id @default(autoincrement())
   profileId   Int
   profile     ServiceProfile @relation(fields: [profileId], references: [id])
-  type        String   
+  type        String
   description String?
 }
 
@@ -142,7 +143,7 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
   content   String
   rating    Int
-  targetId  Int      
+  targetId  Int
   createdAt DateTime @default(now())
 }
 

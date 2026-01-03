@@ -16,19 +16,25 @@ export class AuthService {
   ) {}
 
   async register(userDTO: RegisterDto) {
-    if (userDTO.password !== userDTO.confirmPassword) {
+    if (userDTO.password !== userDTO.confirmpassword) {
       throw new BadRequestException('Passwords do not match');
     }
 
-    const existingUser = await this.usersService.findByEmail(userDTO.email);
-    if (existingUser) {
+    const existingUserByEmail = await this.usersService.findByEmail(userDTO.email);
+    if (existingUserByEmail) {
       throw new BadRequestException('Email already exists');
+    }
+    const existingUserByPhone = await this.usersService.findByPhoneNumber(userDTO.phonenumber);
+    if (existingUserByPhone) {
+      throw new BadRequestException('Phone number already exists');
     }
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(userDTO.password, salt);
 
     const user = await this.usersService.create({
+      username: userDTO.username,
       email: userDTO.email,
+      phonenumber: userDTO.phonenumber,
       password: hashedPassword,
     });
     return {

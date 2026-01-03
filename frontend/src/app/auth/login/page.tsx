@@ -8,7 +8,7 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        const response = await fetch('http://localhost:3000/auth/login', {
+        const response = await fetch('http://localhost:3001/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
@@ -44,7 +44,7 @@ export default function LoginPage() {
                     Vào hệ thống
                 </button>
             </form>
-            <p>Chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
+            <p>Chưa có tài khoản? <a href="/auth/register">Đăng ký ngay</a></p>
         </div>
     );
 }
