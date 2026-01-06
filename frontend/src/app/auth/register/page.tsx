@@ -1,6 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -68,68 +80,254 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ padding: "50px", maxWidth: "400px", margin: "auto" }}>
-      <h1>Tạo tài khoản mới</h1>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4">
+      <Card className="w-full max-w-md shadow-2xl overflow-hidden border-none shrink-0 rounded-xl">
+        {/* Header with Gradient */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-8 text-center">
+          <div className="w-16 h-16 bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-inner">
+            <svg
+              className="w-8 h-8 text-purple-600 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+              />
+            </svg>
+          </div>
+          <CardTitle className="text-3xl font-bold text-white tracking-tight">
+            Tạo tài khoản
+          </CardTitle>
+          <CardDescription className="text-purple-100 mt-2 text-base">
+            Đăng ký để bắt đầu trải nghiệm dịch vụ
+          </CardDescription>
+        </div>
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "10px" }}
-      >
-        <input
-          placeholder="Username"
-          value={formData.username}
-          onChange={(e) =>
-            setFormData({ ...formData, username: e.target.value })
-          }
-        />
-        {errors.username && (
-          <span style={{ color: "red" }}>{errors.username}</span>
-        )}
+        <CardContent className="p-8 pt-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm font-semibold text-gray-700">
+                Username
+              </Label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600 text-gray-400">
+                  <svg
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
+                <Input
+                  id="username"
+                  placeholder="Nhập tên đăng nhập"
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
+                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.username ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                    }`}
+                />
+              </div>
+              {errors.username && (
+                <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
+                  {errors.username}
+                </p>
+              )}
+            </div>
 
-        <input
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        />
-        {errors.email && <span style={{ color: "red" }}>{errors.email}</span>}
+            {/* Email */}
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700">
+                Email
+              </Label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600 text-gray-400">
+                  <svg
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="example@mail.com"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.email ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                    }`}
+                />
+              </div>
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
+                  {errors.email}
+                </p>
+              )}
+            </div>
 
-        <input
-          placeholder="Số điện thoại"
-          value={formData.phonenumber}
-          onChange={(e) =>
-            setFormData({ ...formData, phonenumber: e.target.value })
-          }
-        />
-        {errors.phonenumber && (
-          <span style={{ color: "red" }}>{errors.phonenumber}</span>
-        )}
+            {/* Phone */}
+            <div className="space-y-2">
+              <Label htmlFor="phonenumber" className="text-sm font-semibold text-gray-700">
+                Số điện thoại
+              </Label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600 text-gray-400">
+                  <svg
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </div>
+                <Input
+                  id="phonenumber"
+                  placeholder="09xx xxx xxx"
+                  value={formData.phonenumber}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phonenumber: e.target.value })
+                  }
+                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.phonenumber ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                    }`}
+                />
+              </div>
+              {errors.phonenumber && (
+                <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
+                  {errors.phonenumber}
+                </p>
+              )}
+            </div>
 
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={formData.password}
-          onChange={(e) =>
-            setFormData({ ...formData, password: e.target.value })
-          }
-        />
-        {errors.password && (
-          <span style={{ color: "red" }}>{errors.password}</span>
-        )}
+            {/* Password */}
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700">
+                Mật khẩu
+              </Label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600 text-gray-400">
+                  <svg
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                </div>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.password ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                    }`}
+                />
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
+                  {errors.password}
+                </p>
+              )}
+            </div>
 
-        <input
-          type="password"
-          placeholder="Xác nhận mật khẩu"
-          value={formData.confirmpassword}
-          onChange={(e) =>
-            setFormData({ ...formData, confirmpassword: e.target.value })
-          }
-        />
-        {errors.confirmpassword && (
-          <span style={{ color: "red" }}>{errors.confirmpassword}</span>
-        )}
+            {/* Confirm Password */}
+            <div className="space-y-2">
+              <Label htmlFor="confirmpassword" className="text-sm font-semibold text-gray-700">
+                Xác nhận mật khẩu
+              </Label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-purple-600 text-gray-400">
+                  <svg
+                    className="h-5 w-5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <Input
+                  id="confirmpassword"
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.confirmpassword}
+                  onChange={(e) =>
+                    setFormData({ ...formData, confirmpassword: e.target.value })
+                  }
+                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.confirmpassword ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                    }`}
+                />
+              </div>
+              {errors.confirmpassword && (
+                <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
+                  {errors.confirmpassword}
+                </p>
+              )}
+            </div>
 
-        <button type="submit">Đăng ký</button>
-      </form>
+            <Button
+              type="submit"
+              className="w-full h-11 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all font-bold text-base shadow-lg hover:shadow-xl active:scale-[0.98]"
+            >
+              Đăng ký tài khoản
+            </Button>
+          </form>
+        </CardContent>
+
+        <CardFooter className="flex flex-col space-y-4 p-8 border-t bg-gray-50/50">
+          <div className="text-center w-full">
+            <span className="text-gray-500 text-sm">Đã có tài khoản? </span>
+            <Link
+              href="/auth/login"
+              className="text-purple-600 font-bold text-sm hover:text-blue-600 hover:underline transition-all"
+            >
+              Đăng nhập ngay
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
