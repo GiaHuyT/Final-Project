@@ -14,7 +14,7 @@ export default function LoginPage() {
         else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) && !/^\d{9,12}$/.test(identifier))
             newerrors.identifier = 'Email hoặc số điện thoại không đúng định dạng';
 
-        if (!password) 
+        if (!password)
             newerrors.password = 'Mật khẩu không được để trống';
         else if (password.length < 6)
             newerrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
