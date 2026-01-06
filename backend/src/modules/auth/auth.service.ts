@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import {BadRequestException, Injectable, UnauthorizedException} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -15,6 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  // REGISTER
   async register(userDTO: RegisterDto) {
     if (userDTO.password !== userDTO.confirmpassword) {
       throw new BadRequestException('Passwords do not match');
@@ -24,12 +21,15 @@ export class AuthService {
     if (existingUserByEmail) {
       throw new BadRequestException('Email already exists');
     }
-    const existingUserByPhone = await this.usersService.findByPhoneNumber(userDTO.phonenumber);
+
+    const existingUserByPhone = await this.usersService.findByPhoneNumber(
+      userDTO.phonenumber,
+    );
     if (existingUserByPhone) {
       throw new BadRequestException('Phone number already exists');
     }
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(userDTO.password, salt);
+
+    const hashedPassword = await bcrypt.hash(userDTO.password, 10);
 
     const user = await this.usersService.create({
       username: userDTO.username,
@@ -37,6 +37,7 @@ export class AuthService {
       phonenumber: userDTO.phonenumber,
       password: hashedPassword,
     });
+
     return {
       id: user.id,
       email: user.email,
@@ -44,8 +45,13 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
+  // LOGIN
+  async validateUser(identifier: string, password: string) {
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+    const user = isEmail
+      ? await this.usersService.findByEmail(identifier)
+      : await this.usersService.findByPhoneNumber(identifier);
 
     if (!user) {
       return null;
@@ -56,33 +62,36 @@ export class AuthService {
       return null;
     }
 
-    // Return user không có password
+    // ❗ Không trả password
     return {
       id: user.id,
       email: user.email,
+      phoneNumber: user.phonenumber,
       role: user.role,
     };
   }
 
+  // JWT
   generateToken(user: any) {
     const payload = {
       sub: user.id,
-      email: user.email,
       role: user.role,
     };
 
     return {
-      access_token: this.jwtService.sign(payload),
+      message: 'Đăng nhập thành công',
+      accessToken: this.jwtService.sign(payload),
       user,
     };
   }
 
-  // ⚠️ SỬA: login - giản lược lại (logic chuyển sang validateUser)
-  async login(email: string, password: string) {
-    const user = await this.validateUser(email, password);
+  // LOGIN API
+  async login(identifier: string, password: string) {
+    const user = await this.validateUser(identifier, password);
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Sai email/phone hoặc mật khẩu');
     }
+
     return this.generateToken(user);
   }
 }

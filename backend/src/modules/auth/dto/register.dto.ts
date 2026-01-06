@@ -1,6 +1,7 @@
 import { IsEmail, IsPhoneNumber, IsString, MinLength, Matches, Length, IsNumberString, IsNotEmpty } from 'class-validator';
 export class RegisterDto {
     @IsString()
+    @MinLength(3, { message: 'Username must be at least 3 characters' })
     username: string;
 
     @IsString({message: 'Email must be a string'})
@@ -19,5 +20,6 @@ export class RegisterDto {
     password: string;
 
     @IsString()
+    @MinLength(6, { message: 'Confirm password must be at least 6 characters' })
     confirmpassword: string;
 }
