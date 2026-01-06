@@ -1,11 +1,14 @@
+import { ApiProperty } from "@nestjs/swagger/dist/decorators/api-property.decorator";
 import { IsNotEmpty, IsString } from "class-validator";
 
 export class LoginDto {
-  @IsString({ message: "Email hoắc số điện thoại không hợp lệ"})
-  @IsNotEmpty({ message: "Vui lòng nhập email hoặc số điện thoại"})
+  @ApiProperty({ example: 'abc@example.com or 0936219231' ,description: 'Email or phone number' })
+  @IsString({ message: "Email or phone number must be a string"})
+  @IsNotEmpty({ message: "Please provide email or phone number"})
   identifier: string;
   
-  @IsString({ message: "Mật khẩu phải là chuỗi ký tự"})
-  @IsNotEmpty({ message: "Vui lòng nhập mật khẩu"})
+  @ApiProperty({ example: 'Abc12345', description: 'Mật khẩu' })
+  @IsString({ message: "Password must be a string"})
+  @IsNotEmpty({ message: "Please provide password"})
   password: string;
 }

@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
 import { Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,19 @@ async function bootstrap() {
     }),
   );
 
+  // Swagger setup
+    const config = new DocumentBuilder()
+      .setTitle('Auction & E-commerce API')
+      .setDescription('API toàn hệ thống')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
+
   await app.listen(process.env.PORT ?? 3000);
+  console.log(`Server running on http://localhost:${process.env.PORT ?? 3000}`);
+  console.log(`Swagger UI available at http://localhost:${process.env.PORT ?? 3000}/api`);
 }
 bootstrap();
