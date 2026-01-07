@@ -138,10 +138,10 @@ export default function LoginPage() {
                                     Mật khẩu
                                 </Label>
                                 <Link
-                                    href="#"
+                                    href="/auth/forgot-password"
                                     className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
                                 >
-                                    Quên mật khẩu?
+                                    Forgot Password?
                                 </Link>
                             </div>
                             <div className="relative group">

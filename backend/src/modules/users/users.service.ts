@@ -21,4 +21,32 @@ export class UsersService {
   findById(id: number) {
     return this.prisma.user.findUnique({ where: { id } });
   }
+
+  findByResetToken(token: string) {
+    return this.prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpires: {
+          gt: new Date(),
+        },
+      },
+    });
+  }
+  
+  async update(id: number, data: Prisma.UserUpdateInput) {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async saveResetToken(id: number, token: string, expires: Date) {
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        resetToken: token,
+        resetTokenExpires: expires,
+      },
+    });
+  }
 }

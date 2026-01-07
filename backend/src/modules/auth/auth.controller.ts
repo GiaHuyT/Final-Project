@@ -1,9 +1,11 @@
 import { Controller, Post, Body} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from '../auth/dto/login.dto';
 import { Public } from '../../core/decorators/public.decorator';
-import { RegisterDto } from '../auth/dto/register.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { RegisterDto } from '../auth/dto/register.dto';
+import { LoginDto } from '../auth/dto/login.dto';
+import { ForgotPasswordDto } from '../auth/dto/forgot-password';
+import { ResetPasswordDto } from './dto/reset-password';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -26,5 +28,19 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async login(@Body() body: LoginDto) {
     return this.authService.login(body.identifier, body.password);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Send reset password email' })
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset user password' })
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    return this.authService.resetPassword(body.token, body.newPassword);
   }
 }

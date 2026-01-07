@@ -20,11 +20,13 @@ model User {
   role              Role     @default(CUSTOMER)
   isApprovedVendor  Boolean  @default(false)
   createdAt         DateTime @default(now())
+  resetToken        String?   // token reset password
+  resetTokenExpires DateTime? // thời gian hết hạn token
 
   // Quan hệ đối xứng
   addresses         Address[]
-  products          Product[]       
-  orders            Order[]         
+  products          Product[]
+  orders            Order[]
   auctions          Auction[]       
   bids              AuctionBid[]    
   serviceProfiles   ServiceProfile? 

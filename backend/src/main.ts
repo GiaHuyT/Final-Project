@@ -1,6 +1,4 @@
 import 'reflect-metadata';
-import { config } from 'dotenv';
-config(); // Load .env file
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
@@ -32,12 +30,12 @@ async function bootstrap() {
   );
 
   // Swagger setup
-    const config = new DocumentBuilder()
-      .setTitle('Auction & E-commerce API')
-      .setDescription('API toàn hệ thống')
-      .setVersion('1.0')
-      .addBearerAuth()
-      .build();
+  const config = new DocumentBuilder()
+    .setTitle('Auction & E-commerce API')
+    .setDescription('API toàn hệ thống')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
