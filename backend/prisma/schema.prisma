@@ -21,7 +21,8 @@ model User {
   isApprovedVendor  Boolean  @default(false)
   createdAt         DateTime @default(now())
   resetToken        String?   // token reset password
-  resetTokenExpires DateTime? // thời gian hết hạn token
+  resetTokenExpires DateTime? // 
+  refreshToken      String?   // 
 
   // Quan hệ đối xứng
   addresses         Address[]

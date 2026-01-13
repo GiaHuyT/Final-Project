@@ -15,6 +15,19 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
+  //Refresh Token
+  generateAccessToken(userId: number) {
+    return this.jwtService.sign({ sub: userId }, { expiresIn: '15m' });
+  }
+  generateRefreshToken(userId: number) {
+    return this.jwtService.sign({ sub: userId }, { expiresIn: '7d', secret: process.env.JWT_REFRESH_SECRET });
+  }
+  verifyRefreshToken(token: string) {
+    return this.jwtService.verify(token, {
+      secret: process.env.JWT_REFRESH_SECRET,
+    });
+  }
+
   // REGISTER
   async register(userDTO: RegisterDto) {
     if (userDTO.password !== userDTO.confirmpassword) {

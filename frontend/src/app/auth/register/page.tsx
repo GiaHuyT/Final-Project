@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import http from "@/lib/http";
 import {
   Card,
   CardContent,
@@ -59,23 +60,18 @@ export default function RegisterPage() {
     if (!validateForm()) return;
 
     try {
-      const response = await fetch("http://localhost:3000/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await http.post("/auth/register", formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.message || "Đăng ký thất bại");
-        return;
+      if (res.status === 200 || res.status === 201) {
+        alert("Đăng ký thành công! Vui lòng đăng nhập.");
+        window.location.href = "/auth/login";
+      } else {
+        alert(res.data.message || "Đăng ký thất bại");
       }
-
-      alert("Đăng ký thành công!");
-      window.location.href = "/auth/login";
-    } catch (error) {
-      alert("Không kết nối được server backend");
+    } catch (error: any) {
+      console.error("Error during register:", error);
+      const message = error.response?.data?.message || "Không kết nối được đến server backend";
+      alert(message);
     }
   };
 

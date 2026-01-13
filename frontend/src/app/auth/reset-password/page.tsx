@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { toast } from "react-hot-toast";
+import http from "@/lib/http";
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
@@ -43,22 +44,14 @@ function ResetPasswordForm() {
         setLoading(true);
 
         try {
-            const res = await fetch("http://localhost:3000/auth/reset-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, newPassword }),
-            });
-            const data = await res.json();
+            const res = await http.post("/auth/reset-password", { token, newPassword });
 
-            if (res.ok) {
-                toast.success("Mật khẩu đã được cập nhật thành công!");
-                setTimeout(() => router.push("/auth/login"), 2000);
-            } else {
-                toast.error(data.message || "Đổi mật khẩu thất bại");
-            }
-        } catch (err) {
+            toast.success("Mật khẩu đã được cập nhật thành công!");
+            setTimeout(() => router.push("/auth/login"), 2000);
+        } catch (err: any) {
             console.error(err);
-            toast.error("Không thể kết nối tới server");
+            const message = err.response?.data?.message || "Không thể kết nối tới server";
+            toast.error(message);
         } finally {
             setLoading(false);
         }

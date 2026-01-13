@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { toast } from "react-hot-toast";
+import http from "@/lib/http";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
@@ -31,24 +32,14 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            const res = await fetch("http://localhost:3000/auth/forgot-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email }),
-            });
-            const data = await res.json();
+            const res = await http.post("/auth/forgot-password", { email });
+            const data = res.data;
 
-            if (res.ok) {
-                toast.success(data.message || "Email reset mật khẩu đã được gửi");
-                setEmail("");
-            } else {
-                const errorMsg = data.message || "Gửi email thất bại";
-                setError(errorMsg);
-                toast.error(errorMsg);
-            }
-        } catch (err) {
+            toast.success(data.message || "Email reset mật khẩu đã được gửi");
+            setEmail("");
+        } catch (err: any) {
             console.error(err);
-            const errorMsg = "Không thể kết nối tới server";
+            const errorMsg = err.response?.data?.message || "Không thể kết nối tới server";
             setError(errorMsg);
             toast.error(errorMsg);
         } finally {

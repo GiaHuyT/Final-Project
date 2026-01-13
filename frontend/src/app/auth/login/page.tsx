@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import http from "@/lib/http";
 import {
     Card,
     CardContent,
@@ -44,15 +45,10 @@ export default function LoginPage() {
         if (!validateForm()) return;
 
         try {
-            const response = await fetch("http://localhost:3000/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ identifier, password }),
-            });
+            const res = await http.post("/auth/login", { identifier, password });
+            const data = res.data;
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (res.status === 200 || res.status === 201) {
                 alert("Đăng nhập thành công");
                 localStorage.setItem("token", data.accessToken);
                 localStorage.setItem("user", JSON.stringify(data.user));
@@ -60,9 +56,10 @@ export default function LoginPage() {
             } else {
                 alert(data.message || "Sai tên đăng nhập hoặc mật khẩu");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error during login:", error);
-            alert("Không kết nối được đến server backend");
+            const message = error.response?.data?.message || "Không kết nối được đến server backend";
+            alert(message);
         }
     };
 
