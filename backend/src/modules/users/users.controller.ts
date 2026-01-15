@@ -5,10 +5,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagg
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiBearerAuth()
-    @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return current logged-in user data' })
   @ApiResponse({ status: 401, description: 'Unauthorized. JWT invalid or missing' })
   getProfile(@Req() req) {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const http = axios.create({
     baseURL: 'http://localhost:3000',
@@ -32,6 +33,7 @@ http.interceptors.response.use(
 
                 const { accessToken } = res.data;
                 localStorage.setItem('token', accessToken);
+                Cookies.set('token', accessToken); // Cập nhật cả Cookie cho Middleware
 
                 // Update header and retry original request
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -40,6 +42,7 @@ http.interceptors.response.use(
                 // If refresh fails, clear everything and redirect to login
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                Cookies.remove('token'); // Xóa cả Cookie
                 window.location.href = '/auth/login';
                 return Promise.reject(refreshError);
             }

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
+import { RolesGuard } from './modules/auth/passport/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -22,7 +23,7 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
 
   // Global Guard
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
+  app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
 
   // Global Validation
   app.useGlobalPipes(

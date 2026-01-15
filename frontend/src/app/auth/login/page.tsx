@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import http from "@/lib/http";
+import Cookies from "js-cookie";
 import {
     Card,
     CardContent,
@@ -49,8 +50,9 @@ export default function LoginPage() {
             const data = res.data;
 
             if (res.status === 200 || res.status === 201) {
-                alert("Đăng nhập thành công");
+                // alert("Đăng nhập thành công");
                 localStorage.setItem("token", data.accessToken);
+                Cookies.set("token", data.accessToken);
                 localStorage.setItem("user", JSON.stringify(data.user));
                 window.location.href = "/";
             } else {

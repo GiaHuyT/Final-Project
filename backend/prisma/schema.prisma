@@ -40,7 +40,6 @@ enum Role {
   ADMIN
   VENDOR
   CUSTOMER
-  GUEST
 }
 
 model Address {
