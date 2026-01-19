@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     // 1. Lấy token từ Cookie (Không dùng được localStorage ở đây)
     const token = request.cookies.get('token')?.value
 
