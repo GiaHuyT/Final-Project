@@ -15,7 +15,7 @@ model User {
   email             String?  @unique // Có thể dùng đăng nhập, để trống nếu dùng phone
   phonenumber             String?  @unique // Có thể dùng đăng nhập, để trống nếu dùng email
   password          String
-  fullName          String?
+
   avatar            String?
   role              Role     @default(CUSTOMER)
   isApprovedVendor  Boolean  @default(false)

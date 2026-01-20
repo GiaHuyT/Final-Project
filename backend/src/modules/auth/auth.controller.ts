@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res, Req, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Res, Req, UnauthorizedException, UseGuards, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from '../../core/decorators/public.decorator';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -8,6 +8,7 @@ import { ForgotPasswordDto } from '../auth/dto/forgot-password';
 import { ResetPasswordDto } from './dto/reset-password';
 import { Response } from 'express';
 import { Request } from 'express';
+import { JwtAuthGuard } from './passport/jwt-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -83,5 +84,11 @@ export class AuthController {
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  getProfile(@Req() req) {
+    return req.user;
   }
 }

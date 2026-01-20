@@ -32,7 +32,7 @@ export class UsersService {
       },
     });
   }
-  
+
   async update(id: number, data: Prisma.UserUpdateInput) {
     return this.prisma.user.update({
       where: { id },
@@ -47,6 +47,17 @@ export class UsersService {
         resetToken: token,
         resetTokenExpires: expires,
       },
+    });
+  }
+
+  async getProfile(userId: number) {
+    return this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        username: true,
+        email: true,
+        phonenumber: true,
+      }
     });
   }
 }

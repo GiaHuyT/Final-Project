@@ -25,7 +25,7 @@ async function main() {
       email: 'admin@example.com',
       password: 'hashed_password_123', // Trong thực tế nên dùng bcrypt
       role: Role.ADMIN,
-      fullName: 'Quản trị viên hệ thống',
+
     },
   });
 
@@ -35,7 +35,7 @@ async function main() {
       email: 'vendor1@example.com',
       password: 'hashed_password_123',
       role: Role.VENDOR,
-      fullName: 'Cửa hàng điện tử ABC',
+
       isApprovedVendor: true,
     },
   });
@@ -46,7 +46,7 @@ async function main() {
       email: 'customer1@example.com',
       password: 'hashed_password_123',
       role: Role.CUSTOMER,
-      fullName: 'Nguyễn Văn A',
+
     },
   });
 
