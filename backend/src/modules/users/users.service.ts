@@ -27,7 +27,7 @@ export class UsersService {
       where: {
         resetToken: token,
         resetTokenExpires: {
-          gt: new Date(),
+          gt: new Date(Date.now() + 1000 * 60 * 60 * 24)
         },
       },
     });

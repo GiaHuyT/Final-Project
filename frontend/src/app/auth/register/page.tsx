@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import http from "@/lib/http";
 import {
   Card,
@@ -23,6 +24,9 @@ export default function RegisterPage() {
     password: "",
     confirmpassword: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState<any>({});
 
@@ -246,15 +250,26 @@ export default function RegisterPage() {
                 </div>
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.password ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                  className={`pl-10 pr-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.password ? "border-red-500 ring-red-500/20" : "border-gray-200"
                     }`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-purple-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
               {errors.password && (
                 <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
@@ -286,15 +301,26 @@ export default function RegisterPage() {
                 </div>
                 <Input
                   id="confirmpassword"
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={formData.confirmpassword}
                   onChange={(e) =>
                     setFormData({ ...formData, confirmpassword: e.target.value })
                   }
-                  className={`pl-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.confirmpassword ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                  className={`pl-10 pr-10 h-11 transition-all focus-visible:ring-purple-500 ${errors.confirmpassword ? "border-red-500 ring-red-500/20" : "border-gray-200"
                     }`}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-purple-600 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
               {errors.confirmpassword && (
                 <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">

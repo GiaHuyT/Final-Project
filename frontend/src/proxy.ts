@@ -15,13 +15,6 @@ export function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL('/auth/login', request.url))
     }
 
-    // 3. Nếu đã đăng nhập mà cố vào trang Login/Register -> Đá về Trang chủ
-    if (isAuthPage && token) {
-        return NextResponse.redirect(new URL('/', request.url))
-    }
-
-    
-
     return NextResponse.next()
 }
 

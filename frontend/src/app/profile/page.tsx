@@ -71,11 +71,14 @@ export default function ProfilePage() {
   const onSubmit = async (values: ProfileFormValues) => {
     setIsSaving(true);
     try {
-      // await http.patch('/users/profile', values); // API Update placeholder
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await http.patch('/users/profile', {
+        username: values.username,
+        phonenumber: values.phonenumber
+      });
       setUserNameDisplay(values.username);
       toast.success('Cập nhật hồ sơ thành công!');
     } catch (error) {
+      console.error('Update Profile Error:', error);
       toast.error('Có lỗi xảy ra, vui lòng thử lại.');
     } finally {
       setIsSaving(false);

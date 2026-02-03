@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import http from "@/lib/http";
 import Cookies from "js-cookie";
 import {
@@ -19,6 +20,7 @@ import {
 export default function LoginPage() {
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<any>({});
 
     const validateForm = () => {
@@ -161,13 +163,24 @@ export default function LoginPage() {
                                 </div>
                                 <Input
                                     id="password"
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className={`pl-10 h-11 transition-all focus-visible:ring-blue-500 ${errors.password ? "border-red-500 ring-red-500/20" : "border-gray-200"
+                                    className={`pl-10 pr-10 h-11 transition-all focus-visible:ring-blue-500 ${errors.password ? "border-red-500 ring-red-500/20" : "border-gray-200"
                                         }`}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-600 transition-colors"
+                                >
+                                    {showPassword ? (
+                                        <EyeOff className="h-5 w-5" />
+                                    ) : (
+                                        <Eye className="h-5 w-5" />
+                                    )}
+                                </button>
                             </div>
                             {errors.password && (
                                 <p className="text-red-500 text-xs mt-1 font-medium animate-in fade-in slide-in-from-top-1">
