@@ -9,6 +9,9 @@ export class ResetPasswordDto {
 
     @ApiProperty({ example: 'NewPassword123', description: 'New password (min 6 chars, must include uppercase, lowercase, number)' })
     @IsString()
-    @MinLength(6)
+    @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 ký tự' })
+    @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+        message: 'Mật khẩu phải bao gồm chữ hoa, chữ thường và chữ số'
+    })
     newPassword: string;
 }

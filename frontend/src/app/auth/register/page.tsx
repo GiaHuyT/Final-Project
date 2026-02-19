@@ -50,6 +50,8 @@ export default function RegisterPage() {
     if (!formData.password) newerrors.password = "Mật khẩu không được để trống";
     else if (formData.password.length < 6)
       newerrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+    else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password))
+      newerrors.password = "Mật khẩu phải bao gồm chữ hoa, chữ thường và chữ số";
 
     if (formData.confirmpassword !== formData.password)
       newerrors.confirmpassword = "Xác nhận mật khẩu không khớp";

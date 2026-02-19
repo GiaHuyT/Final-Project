@@ -43,11 +43,20 @@ enum Role {
 }
 
 model Address {
-  id        Int     @id @default(autoincrement())
-  userId    Int
-  user      User    @relation(fields: [userId], references: [id])
-  detail    String
-  isDefault Boolean @default(false)
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  title         String   // e.g., Nhà riêng, Công ty
+  receiverName  String
+  receiverPhone String
+  detail        String   // Tên đường, số nhà
+  province      String
+  district      String
+  ward          String
+  latitude      Float?
+  longitude     Float?
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
 }
 
 // --- NHÓM SẢN PHẨM & MUA BÁN ---

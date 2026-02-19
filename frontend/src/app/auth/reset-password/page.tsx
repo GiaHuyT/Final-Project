@@ -39,6 +39,11 @@ function ResetPasswordForm() {
             return;
         }
 
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+            toast.error("Mật khẩu phải bao gồm chữ hoa, chữ thường và chữ số");
+            return;
+        }
+
         if (newPassword !== confirmPassword) {
             toast.error("Mật khẩu xác nhận không khớp");
             return;
