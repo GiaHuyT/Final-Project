@@ -82,9 +82,11 @@ export class AuthService {
     // ❗ Không trả password
     return {
       id: user.id,
+      username: user.username,
       email: user.email,
       phoneNumber: user.phonenumber,
       role: user.role,
+      avatar: user.avatar,
     };
   }
 

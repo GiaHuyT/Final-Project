@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -43,6 +43,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [userNameDisplay, setUserNameDisplay] = useState("Người dùng");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [tab, setTab] = useState("profile");
 
@@ -63,6 +66,7 @@ export default function ProfilePage() {
         const { data } = await http.get('/users/profile');
         console.log('Profile Data Fetched:', data);
         setUserNameDisplay(data.username || "Người dùng");
+        setAvatarUrl(data.avatar || null);
         reset({
           email: data.email,
           username: data.username,
@@ -132,6 +136,54 @@ export default function ProfilePage() {
     }
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn tệp ảnh!');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ảnh quá lớn (tối đa 2MB)!');
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await http.post('/users/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (res.status === 201 || res.status === 200) {
+        const newUrl = res.data.avatarUrl;
+        setAvatarUrl(newUrl);
+
+        // Cập nhật localStorage để Navbar nhận diện được ảnh mới
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const userObj = JSON.parse(storedUser);
+          userObj.avatar = newUrl;
+          localStorage.setItem("user", JSON.stringify(userObj));
+        }
+
+        toast.success('Cập nhật ảnh đại diện thành công!');
+      }
+    } catch (error: any) {
+      console.error('Lỗi khi tải ảnh:', error);
+      toast.error(error.response?.data?.message || 'Không thể tải ảnh lên.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Handle Submit
   const onSubmit = async (values: ProfileFormValues) => {
     setIsSaving(true);
@@ -141,6 +193,16 @@ export default function ProfilePage() {
         phonenumber: values.phonenumber
       });
       setUserNameDisplay(values.username);
+
+      // Cập nhật localStorage
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const userObj = JSON.parse(storedUser);
+        userObj.username = values.username;
+        userObj.phonenumber = values.phonenumber;
+        localStorage.setItem("user", JSON.stringify(userObj));
+      }
+
       toast.success('Cập nhật hồ sơ thành công!');
     } catch (error) {
       console.error('Update Profile Error:', error);
@@ -208,16 +270,54 @@ export default function ProfilePage() {
               </h1>
 
               <div className="flex items-center gap-6">
-                <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm">
+                <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
+                  <AvatarImage src={avatarUrl || ""} alt={userNameDisplay} />
                   <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
                     {userNameDisplay.substring(0, 1).toUpperCase()}
                   </AvatarFallback>
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                    </div>
+                  )}
                 </Avatar>
                 <div className="flex gap-3">
-                  <Button className="bg-[#E65E2C] hover:bg-[#d95222] text-white">
-                    Upload
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={handleAvatarClick}
+                    disabled={isUploading}
+                    className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
+                  >
+                    {isUploading ? "Uploading..." : "Upload"}
                   </Button>
-                  <Button variant="outline" className="text-gray-600 border-gray-200">
+                  <Button
+                    variant="outline"
+                    className="text-gray-600 border-gray-200"
+                    disabled={isUploading}
+                    onClick={async () => {
+                      if (!avatarUrl) return;
+                      if (!confirm('Xóa ảnh đại diện?')) return;
+                      try {
+                        await http.patch('/users/profile', { avatar: null });
+                        setAvatarUrl(null);
+                        const storedUser = localStorage.getItem("user");
+                        if (storedUser) {
+                          const userObj = JSON.parse(storedUser);
+                          userObj.avatar = null;
+                          localStorage.setItem("user", JSON.stringify(userObj));
+                        }
+                        toast.success('Đã xóa ảnh đại diện');
+                      } catch (e) {
+                        toast.error('Không thể xóa ảnh');
+                      }
+                    }}
+                  >
                     Remove
                   </Button>
                 </div>
