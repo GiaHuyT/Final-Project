@@ -204,9 +204,10 @@ export default function ProfilePage() {
       }
 
       toast.success('Cập nhật hồ sơ thành công!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update Profile Error:', error);
-      toast.error('Có lỗi xảy ra, vui lòng thử lại.');
+      const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
+      toast.error(Array.isArray(message) ? message[0] : message);
     } finally {
       setIsSaving(false);
     }

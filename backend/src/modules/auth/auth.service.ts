@@ -4,27 +4,48 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
-import { ForgotPasswordDto } from './dto/forgot-password';
 import { randomBytes } from 'crypto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) { }
 
-  //Refresh Token
-  generateAccessToken(userId: number) {
-    return this.jwtService.sign({ sub: userId }, { expiresIn: '15m' });
+  // JWT TOKENS
+  generateToken(user: any) {
+    const payload = {
+      sub: user.id,
+      role: user.role,
+    };
+
+    return {
+      message: 'Đăng nhập thành công',
+      accessToken: this.jwtService.sign(payload),
+      user,
+    };
   }
+
+  generateAccessToken(userId: number, role: string) {
+    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '15m' });
+  }
+
   generateRefreshToken(userId: number) {
-    return this.jwtService.sign({ sub: userId }, { expiresIn: '7d', secret: process.env.JWT_REFRESH_SECRET });
+    return this.jwtService.sign(
+      { sub: userId },
+      {
+        expiresIn: '7d',
+        secret: this.configService.get('JWT_REFRESH_SECRET') || 'REFRESH_SECRET',
+      },
+    );
   }
+
   verifyRefreshToken(token: string) {
     return this.jwtService.verify(token, {
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: this.configService.get('JWT_REFRESH_SECRET') || 'REFRESH_SECRET',
     });
   }
 
@@ -52,7 +73,7 @@ export class AuthService {
       username: userDTO.username,
       email: userDTO.email,
       phonenumber: userDTO.phonenumber,
-      password: hashedPassword,
+      password: userDTO.password, // Pass plain password, UserService will hash it
     });
 
     return {
@@ -62,7 +83,7 @@ export class AuthService {
     };
   }
 
-  // LOGIN
+  // VALIDATION & LOGIN
   async validateUser(identifier: string, password: string) {
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
 
@@ -79,7 +100,6 @@ export class AuthService {
       return null;
     }
 
-    // ❗ Không trả password
     return {
       id: user.id,
       username: user.username,
@@ -90,21 +110,17 @@ export class AuthService {
     };
   }
 
-  // JWT
-  generateToken(user: any) {
-    const payload = {
-      sub: user.id,
-      role: user.role,
-    };
-
+  async validateUserById(id: number) {
+    const user = await this.usersService.findById(id);
+    if (!user) return null;
     return {
-      message: 'Đăng nhập thành công',
-      accessToken: this.jwtService.sign(payload),
-      user,
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
     };
   }
 
-  // LOGIN API
   async login(identifier: string, password: string) {
     const user = await this.validateUser(identifier, password);
     if (!user) {
@@ -121,16 +137,13 @@ export class AuthService {
       throw new BadRequestException('Email không tồn tại trong hệ thống');
     }
 
-    // Reset token
     const token = randomBytes(32).toString('hex');
     const expires = new Date();
     expires.setHours(expires.getHours() + 1);
 
-    // Save token to the user DB
     await this.usersService.saveResetToken(user.id, token, expires);
 
-    // Kiểm tra cấu hình email
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    if (!this.configService.get('EMAIL_USER') || !this.configService.get('EMAIL_PASS')) {
       console.error('LỖI: Chưa cấu hình EMAIL_USER hoặc EMAIL_PASS trong file .env');
       throw new BadRequestException('Hệ thống gửi mail chưa được cấu hình. Vui lòng liên hệ Admin.');
     }
@@ -138,20 +151,19 @@ export class AuthService {
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: this.configService.get('EMAIL_USER'),
+        pass: this.configService.get('EMAIL_PASS'),
       },
       tls: {
-        rejectUnauthorized: false, // Bỏ qua lỗi chứng chỉ SSL (Sửa lỗi self-signed certificate)
+        rejectUnauthorized: false,
       },
     });
 
-    const resetLink = `http://localhost:3001/auth/reset-password?token=${token}`;
+    const resetLink = `${this.configService.get('FRONTEND_URL') || 'http://localhost:3001'}/auth/reset-password?token=${token}`;
 
-    // Send email
     try {
       await transporter.sendMail({
-        from: `"Hệ thống Hỗ trợ" <${process.env.EMAIL_USER}>`,
+        from: `"Hệ thống Hỗ trợ" <${this.configService.get('EMAIL_USER')}>`,
         to: user.email,
         subject: 'Khôi phục mật khẩu của bạn',
         html: `
@@ -181,11 +193,8 @@ export class AuthService {
     const user = await this.usersService.findByResetToken(token);
     if (!user) throw new BadRequestException('Mã xác nhận không hợp lệ hoặc đã hết hạn');
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password (ép kiểu any để tránh lỗi lint nếu Prisma chưa generate xong)
     await this.usersService.update(user.id, {
-      password: hashedPassword,
+      password: newPassword,
       resetToken: null,
       resetTokenExpires: null,
     } as any);

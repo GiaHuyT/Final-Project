@@ -7,13 +7,19 @@ import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './passport/jwt.strategy';
 import { LocalStrategy } from './passport/local.strategy';
 
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.register({
-      secret: 'SECRET_KEY',
-      signOptions: { expiresIn: '15m' },
+    ConfigModule,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get('JWT_SECRET') || 'ANTIGRAVITY_FALLBACK_SECRET',
+        signOptions: { expiresIn: '15m' },
+      }),
     }),
   ],
   controllers: [AuthController],

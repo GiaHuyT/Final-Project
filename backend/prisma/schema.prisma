@@ -19,6 +19,7 @@ model User {
   avatar            String?
   role              Role     @default(CUSTOMER)
   isApprovedVendor  Boolean  @default(false)
+  isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   resetToken        String?   // token reset password
   resetTokenExpires DateTime? // 

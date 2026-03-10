@@ -3,12 +3,17 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
 
+import { ConfigService } from '@nestjs/config';
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private usersService: UsersService) {
+  constructor(
+    private usersService: UsersService,
+    private configService: ConfigService,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: 'SECRET_KEY',
+      secretOrKey: configService.get('JWT_SECRET') || 'ANTIGRAVITY_FALLBACK_SECRET',
     });
   }
 

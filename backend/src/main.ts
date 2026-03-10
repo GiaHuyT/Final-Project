@@ -3,8 +3,6 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { AppModule } from './app.module';
-import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
-import { RolesGuard } from './modules/auth/passport/roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -27,8 +25,7 @@ async function bootstrap() {
 
   const reflector = app.get(Reflector);
 
-  // Global Guard
-  app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
+  // Global Guards (JwtAuthGuard, RolesGuard) are now registered in AppModule via APP_GUARD
 
   // Global Validation
   app.useGlobalPipes(
