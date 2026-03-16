@@ -81,6 +81,35 @@ model Product {
   category    Category @relation(fields: [categoryId], references: [id])
   createdAt   DateTime @default(now())
   
+  // Thông tin xe bổ sung
+  brand             String?
+  modelName         String?
+  version           String?
+  year              Int?
+  condition         String?   @default("Xe mới")
+  mileage           Float?
+  color             String?
+  bodyType          String?
+  
+  // Thông số động cơ
+  fuelType          String?
+  engineCapacity    String?
+  maxPower          String?
+  maxTorque         String?
+  transmission      String?
+  driveType         String?
+  
+  // Thông số kích thước
+  length            Float?
+  width             Float?
+  height            Float?
+  wheelbase         Float?
+  groundClearance   Float?
+  
+  // Nhiên liệu
+  fuelTankCapacity  Float?
+  avgFuelConsumption Float?
+
   orderItems  OrderItem[]
   favorites   Favorite[]
 }

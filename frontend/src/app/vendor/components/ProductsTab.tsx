@@ -24,10 +24,35 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         name: '',
         categoryId: '',
         price: '',
-        stock: '',
+        stock: '1', // Mặc định 1 cho xe
         description: '',
         status: true,
         imageUrl: '',
+        // Thông tin xe bổ sung
+        brand: '',
+        modelName: '',
+        version: '',
+        year: new Date().getFullYear().toString(),
+        condition: 'Xe mới',
+        mileage: '0',
+        color: '',
+        bodyType: '',
+        // Thông số động cơ
+        fuelType: '',
+        engineCapacity: '',
+        maxPower: '',
+        maxTorque: '',
+        transmission: '',
+        driveType: '',
+        // Thông số kích thước
+        length: '',
+        width: '',
+        height: '',
+        wheelbase: '',
+        groundClearance: '',
+        // Nhiên liệu
+        fuelTankCapacity: '',
+        avgFuelConsumption: '',
     });
 
     useEffect(() => {
@@ -78,8 +103,17 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         try {
             await http.post('/products', {
                 ...formData,
-                price: parseFloat(formData.price),
-                stock: parseInt(formData.stock),
+                price: parseFloat(formData.price) || 0,
+                stock: parseInt(formData.stock) || 0,
+                year: parseInt(formData.year) || undefined,
+                mileage: parseFloat(formData.mileage) || 0,
+                length: parseFloat(formData.length) || undefined,
+                width: parseFloat(formData.width) || undefined,
+                height: parseFloat(formData.height) || undefined,
+                wheelbase: parseFloat(formData.wheelbase) || undefined,
+                groundClearance: parseFloat(formData.groundClearance) || undefined,
+                fuelTankCapacity: parseFloat(formData.fuelTankCapacity) || undefined,
+                avgFuelConsumption: parseFloat(formData.avgFuelConsumption) || undefined,
             });
             toast.success('Thêm sản phẩm thành công');
             setIsAddOpen(false);
@@ -102,6 +136,27 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             description: prod.description || '',
             status: prod.status,
             imageUrl: prod.imageUrl || '',
+            brand: prod.brand || '',
+            modelName: prod.modelName || '',
+            version: prod.version || '',
+            year: prod.year?.toString() || '',
+            condition: prod.condition || 'Xe mới',
+            mileage: prod.mileage?.toString() || '0',
+            color: prod.color || '',
+            bodyType: prod.bodyType || '',
+            fuelType: prod.fuelType || '',
+            engineCapacity: prod.engineCapacity || '',
+            maxPower: prod.maxPower || '',
+            maxTorque: prod.maxTorque || '',
+            transmission: prod.transmission || '',
+            driveType: prod.driveType || '',
+            length: prod.length?.toString() || '',
+            width: prod.width?.toString() || '',
+            height: prod.height?.toString() || '',
+            wheelbase: prod.wheelbase?.toString() || '',
+            groundClearance: prod.groundClearance?.toString() || '',
+            fuelTankCapacity: prod.fuelTankCapacity?.toString() || '',
+            avgFuelConsumption: prod.avgFuelConsumption?.toString() || '',
         });
         setIsEditOpen(true);
     };
@@ -111,8 +166,17 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         try {
             await http.patch(`/products/${selectedProduct.id}`, {
                 ...formData,
-                price: parseFloat(formData.price),
-                stock: parseInt(formData.stock),
+                price: parseFloat(formData.price) || 0,
+                stock: parseInt(formData.stock) || 0,
+                year: parseInt(formData.year) || undefined,
+                mileage: parseFloat(formData.mileage) || 0,
+                length: parseFloat(formData.length) || undefined,
+                width: parseFloat(formData.width) || undefined,
+                height: parseFloat(formData.height) || undefined,
+                wheelbase: parseFloat(formData.wheelbase) || undefined,
+                groundClearance: parseFloat(formData.groundClearance) || undefined,
+                fuelTankCapacity: parseFloat(formData.fuelTankCapacity) || undefined,
+                avgFuelConsumption: parseFloat(formData.avgFuelConsumption) || undefined,
             });
             toast.success('Cập nhật sản phẩm thành công');
             setIsEditOpen(false);
@@ -136,117 +200,195 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
     };
 
     const ProductForm = () => (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 py-6">
-            <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-semibold text-gray-700">Tên sản phẩm</Label>
-                <Input 
-                    id="name" 
-                    name="name" 
-                    placeholder="Ví dụ: Porsche 911 GT3 RS"
-                    value={formData.name} 
-                    onChange={handleChange} 
-                    className="focus:ring-orange-500/20 focus:border-orange-500"
-                />
-            </div>
-            
-            <div className="space-y-2">
-                <Label htmlFor="categoryId" className="text-sm font-semibold text-gray-700">Danh mục</Label>
-                <select
-                    id="categoryId"
-                    name="categoryId"
-                    value={formData.categoryId}
-                    onChange={handleChange}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-orange-500"
-                >
-                    <option value="">-- Chọn danh mục --</option>
-                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-            </div>
-            
-            <div className="space-y-2">
-                <Label htmlFor="price" className="text-sm font-semibold text-gray-700">Giá bán (VNĐ)</Label>
-                <div className="relative">
-                    <Input 
-                        id="price" 
-                        name="price" 
-                        type="number" 
-                        placeholder="0"
-                        value={formData.price} 
-                        onChange={handleChange} 
-                        className="pl-8 focus:ring-orange-500/20 focus:border-orange-500"
-                    />
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₫</span>
+        <div className="space-y-8 py-6">
+            {/* 1. Thông tin cơ bản */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-orange-600 border-l-4 border-orange-600 pl-3">1. Thông tin cơ bản</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="name" className="text-sm font-semibold text-gray-700">Tên xe hiển thị</Label>
+                        <Input id="name" name="name" placeholder="Ví dụ: Porsche 911 GT3 RS 2024" value={formData.name} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="brand" className="text-sm font-semibold text-gray-700">Hãng xe (Brand)</Label>
+                        <Input id="brand" name="brand" placeholder="Ví dụ: Porsche" value={formData.brand} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="modelName" className="text-sm font-semibold text-gray-700">Dòng xe (Model)</Label>
+                        <Input id="modelName" name="modelName" placeholder="Ví dụ: 911 GT3 RS" value={formData.modelName} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="version" className="text-sm font-semibold text-gray-700">Phiên bản</Label>
+                        <Input id="version" name="version" placeholder="Ví dụ: Weissach Package" value={formData.version} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="year" className="text-sm font-semibold text-gray-700">Năm sản xuất</Label>
+                        <Input id="year" name="year" type="number" value={formData.year} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="categoryId" className="text-sm font-semibold text-gray-700">Danh mục</Label>
+                        <select id="categoryId" name="categoryId" value={formData.categoryId} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <option value="">-- Chọn danh mục --</option>
+                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="price" className="text-sm font-semibold text-gray-700">Giá bán (VNĐ)</Label>
+                        <Input id="price" name="price" type="number" value={formData.price} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="condition" className="text-sm font-semibold text-gray-700">Tình trạng</Label>
+                        <select id="condition" name="condition" value={formData.condition} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <option value="Xe mới">Xe mới</option>
+                            <option value="Xe cũ">Xe cũ</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="mileage" className="text-sm font-semibold text-gray-700">Số km đã đi</Label>
+                        <Input id="mileage" name="mileage" type="number" value={formData.mileage} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="color" className="text-sm font-semibold text-gray-700">Màu xe</Label>
+                        <Input id="color" name="color" value={formData.color} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="bodyType" className="text-sm font-semibold text-gray-700">Loại xe</Label>
+                        <select id="bodyType" name="bodyType" value={formData.bodyType} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <option value="">-- Chọn loại xe --</option>
+                            <option value="Sedan">Sedan</option>
+                            <option value="SUV">SUV</option>
+                            <option value="Hatchback">Hatchback</option>
+                            <option value="Pickup">Pickup</option>
+                            <option value="Coupe">Coupe</option>
+                            <option value="Convertible">Convertible</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="stock" className="text-sm font-semibold text-gray-700">Số lượng (Tồn kho)</Label>
+                        <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleChange} />
+                    </div>
                 </div>
-            </div>
-            
-            <div className="space-y-2">
-                <Label htmlFor="stock" className="text-sm font-semibold text-gray-700">Số lượng tồn kho</Label>
-                <Input 
-                    id="stock" 
-                    name="stock" 
-                    type="number" 
-                    placeholder="0"
-                    value={formData.stock} 
-                    onChange={handleChange} 
-                    className="focus:ring-orange-500/20 focus:border-orange-500"
-                />
-            </div>
-            
-            <div className="md:col-span-2 space-y-2">
-                <Label className="text-sm font-semibold text-gray-700">Hình ảnh sản phẩm</Label>
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50 hover:bg-gray-50 transition-colors">
-                    <div className="shrink-0">
-                        {formData.imageUrl ? (
-                            <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-white shadow-sm group">
-                                <img src={formData.imageUrl} alt="preview" className="object-cover w-full h-full transition-transform group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                    <span className="text-white text-xs font-medium">Thay đổi</span>
+                <div className="md:col-span-2 space-y-2">
+                    <Label className="text-sm font-semibold text-gray-700">Hình ảnh xe</Label>
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
+                        <div className="shrink-0">
+                            {formData.imageUrl ? (
+                                <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-white shadow-sm">
+                                    <img src={formData.imageUrl} alt="preview" className="object-cover w-full h-full" />
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="w-32 h-32 bg-white rounded-lg border border-gray-100 flex flex-col items-center justify-center text-gray-400 shadow-inner">
-                                <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                                <span className="text-[10px] uppercase tracking-wider font-bold">Chưa có ảnh</span>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="w-32 h-32 bg-white rounded-lg border border-gray-100 flex flex-col items-center justify-center text-gray-400">
+                                    <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
+                                    <span className="text-[10px] font-bold">CHƯA CÓ ẢNH</span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex-1 space-y-3 w-full">
+                            <Input type="file" onChange={handleFileChange} accept="image/*" className="text-xs" />
+                        </div>
                     </div>
-                    <div className="flex-1 space-y-3 w-full">
-                        <p className="text-xs text-gray-500">Tải lên hình ảnh rõ nét của sản phẩm. Định dạng: JPG, PNG, WEBP (Tối đa 2MB).</p>
-                        <Input 
-                            type="file" 
-                            onChange={handleFileChange} 
-                            accept="image/*" 
-                            className="text-xs file:bg-orange-50 file:text-orange-600 file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-3 hover:file:bg-orange-100 cursor-pointer" 
-                        />
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Mô tả chi tiết</Label>
+                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                </div>
+            </div>
+
+            {/* 2. Thông số động cơ */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-blue-600 border-l-4 border-blue-600 pl-3">2. Thông số động cơ</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="fuelType" className="text-sm font-semibold text-gray-700">Loại nhiên liệu</Label>
+                        <select id="fuelType" name="fuelType" value={formData.fuelType} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <option value="">-- Chọn nhiên liệu --</option>
+                            <option value="Xăng">Xăng</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Hybrid">Hybrid</option>
+                            <option value="Điện">Điện</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="engineCapacity" className="text-sm font-semibold text-gray-700">Dung tích động cơ</Label>
+                        <Input id="engineCapacity" name="engineCapacity" placeholder="Ví dụ: 3,996 cc" value={formData.engineCapacity} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="maxPower" className="text-sm font-semibold text-gray-700">Công suất tối đa</Label>
+                        <Input id="maxPower" name="maxPower" placeholder="Ví dụ: 525 PS" value={formData.maxPower} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="maxTorque" className="text-sm font-semibold text-gray-700">Mô men xoắn cực đại</Label>
+                        <Input id="maxTorque" name="maxTorque" placeholder="Ví dụ: 465 Nm" value={formData.maxTorque} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="transmission" className="text-sm font-semibold text-gray-700">Hộp số</Label>
+                        <select id="transmission" name="transmission" value={formData.transmission} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <option value="">-- Chọn hộp số --</option>
+                            <option value="Số sàn">Số sàn</option>
+                            <option value="Tự động">Tự động</option>
+                            <option value="CVT">CVT</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="driveType" className="text-sm font-semibold text-gray-700">Dẫn động</Label>
+                        <select id="driveType" name="driveType" value={formData.driveType} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <option value="">-- Chọn dẫn động --</option>
+                            <option value="FWD">Cầu trước (FWD)</option>
+                            <option value="RWD">Cầu sau (RWD)</option>
+                            <option value="AWD">Bốn bánh (AWD)</option>
+                        </select>
                     </div>
                 </div>
             </div>
-            
-            <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Mô tả sản phẩm</Label>
-                <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Mô tả chi tiết về sản phẩm của bạn..."
-                    value={formData.description}
-                    onChange={handleChange}
-                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus:border-orange-500 transition-all"
-                />
+
+            {/* 3. Thông số kích thước */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-green-600 border-l-4 border-green-600 pl-3">3. Thông số kích thước</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="length" className="text-sm font-semibold text-gray-700">Chiều dài (mm)</Label>
+                        <Input id="length" name="length" type="number" value={formData.length} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="width" className="text-sm font-semibold text-gray-700">Chiều rộng (mm)</Label>
+                        <Input id="width" name="width" type="number" value={formData.width} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="height" className="text-sm font-semibold text-gray-700">Chiều cao (mm)</Label>
+                        <Input id="height" name="height" type="number" value={formData.height} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="wheelbase" className="text-sm font-semibold text-gray-700">Chiều dài cơ sở (mm)</Label>
+                        <Input id="wheelbase" name="wheelbase" type="number" value={formData.wheelbase} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="groundClearance" className="text-sm font-semibold text-gray-700">Khoảng sáng gầm xe (mm)</Label>
+                        <Input id="groundClearance" name="groundClearance" type="number" value={formData.groundClearance} onChange={handleChange} />
+                    </div>
+                </div>
             </div>
-            
-            <div className="md:col-span-2 p-3 bg-blue-50/50 rounded-lg border border-blue-100/50">
+
+            {/* 4. Nhiên liệu */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-teal-600 border-l-4 border-teal-600 pl-3">4. Nhiên liệu</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="fuelTankCapacity" className="text-sm font-semibold text-gray-700">Dung tích bình nhiên liệu (Lít)</Label>
+                        <Input id="fuelTankCapacity" name="fuelTankCapacity" type="number" value={formData.fuelTankCapacity} onChange={handleChange} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="avgFuelConsumption" className="text-sm font-semibold text-gray-700">Tiêu hao nhiên liệu TB (L/100km)</Label>
+                        <Input id="avgFuelConsumption" name="avgFuelConsumption" type="number" value={formData.avgFuelConsumption} onChange={handleChange} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="flex items-center space-x-3">
-                    <input 
-                        type="checkbox" 
-                        id="status" 
-                        name="status" 
-                        checked={formData.status} 
-                        onChange={handleChange} 
-                        className="w-5 h-5 text-orange-600 border-gray-300 rounded-md focus:ring-orange-500 cursor-pointer" 
-                    />
+                    <input type="checkbox" id="status" name="status" checked={formData.status} onChange={handleChange} className="w-5 h-5 text-orange-600 border-gray-300 rounded" />
                     <div>
-                        <label htmlFor="status" className="text-sm font-bold text-gray-800 cursor-pointer">Kích hoạt bán ngay</label>
-                        <p className="text-[11px] text-gray-500">Sản phẩm sẽ hiển thị trên sàn ngay sau khi lưu.</p>
+                        <label htmlFor="status" className="text-sm font-bold text-gray-800">Hiển thị sản phẩm công khai</label>
+                        <p className="text-[11px] text-gray-500">Người mua sẽ thấy sản phẩm này trên sàn đấu giá.</p>
                     </div>
                 </div>
             </div>
