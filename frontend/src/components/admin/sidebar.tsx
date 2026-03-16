@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/admin' },
@@ -27,6 +29,14 @@ const menuItems = [
 
 export function AdminSidebar() {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    Cookies.remove('token');
+    router.push('/auth/login');
+  };
 
   return (
     <div className={cn(
@@ -72,7 +82,7 @@ export function AdminSidebar() {
         <Button variant="ghost" className={cn(
           "w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10",
           isCollapsed && "px-2"
-        )}>
+        )} onClick={handleLogout}>
           <LogOut className="h-5 w-5" />
           {!isCollapsed && <span>Đăng xuất</span>}
         </Button>

@@ -16,6 +16,15 @@ export class ProductsService {
         });
     }
 
+    async findByVendorId(vendorId: number) {
+        return this.prisma.product.findMany({
+            where: { vendorId },
+            include: {
+                category: true,
+            }
+        });
+    }
+
     async findOne(id: number) {
         return this.prisma.product.findUnique({
             where: { id },
@@ -32,6 +41,25 @@ export class ProductsService {
         return this.prisma.product.update({
             where: { id },
             data: { status }
+        });
+    }
+
+    async create(vendorId: number, data: any) {
+        return this.prisma.product.create({
+            data: { ...data, vendorId, categoryId: parseInt(data.categoryId) }
+        });
+    }
+
+    async update(id: number, vendorId: number, data: any) {
+        return this.prisma.product.update({
+            where: { id },
+            data: { ...data, categoryId: data.categoryId ? parseInt(data.categoryId) : undefined }
+        });
+    }
+
+    async remove(id: number) {
+        return this.prisma.product.delete({
+            where: { id }
         });
     }
 }

@@ -254,9 +254,11 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full bg-white border-dashed border-gray-300 hover:border-orange-500 hover:text-orange-600 h-10 gap-2">
-            <Store className="w-4 h-4" />
-            Tài khoản nhà cung cấp
+          <Button variant="outline" className="w-full bg-white border-dashed border-gray-300 hover:border-orange-500 hover:text-orange-600 h-10 p-0 overflow-hidden">
+            <Link href="/vendor" className="flex items-center justify-center w-full h-full gap-2">
+              <Store className="w-4 h-4" />
+              Tài khoản nhà cung cấp
+            </Link>
           </Button>
         </div>
 

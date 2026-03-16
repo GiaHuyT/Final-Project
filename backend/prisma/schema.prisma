@@ -74,6 +74,7 @@ model Product {
   price       Float
   stock       Int      @default(0)
   status      Boolean  @default(true)
+  imageUrl    String?
   vendorId    Int
   vendor      User     @relation(fields: [vendorId], references: [id])
   categoryId  Int
@@ -117,15 +118,31 @@ model ServiceProfile {
   serviceType String
   experience  String?
   isApproved  Boolean  @default(false)
-  vehicles    Vehicle[]
+  vehicles    RentalCar[]
+  repairs     RepairService[]
 }
 
-model Vehicle {
+model RentalCar {
   id          Int      @id @default(autoincrement())
   profileId   Int
   profile     ServiceProfile @relation(fields: [profileId], references: [id])
   type        String
   description String?
+  name        String   @default("Unknown")
+  plate       String   @default("Unknown")
+  price       Float    @default(0)
+  status      String   @default("Sẵn sàng")
+  imageUrl    String?
+}
+
+model RepairService {
+  id          Int      @id @default(autoincrement())
+  profileId   Int
+  profile     ServiceProfile @relation(fields: [profileId], references: [id])
+  name        String
+  description String?
+  price       Float    @default(0)
+  status      String   @default("Hoạt động")
 }
 
 // --- NHÓM GIAO DỊCH & TƯƠNG TÁC ---

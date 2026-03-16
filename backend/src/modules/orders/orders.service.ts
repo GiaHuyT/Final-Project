@@ -18,6 +18,26 @@ export class OrdersService {
         });
     }
 
+    async findByVendorId(vendorId: number) {
+        return this.prisma.order.findMany({
+            where: {
+                items: {
+                    some: {
+                        product: { vendorId }
+                    }
+                }
+            },
+            include: {
+                customer: {
+                    select: { username: true, email: true }
+                },
+                items: {
+                    include: { product: true }
+                }
+            }
+        });
+    }
+
     async findOne(id: number) {
         return this.prisma.order.findUnique({
             where: { id },

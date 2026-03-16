@@ -9,6 +9,8 @@ import { ProductsModule } from './modules/products/products.module';
 import { AuctionsModule } from './modules/auctions/auctions.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { RentalCarsModule } from './modules/rental-cars/rental-cars.module';
+import { RepairsModule } from './modules/repairs/repairs.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/passport/roles.guard';
@@ -25,6 +27,8 @@ import { RolesGuard } from './modules/auth/passport/roles.guard';
     AuctionsModule,
     OrdersModule,
     DashboardModule,
+    RentalCarsModule,
+    RepairsModule,
   ],
   controllers: [],
   providers: [
