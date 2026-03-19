@@ -16,6 +16,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [categories, setCategories] = useState<any[]>([]);
+    const [brands, setBrands] = useState<any[]>([]);
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +32,6 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         // Thông tin xe bổ sung
         brand: '',
         modelName: '',
-        version: '',
         year: new Date().getFullYear().toString(),
         condition: 'Xe mới',
         mileage: '0',
@@ -44,21 +44,39 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         maxTorque: '',
         transmission: '',
         driveType: '',
-        // Thông số kích thước
+        // Thông số kích thước & trọng lượng
         length: '',
         width: '',
         height: '',
         wheelbase: '',
         groundClearance: '',
+        curbWeight: '',
         // Nhiên liệu
         fuelTankCapacity: '',
         avgFuelConsumption: '',
+        // Tiện nghi
+        autoConditioning: false,
+        infotainment: false,
+        appleCarplay: false,
+        electricSeats: false,
+        camera360: false,
+        // An toàn
+        airbags: '0',
+        abs: false,
+        esp: false,
+        ba: false,
+        rearSensor: false,
     });
 
     useEffect(() => {
         // Fetch categories when component mounts
         http.get('/categories').then(res => {
             setCategories(res.data);
+        }).catch(err => console.error(err));
+        
+        // Fetch brands and models
+        http.get('/brands').then(res => {
+            setBrands(res.data);
         }).catch(err => console.error(err));
     }, []);
 
@@ -112,12 +130,62 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 height: parseFloat(formData.height) || undefined,
                 wheelbase: parseFloat(formData.wheelbase) || undefined,
                 groundClearance: parseFloat(formData.groundClearance) || undefined,
+                curbWeight: parseFloat(formData.curbWeight) || undefined,
                 fuelTankCapacity: parseFloat(formData.fuelTankCapacity) || undefined,
                 avgFuelConsumption: parseFloat(formData.avgFuelConsumption) || undefined,
+                autoConditioning: formData.autoConditioning,
+                infotainment: formData.infotainment,
+                appleCarplay: formData.appleCarplay,
+                electricSeats: formData.electricSeats,
+                camera360: formData.camera360,
+                airbags: parseInt(formData.airbags) || 0,
+                abs: formData.abs,
+                esp: formData.esp,
+                ba: formData.ba,
+                rearSensor: formData.rearSensor,
             });
             toast.success('Thêm sản phẩm thành công');
             setIsAddOpen(false);
-            setFormData({ name: '', categoryId: '', price: '', stock: '', description: '', status: true, imageUrl: '' });
+            setFormData({
+                name: '',
+                categoryId: '',
+                price: '',
+                stock: '1',
+                description: '',
+                status: true,
+                imageUrl: '',
+                brand: '',
+                modelName: '',
+                year: new Date().getFullYear().toString(),
+                condition: 'Xe mới',
+                mileage: '0',
+                color: '',
+                bodyType: '',
+                fuelType: '',
+                engineCapacity: '',
+                maxPower: '',
+                maxTorque: '',
+                transmission: '',
+                driveType: '',
+                length: '',
+                width: '',
+                height: '',
+                wheelbase: '',
+                groundClearance: '',
+                curbWeight: '',
+                fuelTankCapacity: '',
+                avgFuelConsumption: '',
+                autoConditioning: false,
+                infotainment: false,
+                appleCarplay: false,
+                electricSeats: false,
+                camera360: false,
+                airbags: '0',
+                abs: false,
+                esp: false,
+                ba: false,
+                rearSensor: false,
+            });
             onRefresh();
         } catch (error) {
             toast.error('Có lỗi xảy ra');
@@ -138,7 +206,6 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             imageUrl: prod.imageUrl || '',
             brand: prod.brand || '',
             modelName: prod.modelName || '',
-            version: prod.version || '',
             year: prod.year?.toString() || '',
             condition: prod.condition || 'Xe mới',
             mileage: prod.mileage?.toString() || '0',
@@ -155,8 +222,19 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             height: prod.height?.toString() || '',
             wheelbase: prod.wheelbase?.toString() || '',
             groundClearance: prod.groundClearance?.toString() || '',
+            curbWeight: prod.curbWeight?.toString() || '',
             fuelTankCapacity: prod.fuelTankCapacity?.toString() || '',
             avgFuelConsumption: prod.avgFuelConsumption?.toString() || '',
+            autoConditioning: prod.autoConditioning || false,
+            infotainment: prod.infotainment || false,
+            appleCarplay: prod.appleCarplay || false,
+            electricSeats: prod.electricSeats || false,
+            camera360: prod.camera360 || false,
+            airbags: prod.airbags?.toString() || '0',
+            abs: prod.abs || false,
+            esp: prod.esp || false,
+            ba: prod.ba || false,
+            rearSensor: prod.rearSensor || false,
         });
         setIsEditOpen(true);
     };
@@ -175,8 +253,19 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 height: parseFloat(formData.height) || undefined,
                 wheelbase: parseFloat(formData.wheelbase) || undefined,
                 groundClearance: parseFloat(formData.groundClearance) || undefined,
+                curbWeight: parseFloat(formData.curbWeight) || undefined,
                 fuelTankCapacity: parseFloat(formData.fuelTankCapacity) || undefined,
                 avgFuelConsumption: parseFloat(formData.avgFuelConsumption) || undefined,
+                autoConditioning: formData.autoConditioning,
+                infotainment: formData.infotainment,
+                appleCarplay: formData.appleCarplay,
+                electricSeats: formData.electricSeats,
+                camera360: formData.camera360,
+                airbags: parseInt(formData.airbags) || 0,
+                abs: formData.abs,
+                esp: formData.esp,
+                ba: formData.ba,
+                rearSensor: formData.rearSensor,
             });
             toast.success('Cập nhật sản phẩm thành công');
             setIsEditOpen(false);
@@ -199,7 +288,11 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         }
     };
 
-    const ProductForm = () => (
+    const ProductForm = () => {
+        const selectedBrandObj = brands.find(b => b.name === formData.brand);
+        const availableModels = selectedBrandObj ? selectedBrandObj.models : [];
+
+        return (
         <div className="space-y-8 py-6">
             {/* 1. Thông tin cơ bản */}
             <div className="space-y-4">
@@ -210,16 +303,31 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                         <Input id="name" name="name" placeholder="Ví dụ: Porsche 911 GT3 RS 2024" value={formData.name} onChange={handleChange} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="brand" className="text-sm font-semibold text-gray-700">Hãng xe (Brand)</Label>
-                        <Input id="brand" name="brand" placeholder="Ví dụ: Porsche" value={formData.brand} onChange={handleChange} />
+                        <Label htmlFor="brand" className="text-sm font-semibold text-gray-700">Hãng xe</Label>
+                        <select 
+                            id="brand" 
+                            name="brand" 
+                            value={formData.brand} 
+                            onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value, modelName: '' }))} 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        >
+                            <option value="">-- Chọn hãng xe --</option>
+                            {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                        </select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="modelName" className="text-sm font-semibold text-gray-700">Dòng xe (Model)</Label>
-                        <Input id="modelName" name="modelName" placeholder="Ví dụ: 911 GT3 RS" value={formData.modelName} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="version" className="text-sm font-semibold text-gray-700">Phiên bản</Label>
-                        <Input id="version" name="version" placeholder="Ví dụ: Weissach Package" value={formData.version} onChange={handleChange} />
+                        <Label htmlFor="modelName" className="text-sm font-semibold text-gray-700">Dòng xe</Label>
+                        <select 
+                            id="modelName" 
+                            name="modelName" 
+                            value={formData.modelName} 
+                            onChange={handleChange} 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            disabled={!formData.brand}
+                        >
+                            <option value="">-- Chọn dòng xe --</option>
+                            {availableModels.map((m: any) => <option key={m.id} value={m.name}>{m.name}</option>)}
+                        </select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="year" className="text-sm font-semibold text-gray-700">Năm sản xuất</Label>
@@ -341,9 +449,9 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 </div>
             </div>
 
-            {/* 3. Thông số kích thước */}
+            {/* 3. Thông số kích thước & trọng lượng */}
             <div className="space-y-4">
-                <h3 className="text-lg font-bold text-green-600 border-l-4 border-green-600 pl-3">3. Thông số kích thước</h3>
+                <h3 className="text-lg font-bold text-green-600 border-l-4 border-green-600 pl-3">3. Kích thước & trọng lượng</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label htmlFor="length" className="text-sm font-semibold text-gray-700">Chiều dài (mm)</Label>
@@ -365,6 +473,10 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                         <Label htmlFor="groundClearance" className="text-sm font-semibold text-gray-700">Khoảng sáng gầm xe (mm)</Label>
                         <Input id="groundClearance" name="groundClearance" type="number" value={formData.groundClearance} onChange={handleChange} />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="curbWeight" className="text-sm font-semibold text-gray-700">Trọng lượng không tải (kg)</Label>
+                        <Input id="curbWeight" name="curbWeight" type="number" value={formData.curbWeight} onChange={handleChange} />
+                    </div>
                 </div>
             </div>
 
@@ -383,6 +495,62 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 </div>
             </div>
 
+            {/* 5. Tiện nghi */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-purple-600 border-l-4 border-purple-600 pl-3">5. Tiện nghi</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="autoConditioning" name="autoConditioning" checked={formData.autoConditioning} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-purple-600" />
+                        <label htmlFor="autoConditioning" className="text-sm text-gray-700 font-medium">Điều hòa tự động</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="infotainment" name="infotainment" checked={formData.infotainment} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-purple-600" />
+                        <label htmlFor="infotainment" className="text-sm text-gray-700 font-medium">Màn hình giải trí</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="appleCarplay" name="appleCarplay" checked={formData.appleCarplay} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-purple-600" />
+                        <label htmlFor="appleCarplay" className="text-sm text-gray-700 font-medium">Apple CarPlay/Android Auto</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="electricSeats" name="electricSeats" checked={formData.electricSeats} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-purple-600" />
+                        <label htmlFor="electricSeats" className="text-sm text-gray-700 font-medium">Ghế chỉnh điện</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="camera360" name="camera360" checked={formData.camera360} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-purple-600" />
+                        <label htmlFor="camera360" className="text-sm text-gray-700 font-medium">Camera lùi/360</label>
+                    </div>
+                </div>
+            </div>
+
+            {/* 6. An toàn */}
+            <div className="space-y-4">
+                <h3 className="text-lg font-bold text-red-600 border-l-4 border-red-600 pl-3">6. An toàn</h3>
+                <div className="space-y-4">
+                    <div className="w-full md:w-1/2 space-y-2">
+                        <Label htmlFor="airbags" className="text-sm font-semibold text-gray-700">Túi khí (số lượng)</Label>
+                        <Input id="airbags" name="airbags" type="number" min="0" value={formData.airbags} onChange={handleChange} />
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="abs" name="abs" checked={formData.abs} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-red-600" />
+                            <label htmlFor="abs" className="text-sm text-gray-700 font-medium">ABS</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="esp" name="esp" checked={formData.esp} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-red-600" />
+                            <label htmlFor="esp" className="text-sm text-gray-700 font-medium">Cân bằng điện tử (ESP)</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="ba" name="ba" checked={formData.ba} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-red-600" />
+                            <label htmlFor="ba" className="text-sm text-gray-700 font-medium">Hỗ trợ phanh (BA)</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <input type="checkbox" id="rearSensor" name="rearSensor" checked={formData.rearSensor} onChange={handleChange} className="w-4 h-4 rounded border-gray-300 text-red-600" />
+                            <label htmlFor="rearSensor" className="text-sm text-gray-700 font-medium">Cảm biến lùi</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="flex items-center space-x-3">
                     <input type="checkbox" id="status" name="status" checked={formData.status} onChange={handleChange} className="w-5 h-5 text-orange-600 border-gray-300 rounded" />
@@ -393,7 +561,8 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 </div>
             </div>
         </div>
-    );
+        );
+    };
 
     return (
         <div>
@@ -403,14 +572,13 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             </div>
             <div className="overflow-x-auto rounded-lg border border-gray-200">
                 <table className="w-full text-sm text-left text-gray-500">
-                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                    <thead className="text-xs text-gray-700 uppercase bg-gray-100 border-b border-gray-200">
                         <tr>
                             <th scope="col" className="px-6 py-3">ID</th>
-                            <th scope="col" className="px-6 py-3">Hình ảnh</th>
-                            <th scope="col" className="px-6 py-3">Tên sản phẩm</th>
-                            <th scope="col" className="px-6 py-3">Danh mục</th>
-                            <th scope="col" className="px-6 py-3">Giá</th>
-                            <th scope="col" className="px-6 py-3">Tồn kho</th>
+                            <th scope="col" className="px-6 py-3">Xe</th>
+                            <th scope="col" className="px-6 py-3">Hãng & Dòng xe</th>
+                            <th scope="col" className="px-6 py-3">Giá bán</th>
+                            <th scope="col" className="px-6 py-3">Số lượng</th>
                             <th scope="col" className="px-6 py-3">Trạng thái</th>
                             <th scope="col" className="px-6 py-3 text-right">Thao tác</th>
                         </tr>
@@ -420,18 +588,28 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             <tr><td colSpan={8} className="px-6 py-4 text-center text-gray-500">Chưa có sản phẩm nào.</td></tr>
                         )}
                         {products.map((prod) => (
-                            <tr key={prod.id} className="bg-white border-b hover:bg-gray-50">
-                                <td className="px-6 py-4 font-medium text-gray-900">#{prod.id}</td>
+                            <tr key={prod.id} className="bg-white border-b hover:bg-orange-50/30 transition-colors">
+                                <td className="px-6 py-4 font-medium text-gray-400">#{prod.id}</td>
                                 <td className="px-6 py-4">
-                                    <img src={prod.imageUrl || 'https://via.placeholder.com/40'} alt={prod.name} className="w-10 h-10 rounded-md object-cover border border-gray-100" />
+                                    <div className="flex items-center gap-3">
+                                        <img src={prod.imageUrl || 'https://via.placeholder.com/150'} alt={prod.name} className="w-12 h-12 rounded-lg object-cover border border-gray-100 shadow-sm" />
+                                        <div>
+                                            <p className="font-bold text-gray-900 leading-tight">{prod.name}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-tighter">{prod.year || '----'} • {prod.condition || 'Mới'}</p>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td className="px-6 py-4">{prod.name}</td>
-                                <td className="px-6 py-4">{prod.category?.name || '---'}</td>
-                                <td className="px-6 py-4 font-semibold text-orange-600">{prod.price.toLocaleString('vi-VN')}đ</td>
-                                <td className="px-6 py-4">{prod.stock}</td>
+                                <td className="px-6 py-4 text-gray-700">
+                                    <div className="flex flex-col">
+                                        <span className="font-semibold">{prod.brand || '---'}</span>
+                                        <span className="text-xs text-gray-500">{prod.modelName || '---'}</span>
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 font-bold text-orange-600">{prod.price?.toLocaleString('vi-VN')}₫</td>
+                                <td className="px-6 py-4 text-center">{prod.stock}</td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${prod.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                        {prod.status ? 'Còn hàng' : 'Ngừng bán'}
+                                    <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${prod.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        {prod.status ? 'Đang bán' : 'Tạm ngưng'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
@@ -458,7 +636,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             </DialogTitle>
                         </DialogHeader>
                     </div>
-                    <div className="px-6">
+                    <div className="px-6 max-h-[70vh] overflow-y-auto">
                         <ProductForm />
                     </div>
                     <DialogFooter className="px-6 py-4 bg-gray-50 border-t">
@@ -481,7 +659,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             </DialogTitle>
                         </DialogHeader>
                     </div>
-                    <div className="px-6">
+                    <div className="px-6 max-h-[70vh] overflow-y-auto">
                         <ProductForm />
                     </div>
                     <DialogFooter className="px-6 py-4 bg-gray-50 border-t">

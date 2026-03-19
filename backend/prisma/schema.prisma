@@ -60,6 +60,22 @@ model Address {
   createdAt     DateTime @default(now())
 }
 
+// --- NHÓM MASTER DATA (HÃNG & DÒNG XE) ---
+model Brand {
+  id      Int        @id @default(autoincrement())
+  name    String     @unique
+  models  CarModel[]
+}
+
+model CarModel {
+  id        Int    @id @default(autoincrement())
+  name      String
+  brandId   Int
+  brand     Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([name, brandId])
+}
+
 // --- NHÓM SẢN PHẨM & MUA BÁN ---
 model Category {
   id       Int       @id @default(autoincrement())
@@ -84,7 +100,6 @@ model Product {
   // Thông tin xe bổ sung
   brand             String?
   modelName         String?
-  version           String?
   year              Int?
   condition         String?   @default("Xe mới")
   mileage           Float?
@@ -99,16 +114,31 @@ model Product {
   transmission      String?
   driveType         String?
   
-  // Thông số kích thước
+  // Thông số kích thước & trọng lượng
   length            Float?
   width             Float?
   height            Float?
   wheelbase         Float?
   groundClearance   Float?
+  curbWeight        Float?
   
   // Nhiên liệu
   fuelTankCapacity  Float?
   avgFuelConsumption Float?
+
+  // Tiện nghi
+  autoConditioning  Boolean? @default(false)
+  infotainment      Boolean? @default(false)
+  appleCarplay      Boolean? @default(false)
+  electricSeats     Boolean? @default(false)
+  camera360         Boolean? @default(false)
+
+  // An toàn
+  airbags           Int?     @default(0)
+  abs               Boolean? @default(false)
+  esp               Boolean? @default(false)
+  ba                Boolean? @default(false)
+  rearSensor        Boolean? @default(false)
 
   orderItems  OrderItem[]
   favorites   Favorite[]
