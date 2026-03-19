@@ -32,7 +32,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         // Thông tin xe bổ sung
         brand: '',
         modelName: '',
-        year: new Date().getFullYear().toString(),
+        year: '',
         condition: 'Xe mới',
         mileage: '0',
         color: '',
@@ -156,7 +156,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 imageUrl: '',
                 brand: '',
                 modelName: '',
-                year: new Date().getFullYear().toString(),
+                year: '',
                 condition: 'Xe mới',
                 mileage: '0',
                 color: '',
