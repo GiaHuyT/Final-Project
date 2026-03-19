@@ -22,14 +22,21 @@ export function AdminTopbar() {
     const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (error) {
-                console.error('Error parsing user data:', error);
+        const syncUser = () => {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) {
+                try {
+                    setUser(JSON.parse(storedUser));
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                }
             }
-        }
+        };
+
+        syncUser();
+
+        window.addEventListener('user-updated', syncUser);
+        return () => window.removeEventListener('user-updated', syncUser);
     }, []);
 
     const handleLogout = () => {

@@ -66,19 +66,32 @@ export class UsersService {
   }
 
   async update(id: number, data: any) {
-    // If password is empty string, don't update it
-    if (data.password === "") {
-      delete data.password;
-    }
+    try {
+      // If password is empty string, don't update it
+      if (data.password === "") {
+        delete data.password;
+      }
 
-    if (data.password && typeof data.password === 'string') {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
+      if (data.password && typeof data.password === 'string') {
+        data.password = await bcrypt.hash(data.password, 10);
+      }
 
-    return (this.prisma.user as any).update({
-      where: { id },
-      data,
-    });
+      // Nếu phonenumber là chuỗi rỗng, chuyển thành null để tránh lỗi Unique constraint trong Prisma
+      if (data.phonenumber === "") {
+        data.phonenumber = null;
+      }
+
+      // Đảm bảo chỉ gửi các trường hợp lệ vào Prisma để tránh lỗi 500
+      const { id: _, ...updateData } = data; // Loại bỏ id nếu nó vô tình nằm trong data body
+
+      return await this.prisma.user.update({
+        where: { id },
+        data: updateData,
+      });
+    } catch (error) {
+      console.error(`Lỗi cập nhật User ID ${id}:`, error);
+      throw error;
+    }
   }
 
   async saveResetToken(id: number, token: string, expires: Date) {

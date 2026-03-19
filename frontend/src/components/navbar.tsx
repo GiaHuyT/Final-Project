@@ -21,15 +21,22 @@ export function Navbar() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
-        const token = Cookies.get("token");
-        const storedUser = localStorage.getItem("user");
-        if (token && storedUser) {
-            setIsLoggedIn(true);
-            setUser(JSON.parse(storedUser));
-        } else {
-            setIsLoggedIn(false);
-            setUser(null);
-        }
+        const syncUser = () => {
+            const token = Cookies.get("token");
+            const storedUser = localStorage.getItem("user");
+            if (token && storedUser) {
+                setIsLoggedIn(true);
+                setUser(JSON.parse(storedUser));
+            } else {
+                setIsLoggedIn(false);
+                setUser(null);
+            }
+        };
+
+        syncUser();
+
+        window.addEventListener('user-updated', syncUser);
+        return () => window.removeEventListener('user-updated', syncUser);
     }, []);
 
     const handleLogout = () => {

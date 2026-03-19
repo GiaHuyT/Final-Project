@@ -44,6 +44,8 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [userNameDisplay, setUserNameDisplay] = useState("Người dùng");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,7 +57,7 @@ export default function ProfilePage() {
   const [editingAddress, setEditingAddress] = useState<any>(null);
 
   // Setup form
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ProfileFormValues>({
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
   });
 
@@ -67,6 +69,7 @@ export default function ProfilePage() {
         console.log('Profile Data Fetched:', data);
         setUserNameDisplay(data.username || "Người dùng");
         setAvatarUrl(data.avatar || null);
+        setPreviewAvatarUrl(data.avatar || null);
         reset({
           email: data.email,
           username: data.username,
@@ -153,34 +156,13 @@ export default function ProfilePage() {
       return;
     }
 
-    setIsUploading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-      const res = await http.post('/users/avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      if (res.status === 201 || res.status === 200) {
-        const newUrl = res.data.avatarUrl;
-        setAvatarUrl(newUrl);
-
-        // Cập nhật localStorage để Navbar nhận diện được ảnh mới
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const userObj = JSON.parse(storedUser);
-          userObj.avatar = newUrl;
-          localStorage.setItem("user", JSON.stringify(userObj));
-        }
-
-        toast.success('Cập nhật ảnh đại diện thành công!');
-      }
-    } catch (error: any) {
-      console.error('Lỗi khi tải ảnh:', error);
-      toast.error(error.response?.data?.message || 'Không thể tải ảnh lên.');
-    } finally {
-      setIsUploading(false);
+    const localUrl = URL.createObjectURL(file);
+    setPreviewAvatarUrl(localUrl);
+    setAvatarFile(file);
+    
+    // Reset file input so selecting the same file again triggers change
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -188,11 +170,33 @@ export default function ProfilePage() {
   const onSubmit = async (values: ProfileFormValues) => {
     setIsSaving(true);
     try {
+      let finalAvatarUrl = avatarUrl;
+
+      // Xử lý upload ảnh trước nếu có thay đổi
+      if (avatarFile instanceof File) {
+        const formData = new FormData();
+        formData.append('file', avatarFile);
+        const res = await http.post('/users/avatar', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        if (res.status === 201 || res.status === 200) {
+          finalAvatarUrl = res.data.avatarUrl;
+        }
+      }
+
+      // Xử lý cập nhật thông tin profile
       await http.patch('/users/profile', {
         username: values.username,
-        phonenumber: values.phonenumber
+        phonenumber: values.phonenumber,
+        ...(avatarFile === 'REMOVE' ? { avatar: null } : {})
       });
+      
+      if (avatarFile === 'REMOVE') finalAvatarUrl = null;
+
       setUserNameDisplay(values.username);
+      setAvatarUrl(finalAvatarUrl);
+      setPreviewAvatarUrl(finalAvatarUrl);
+      setAvatarFile(null);
 
       // Cập nhật localStorage
       const storedUser = localStorage.getItem("user");
@@ -200,10 +204,12 @@ export default function ProfilePage() {
         const userObj = JSON.parse(storedUser);
         userObj.username = values.username;
         userObj.phonenumber = values.phonenumber;
+        userObj.avatar = finalAvatarUrl;
         localStorage.setItem("user", JSON.stringify(userObj));
       }
 
       toast.success('Cập nhật hồ sơ thành công!');
+      window.dispatchEvent(new Event('user-updated'));
     } catch (error: any) {
       console.error('Update Profile Error:', error);
       const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
@@ -274,11 +280,11 @@ export default function ProfilePage() {
 
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                  <AvatarImage src={avatarUrl || ""} alt={userNameDisplay} />
+                  <AvatarImage src={previewAvatarUrl || ""} alt={userNameDisplay} />
                   <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
                     {userNameDisplay.substring(0, 1).toUpperCase()}
                   </AvatarFallback>
-                  {isUploading && (
+                  {isSaving && avatarFile instanceof File && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
                     </div>
@@ -294,31 +300,19 @@ export default function ProfilePage() {
                   />
                   <Button
                     onClick={handleAvatarClick}
-                    disabled={isUploading}
+                    disabled={isSaving}
                     className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
                   >
-                    {isUploading ? "Uploading..." : "Upload"}
+                    Select Image
                   </Button>
                   <Button
                     variant="outline"
                     className="text-gray-600 border-gray-200"
-                    disabled={isUploading}
-                    onClick={async () => {
-                      if (!avatarUrl) return;
-                      if (!confirm('Xóa ảnh đại diện?')) return;
-                      try {
-                        await http.patch('/users/profile', { avatar: null });
-                        setAvatarUrl(null);
-                        const storedUser = localStorage.getItem("user");
-                        if (storedUser) {
-                          const userObj = JSON.parse(storedUser);
-                          userObj.avatar = null;
-                          localStorage.setItem("user", JSON.stringify(userObj));
-                        }
-                        toast.success('Đã xóa ảnh đại diện');
-                      } catch (e) {
-                        toast.error('Không thể xóa ảnh');
-                      }
+                    disabled={isSaving || !previewAvatarUrl}
+                    onClick={() => {
+                      if (!previewAvatarUrl) return;
+                      setPreviewAvatarUrl(null);
+                      setAvatarFile('REMOVE');
                     }}
                   >
                     Remove

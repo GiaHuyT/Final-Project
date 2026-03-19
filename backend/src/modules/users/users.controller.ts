@@ -14,9 +14,10 @@ class UpdateProfileDto {
   @IsOptional()
   username?: string;
 
-  @ApiProperty({ example: '0123456789', required: true })
+  @ApiProperty({ example: '0123456789', required: false })
   @IsString()
-  phonenumber: string;
+  @IsOptional()
+  phonenumber?: string;
 }
 
 class UpdateUserDto extends UpdateProfileDto {

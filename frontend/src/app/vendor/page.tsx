@@ -58,6 +58,8 @@ export default function SupplierPage() {
         resolver: zodResolver(profileSchema),
     });
 
+    const watchedUsername = watch('username');
+
     // Fetch data
     const fetchData = async () => {
         try {
@@ -136,6 +138,7 @@ export default function SupplierPage() {
                 }
 
                 toast.success('Cập nhật logo thành công!');
+                window.dispatchEvent(new Event('user-updated'));
             }
         } catch (error: any) {
             console.error('Lỗi khi tải ảnh:', error);
@@ -164,6 +167,7 @@ export default function SupplierPage() {
             }
 
             toast.success('Cập nhật hồ sơ nhà cung cấp thành công!');
+            window.dispatchEvent(new Event('user-updated'));
         } catch (error: any) {
             console.error('Update Profile Error:', error);
             const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
@@ -225,14 +229,14 @@ export default function SupplierPage() {
                         {/* Header & Avatar */}
                         <div className="space-y-6 border-b border-gray-100 pb-8">
                             <h1 className="text-2xl text-gray-800 font-normal">
-                                Nhà cung cấp: <span className="font-semibold">{userNameDisplay}</span>
+                                Nhà cung cấp: <span className="font-semibold">{watchedUsername || userNameDisplay}</span>
                             </h1>
 
                             <div className="flex items-center gap-6">
                                 <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                                    <AvatarImage src={avatarUrl || ""} alt={userNameDisplay} />
+                                    <AvatarImage src={avatarUrl || ""} alt={watchedUsername || userNameDisplay} />
                                     <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
-                                        {userNameDisplay.substring(0, 1).toUpperCase()}
+                                        {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
                                     </AvatarFallback>
                                     {isUploading && (
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -272,6 +276,7 @@ export default function SupplierPage() {
                                                     localStorage.setItem("user", JSON.stringify(userObj));
                                                 }
                                                 toast.success('Đã xóa ảnh đại diện');
+                                                window.dispatchEvent(new Event('user-updated'));
                                             } catch (e) {
                                                 toast.error('Không thể xóa ảnh');
                                             }
