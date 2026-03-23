@@ -8,7 +8,11 @@ export class BrandsService {
   async findAll() {
     return this.prisma.brand.findMany({
       include: {
-        models: true, // Include related car models
+        models: {
+          include: {
+            variants: true,
+          },
+        },
       },
       orderBy: { name: 'asc' }, // Sort alphabetically
     });

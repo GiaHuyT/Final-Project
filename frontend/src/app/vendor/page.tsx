@@ -43,7 +43,8 @@ export default function SupplierPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [userNameDisplay, setUserNameDisplay] = useState("Nhà cung cấp");
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
+    const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
+    const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [tab, setTab] = useState("profile");
@@ -66,6 +67,7 @@ export default function SupplierPage() {
             const { data: profileData } = await http.get('/users/profile');
             setUserNameDisplay(profileData.username || "Nhà cung cấp");
             setAvatarUrl(profileData.avatar || null);
+            setPreviewAvatarUrl(profileData.avatar || null);
             reset({
                 email: profileData.email,
                 username: profileData.username,
@@ -88,7 +90,8 @@ export default function SupplierPage() {
             const { data: repairsData } = await http.get('/repairs/vendor/me');
             setRepairs(repairsData || []);
 
-        } catch (error) {
+        } catch (error: any) {
+            if (error.response?.status === 401) return; // Let http interceptor handle redirect
             console.error('Fetch Data Error:', error);
             toast.error('Không thể tải thông tin dữ liệu nhà cung cấp');
         } finally {
@@ -117,34 +120,13 @@ export default function SupplierPage() {
             return;
         }
 
-        setIsUploading(true);
-        const formData = new FormData();
-        formData.append('file', file);
-
-        try {
-            const res = await http.post('/users/avatar', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            if (res.status === 201 || res.status === 200) {
-                const newUrl = res.data.avatarUrl;
-                setAvatarUrl(newUrl);
-
-                const storedUser = localStorage.getItem("user");
-                if (storedUser) {
-                    const userObj = JSON.parse(storedUser);
-                    userObj.avatar = newUrl;
-                    localStorage.setItem("user", JSON.stringify(userObj));
-                }
-
-                toast.success('Cập nhật logo thành công!');
-                window.dispatchEvent(new Event('user-updated'));
-            }
-        } catch (error: any) {
-            console.error('Lỗi khi tải ảnh:', error);
-            toast.error(error.response?.data?.message || 'Không thể tải ảnh lên.');
-        } finally {
-            setIsUploading(false);
+        const localUrl = URL.createObjectURL(file);
+        setPreviewAvatarUrl(localUrl);
+        setAvatarFile(file);
+        
+        // Reset file input so selecting the same file again triggers change
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
         }
     };
 
@@ -152,17 +134,40 @@ export default function SupplierPage() {
     const onSubmit = async (values: ProfileFormValues) => {
         setIsSaving(true);
         try {
+            let finalAvatarUrl = avatarUrl;
+
+            // Xử lý upload ảnh trước nếu có thay đổi
+            if (avatarFile instanceof File) {
+                const formData = new FormData();
+                formData.append('file', avatarFile);
+                const res = await http.post('/users/avatar', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (res.status === 201 || res.status === 200) {
+                    finalAvatarUrl = res.data.avatarUrl;
+                }
+            }
+
+            // Xử lý cập nhật thông tin profile
             await http.patch('/users/profile', {
                 username: values.username,
-                phonenumber: values.phonenumber
+                phonenumber: values.phonenumber,
+                avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl
             });
+            
+            if (avatarFile === 'REMOVE') finalAvatarUrl = null;
+
             setUserNameDisplay(values.username);
+            setAvatarUrl(finalAvatarUrl);
+            setPreviewAvatarUrl(finalAvatarUrl);
+            setAvatarFile(null);
 
             const storedUser = localStorage.getItem("user");
             if (storedUser) {
                 const userObj = JSON.parse(storedUser);
                 userObj.username = values.username;
                 userObj.phonenumber = values.phonenumber;
+                userObj.avatar = finalAvatarUrl;
                 localStorage.setItem("user", JSON.stringify(userObj));
             }
 
@@ -234,11 +239,11 @@ export default function SupplierPage() {
 
                             <div className="flex items-center gap-6">
                                 <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                                    <AvatarImage src={avatarUrl || ""} alt={watchedUsername || userNameDisplay} />
+                                    <AvatarImage src={previewAvatarUrl || undefined} alt={watchedUsername || userNameDisplay} />
                                     <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
                                         {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
                                     </AvatarFallback>
-                                    {isUploading && (
+                                    {isSaving && avatarFile instanceof File && (
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                                             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
                                         </div>
@@ -254,32 +259,19 @@ export default function SupplierPage() {
                                     />
                                     <Button
                                         onClick={handleAvatarClick}
-                                        disabled={isUploading}
+                                        disabled={isSaving}
                                         className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
                                     >
-                                        {isUploading ? "Uploading..." : "Upload Logo"}
+                                        {isSaving && avatarFile instanceof File ? "Uploading..." : "Upload Avatar"}
                                     </Button>
                                     <Button
                                         variant="outline"
                                         className="text-gray-600 border-gray-200"
-                                        disabled={isUploading}
-                                        onClick={async () => {
-                                            if (!avatarUrl) return;
-                                            if (!confirm('Xóa ảnh đại diện?')) return;
-                                            try {
-                                                await http.patch('/users/profile', { avatar: null });
-                                                setAvatarUrl(null);
-                                                const storedUser = localStorage.getItem("user");
-                                                if (storedUser) {
-                                                    const userObj = JSON.parse(storedUser);
-                                                    userObj.avatar = null;
-                                                    localStorage.setItem("user", JSON.stringify(userObj));
-                                                }
-                                                toast.success('Đã xóa ảnh đại diện');
-                                                window.dispatchEvent(new Event('user-updated'));
-                                            } catch (e) {
-                                                toast.error('Không thể xóa ảnh');
-                                            }
+                                        disabled={isSaving || !previewAvatarUrl}
+                                        onClick={() => {
+                                            if (!previewAvatarUrl) return;
+                                            setPreviewAvatarUrl(null);
+                                            setAvatarFile('REMOVE');
                                         }}
                                     >
                                         Remove

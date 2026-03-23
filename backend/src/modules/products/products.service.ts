@@ -9,6 +9,14 @@ export class ProductsService {
         return this.prisma.product.findMany({
             include: {
                 category: true,
+                // @ts-ignore
+                images: true,
+                // @ts-ignore
+                colorVariants: {
+                    include: {
+                        images: true
+                    }
+                },
                 vendor: {
                     select: { username: true, email: true }
                 }
@@ -21,6 +29,14 @@ export class ProductsService {
             where: { vendorId },
             include: {
                 category: true,
+                // @ts-ignore
+                images: true,
+                // @ts-ignore
+                colorVariants: {
+                    include: {
+                        images: true
+                    }
+                },
             }
         });
     }
@@ -30,6 +46,14 @@ export class ProductsService {
             where: { id },
             include: {
                 category: true,
+                // @ts-ignore
+                images: true,
+                // @ts-ignore
+                colorVariants: {
+                    include: {
+                        images: true
+                    }
+                },
                 vendor: {
                     select: { username: true, email: true }
                 }
@@ -45,15 +69,65 @@ export class ProductsService {
     }
 
     async create(vendorId: number, data: any) {
+        const { colorVariants, images, ...productData } = data;
         return this.prisma.product.create({
-            data: { ...data, vendorId, categoryId: parseInt(data.categoryId) }
+            data: { 
+                ...productData, 
+                vendorId, 
+                categoryId: parseInt(data.categoryId),
+                // @ts-ignore
+                images: images && images.length > 0 ? {
+                    create: images.map((url: string) => ({ url }))
+                } : undefined,
+                // @ts-ignore
+                colorVariants: colorVariants && colorVariants.length > 0 ? {
+                    create: colorVariants.map((cv: any) => ({
+                        color: cv.color,
+                        images: {
+                            create: cv.images.map((url: string) => ({ url }))
+                        }
+                    }))
+                } : undefined
+            }
         });
     }
 
     async update(id: number, vendorId: number, data: any) {
+        const { colorVariants, images, ...productData } = data;
+        
+        // If colorVariants or images are provided, we replace them
+        if (colorVariants) {
+            // @ts-ignore
+            await this.prisma.productColorVariant.deleteMany({
+                where: { productId: id }
+            });
+        }
+        if (images) {
+            // @ts-ignore
+            await this.prisma.productImage.deleteMany({
+                where: { productId: id }
+            });
+        }
+
         return this.prisma.product.update({
             where: { id },
-            data: { ...data, categoryId: data.categoryId ? parseInt(data.categoryId) : undefined }
+            data: { 
+                ...productData, 
+                categoryId: data.categoryId ? parseInt(data.categoryId) : undefined,
+                // @ts-ignore
+                images: images && images.length > 0 ? {
+                    create: images.map((url: string) => ({ url }))
+                } : undefined,
+                // @ts-ignore
+                colorVariants: colorVariants && colorVariants.length > 0 ? {
+                    create: colorVariants.map((cv: any) => ({
+                        color: cv.color,
+                        images: {
+                            create: cv.images.map((url: string) => ({ url }))
+                        }
+                    }))
+                } : undefined
+            }
         });
     }
 

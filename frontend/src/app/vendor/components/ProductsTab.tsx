@@ -12,6 +12,20 @@ interface ProductsTabProps {
     onRefresh: () => void;
 }
 
+const CAR_COLORS = [
+    { name: 'Trắng', hex: '#FFFFFF' },
+    { name: 'Đen', hex: '#000000' },
+    { name: 'Bạc', hex: '#C0C0C0' },
+    { name: 'Xám', hex: '#808080' },
+    { name: 'Đỏ', hex: '#FF0000' },
+    { name: 'Xanh dương', hex: '#0000FF' },
+    { name: 'Nâu', hex: '#A52A2A' },
+    { name: 'Vàng cát', hex: '#F5F5DC' },
+    { name: 'Xanh lá', hex: '#008000' },
+    { name: 'Vàng', hex: '#FFFF00' },
+    { name: 'Cam', hex: '#FFA500' },
+];
+
 export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -32,9 +46,12 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         // Thông tin xe bổ sung
         brand: '',
         modelName: '',
+        variant: '',
         year: '',
         condition: 'Xe mới',
+        licensePlate: '',
         mileage: '0',
+        conditionDetail: '',
         color: '',
         bodyType: '',
         // Thông số động cơ
@@ -66,6 +83,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         esp: false,
         ba: false,
         rearSensor: false,
+        colorVariants: [{ color: '', images: [] as string[] }],
     });
 
     useEffect(() => {
@@ -90,41 +108,92 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         }
     };
 
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+    // Gallery functions removed
 
-        if (!file.type.startsWith('image/')) {
-            toast.error('Vui lòng chọn tệp ảnh hợp lệ!');
-            return;
-        }
+    const handleVariantFileChange = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
 
-        const data = new FormData();
-        data.append('file', file);
         setIsLoading(true);
         try {
-            // Reusing the avatar endpoint which just uploads any file and returns the url
-            const res = await http.post('/users/avatar', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setFormData(prev => ({ ...prev, imageUrl: res.data.avatarUrl }));
-            toast.success('Tải ảnh thành công');
+            const updatedVariants = [...formData.colorVariants];
+            const currentVariant = { ...updatedVariants[index] };
+            const newImages = [...currentVariant.images];
+
+            for (let i = 0; i < files.length; i++) {
+                if (newImages.length >= 10) {
+                    toast.error(`Màu ${currentVariant.color || (index + 1)} đã đạt giới hạn 10 ảnh!`);
+                    break;
+                }
+                const file = files[i];
+                if (!file.type.startsWith('image/')) continue;
+
+                const data = new FormData();
+                data.append('file', file);
+                const res = await http.post('/users/avatar', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                newImages.push(res.data.avatarUrl);
+            }
+
+            currentVariant.images = newImages;
+            updatedVariants[index] = currentVariant;
+            setFormData(prev => ({ ...prev, colorVariants: updatedVariants }));
+            toast.success('Đã tải ảnh lên phiên bản');
         } catch (error) {
-            toast.error('Có lỗi xảy ra khi tải ảnh');
+            console.error('Lỗi tải ảnh biến thể:', error);
+            toast.error('Không thể tải ảnh lên');
         } finally {
             setIsLoading(false);
+            event.target.value = '';
         }
     };
+
+    const removeVariantImage = (variantIndex: number, imageIndex: number) => {
+        const updatedVariants = [...formData.colorVariants];
+        const currentVariant = { ...updatedVariants[variantIndex] };
+        const newImages = [...currentVariant.images];
+        newImages.splice(imageIndex, 1);
+        currentVariant.images = newImages;
+        updatedVariants[variantIndex] = currentVariant;
+        setFormData(prev => ({ ...prev, colorVariants: updatedVariants }));
+    };
+
+    const addVariant = () => {
+        if (formData.colorVariants.length >= 10) {
+            toast.error('Tối đa 10 phiên bản màu!');
+            return;
+        }
+        setFormData(prev => ({
+            ...prev,
+            colorVariants: [...prev.colorVariants, { color: '', images: [] }]
+        }));
+    };
+
+    const removeVariant = (index: number) => {
+        const newVariants = formData.colorVariants.filter((_, i) => i !== index);
+        setFormData(prev => ({ ...prev, colorVariants: newVariants }));
+    };
+
+    const handleColorChange = (index: number, color: string) => {
+        const newVariants = [...formData.colorVariants];
+        newVariants[index] = { ...newVariants[index], color };
+        setFormData(prev => ({ ...prev, colorVariants: newVariants }));
+    };
+
 
     const handleAdd = async () => {
         setIsLoading(true);
         try {
             await http.post('/products', {
                 ...formData,
+                categoryId: categories.length > 0 ? categories[0].id : 1,
                 price: parseFloat(formData.price) || 0,
                 stock: parseInt(formData.stock) || 0,
                 year: parseInt(formData.year) || undefined,
-                mileage: parseFloat(formData.mileage) || 0,
+                licensePlate: formData.condition === 'Xe cũ' ? formData.licensePlate : null,
+                mileage: formData.condition === 'Xe cũ' ? (parseFloat(formData.mileage) || 0) : null,
+                conditionDetail: formData.condition === 'Xe cũ' ? formData.conditionDetail : null,
                 length: parseFloat(formData.length) || undefined,
                 width: parseFloat(formData.width) || undefined,
                 height: parseFloat(formData.height) || undefined,
@@ -143,48 +212,21 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 esp: formData.esp,
                 ba: formData.ba,
                 rearSensor: formData.rearSensor,
+                colorVariants: formData.colorVariants,
             });
             toast.success('Thêm sản phẩm thành công');
             setIsAddOpen(false);
             setFormData({
-                name: '',
-                categoryId: '',
-                price: '',
-                stock: '1',
-                description: '',
-                status: true,
-                imageUrl: '',
-                brand: '',
-                modelName: '',
-                year: '',
-                condition: 'Xe mới',
-                mileage: '0',
-                color: '',
-                bodyType: '',
-                fuelType: '',
-                engineCapacity: '',
-                maxPower: '',
-                maxTorque: '',
-                transmission: '',
-                driveType: '',
-                length: '',
-                width: '',
-                height: '',
-                wheelbase: '',
-                groundClearance: '',
-                curbWeight: '',
-                fuelTankCapacity: '',
-                avgFuelConsumption: '',
-                autoConditioning: false,
-                infotainment: false,
-                appleCarplay: false,
-                electricSeats: false,
-                camera360: false,
-                airbags: '0',
-                abs: false,
-                esp: false,
-                ba: false,
-                rearSensor: false,
+                name: '', categoryId: '', price: '', stock: '1', description: '', status: true, imageUrl: '',
+                brand: '', modelName: '', variant: '', year: '', condition: 'Xe mới', licensePlate: '',
+                mileage: '0', conditionDetail: '', color: '', bodyType: '', fuelType: '',
+                engineCapacity: '', maxPower: '', maxTorque: '', transmission: '', driveType: '',
+                length: '', width: '', height: '', wheelbase: '', groundClearance: '',
+                curbWeight: '', fuelTankCapacity: '', avgFuelConsumption: '',
+                autoConditioning: false, infotainment: false, appleCarplay: false, 
+                electricSeats: false, camera360: false, airbags: '0', abs: false, esp: false, 
+                ba: false, rearSensor: false,
+                colorVariants: [{ color: '', images: [] }],
             });
             onRefresh();
         } catch (error) {
@@ -206,9 +248,12 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             imageUrl: prod.imageUrl || '',
             brand: prod.brand || '',
             modelName: prod.modelName || '',
+            variant: prod.variant || '',
             year: prod.year?.toString() || '',
             condition: prod.condition || 'Xe mới',
+            licensePlate: prod.licensePlate || '',
             mileage: prod.mileage?.toString() || '0',
+            conditionDetail: prod.conditionDetail || '',
             color: prod.color || '',
             bodyType: prod.bodyType || '',
             fuelType: prod.fuelType || '',
@@ -235,6 +280,12 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             esp: prod.esp || false,
             ba: prod.ba || false,
             rearSensor: prod.rearSensor || false,
+            colorVariants: prod.colorVariants && prod.colorVariants.length > 0 
+                ? prod.colorVariants.map((cv: any) => ({ 
+                    color: cv.color, 
+                    images: cv.images?.map((img: any) => img.url) || [] 
+                }))
+                : [{ color: '', images: [] }],
         });
         setIsEditOpen(true);
     };
@@ -244,10 +295,13 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         try {
             await http.patch(`/products/${selectedProduct.id}`, {
                 ...formData,
+                categoryId: formData.categoryId || (categories.length > 0 ? categories[0].id : 1),
                 price: parseFloat(formData.price) || 0,
                 stock: parseInt(formData.stock) || 0,
                 year: parseInt(formData.year) || undefined,
-                mileage: parseFloat(formData.mileage) || 0,
+                licensePlate: formData.condition === 'Xe cũ' ? formData.licensePlate : null,
+                mileage: formData.condition === 'Xe cũ' ? (parseFloat(formData.mileage) || 0) : null,
+                conditionDetail: formData.condition === 'Xe cũ' ? formData.conditionDetail : null,
                 length: parseFloat(formData.length) || undefined,
                 width: parseFloat(formData.width) || undefined,
                 height: parseFloat(formData.height) || undefined,
@@ -266,6 +320,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                 esp: formData.esp,
                 ba: formData.ba,
                 rearSensor: formData.rearSensor,
+                colorVariants: formData.colorVariants,
             });
             toast.success('Cập nhật sản phẩm thành công');
             setIsEditOpen(false);
@@ -288,9 +343,11 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         }
     };
 
-    const ProductForm = () => {
+    const renderProductForm = () => {
         const selectedBrandObj = brands.find(b => b.name === formData.brand);
         const availableModels = selectedBrandObj ? selectedBrandObj.models : [];
+        const selectedModelObj = availableModels.find((m: any) => m.name === formData.modelName);
+        const availableVariants = selectedModelObj ? selectedModelObj.variants || [] : [];
 
         return (
         <div className="space-y-8 py-6">
@@ -308,7 +365,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             id="brand" 
                             name="brand" 
                             value={formData.brand} 
-                            onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value, modelName: '' }))} 
+                            onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value, modelName: '', variant: '' }))} 
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                         >
                             <option value="">-- Chọn hãng xe --</option>
@@ -321,7 +378,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             id="modelName" 
                             name="modelName" 
                             value={formData.modelName} 
-                            onChange={handleChange} 
+                            onChange={(e) => setFormData(prev => ({ ...prev, modelName: e.target.value, variant: '' }))} 
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             disabled={!formData.brand}
                         >
@@ -334,10 +391,17 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                         <Input id="year" name="year" type="number" value={formData.year} onChange={handleChange} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="categoryId" className="text-sm font-semibold text-gray-700">Danh mục</Label>
-                        <select id="categoryId" name="categoryId" value={formData.categoryId} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                            <option value="">-- Chọn danh mục --</option>
-                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        <Label htmlFor="variant" className="text-sm font-semibold text-gray-700">Phiên bản</Label>
+                        <select 
+                            id="variant" 
+                            name="variant" 
+                            value={formData.variant} 
+                            onChange={handleChange} 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            disabled={!formData.modelName}
+                        >
+                            <option value="">-- Chọn phiên bản --</option>
+                            {availableVariants.map((v: any) => <option key={v.id} value={v.name}>{v.name}</option>)}
                         </select>
                     </div>
                     <div className="space-y-2">
@@ -351,56 +415,146 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             <option value="Xe cũ">Xe cũ</option>
                         </select>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="mileage" className="text-sm font-semibold text-gray-700">Số km đã đi</Label>
-                        <Input id="mileage" name="mileage" type="number" value={formData.mileage} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="color" className="text-sm font-semibold text-gray-700">Màu xe</Label>
-                        <Input id="color" name="color" value={formData.color} onChange={handleChange} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="bodyType" className="text-sm font-semibold text-gray-700">Loại xe</Label>
-                        <select id="bodyType" name="bodyType" value={formData.bodyType} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                            <option value="">-- Chọn loại xe --</option>
-                            <option value="Sedan">Sedan</option>
-                            <option value="SUV">SUV</option>
-                            <option value="Hatchback">Hatchback</option>
-                            <option value="Pickup">Pickup</option>
-                            <option value="Coupe">Coupe</option>
-                            <option value="Convertible">Convertible</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="stock" className="text-sm font-semibold text-gray-700">Số lượng (Tồn kho)</Label>
-                        <Input id="stock" name="stock" type="number" value={formData.stock} onChange={handleChange} />
-                    </div>
-                </div>
-                <div className="md:col-span-2 space-y-2">
-                    <Label className="text-sm font-semibold text-gray-700">Hình ảnh xe</Label>
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6 p-4 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
-                        <div className="shrink-0">
-                            {formData.imageUrl ? (
-                                <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-white shadow-sm">
-                                    <img src={formData.imageUrl} alt="preview" className="object-cover w-full h-full" />
-                                </div>
-                            ) : (
-                                <div className="w-32 h-32 bg-white rounded-lg border border-gray-100 flex flex-col items-center justify-center text-gray-400">
-                                    <ImageIcon className="w-8 h-8 mb-2 opacity-50" />
-                                    <span className="text-[10px] font-bold">CHƯA CÓ ẢNH</span>
-                                </div>
-                            )}
+                    {formData.condition === 'Xe cũ' && (
+                        <>
+                            <div className="space-y-2">
+                                <Label htmlFor="licensePlate" className="text-sm font-semibold text-gray-700">Biển số xe</Label>
+                                <Input id="licensePlate" name="licensePlate" placeholder="Ví dụ: 30A-123.45" value={formData.licensePlate} onChange={handleChange} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="mileage" className="text-sm font-semibold text-gray-700">Số km đã đi</Label>
+                                <Input id="mileage" name="mileage" type="number" value={formData.mileage} onChange={handleChange} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="conditionDetail" className="text-sm font-semibold text-gray-700">Chi tiết tình trạng xe</Label>
+                                <select id="conditionDetail" name="conditionDetail" value={formData.conditionDetail} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Rất tốt">Rất tốt</option>
+                                    <option value="Tốt">Tốt</option>
+                                    <option value="Trung bình">Trung bình</option>
+                                    <option value="Cần sửa">Cần sửa</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
+                </div> {/* End grid */}
+
+
+
+                {/* 1.5. Các phiên bản màu sắc & Hình ảnh */}
+                <div className="space-y-6 pt-6 border-t border-gray-100">
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <Label className="text-base font-bold text-gray-800">Màu sắc & Hình ảnh thực tế</Label>
+                            <p className="text-xs text-gray-400">Thêm từng màu sắc và album ảnh tương ứng.</p>
                         </div>
-                        <div className="flex-1 space-y-3 w-full">
-                            <Input type="file" onChange={handleFileChange} accept="image/*" className="text-xs" />
+                        <div className="flex items-center gap-4">
+                            <Button 
+                                type="button" 
+                                onClick={addVariant} 
+                                variant="outline" 
+                                size="sm" 
+                                className="text-orange-600 border-orange-200 hover:bg-orange-50 font-bold"
+                                disabled={formData.colorVariants.length >= 10}
+                            >
+                                <Plus className="w-4 h-4 mr-1" /> Thêm mẫu mới
+                            </Button>
                         </div>
                     </div>
+                    
+                    <div className="space-y-8">
+                        {formData.colorVariants.map((cv, variantIndex) => (
+                            <div key={variantIndex} className="p-8 rounded-3xl border-2 border-gray-100 bg-white shadow-md relative group transition-all hover:border-blue-100">
+                                {formData.colorVariants.length > 1 && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => removeVariant(variantIndex)}
+                                        className="absolute -top-3 -right-3 w-9 h-9 bg-red-50 text-red-500 rounded-full flex items-center justify-center shadow-lg border border-red-100 hover:bg-red-500 hover:text-white transition-all z-10"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                                
+                                <div className="space-y-8">
+                                    {/* 1.5.1 Section Header: Color Selection */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-200">
+                                                    {variantIndex + 1}
+                                                </div>
+                                                <Label className="text-base font-bold text-gray-800 tracking-tight">Mẫu số {variantIndex + 1}: {cv.color || 'Chưa chọn màu'}</Label>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                                            <div className="md:col-span-4 space-y-3">
+                                                <Label className="text-[11px] font-bold text-gray-500 uppercase">Chọn mã màu xe</Label>
+                                                <div className="flex flex-wrap gap-2.5 p-4 bg-gray-50 rounded-2xl border border-gray-100/50 shadow-inner">
+                                                    {CAR_COLORS.map((c) => (
+                                                        <button
+                                                            key={c.name}
+                                                            type="button"
+                                                            onClick={() => handleColorChange(variantIndex, c.name)}
+                                                            className={`w-9 h-9 rounded-full border-2 transition-all ${cv.color === c.name ? 'border-blue-600 scale-110 shadow-lg ring-4 ring-blue-50' : 'border-white hover:scale-105 shadow-sm active:scale-95'}`}
+                                                            style={{ backgroundColor: c.hex }}
+                                                            title={c.name}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="md:col-span-8 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <Label className="text-[11px] font-bold text-gray-500 uppercase">Album ảnh riêng của màu này</Label>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cv.images.length >= 10 ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                        {cv.images.length}/10 ảnh
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                                                    {cv.images.length < 10 && (
+                                                        <label className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all group/add hover:shadow-md">
+                                                            <input
+                                                                type="file"
+                                                                className="hidden"
+                                                                multiple
+                                                                accept="image/*"
+                                                                onChange={(e) => handleVariantFileChange(variantIndex, e)}
+                                                            />
+                                                            <Plus className="w-6 h-6 text-gray-300 group-hover/add:text-blue-500 transition-colors" />
+                                                            <span className="text-[9px] font-black text-gray-400 group-hover/add:text-blue-600 uppercase mt-1 tracking-tighter">Thêm ảnh</span>
+                                                        </label>
+                                                    )}
+
+                                                    {cv.images.map((url, imageIndex) => (
+                                                        <div key={imageIndex} className="relative aspect-square rounded-xl border-2 border-gray-100 overflow-hidden group/thumb shadow-sm">
+                                                            <img src={url} alt={`Variant ${variantIndex} Img ${imageIndex}`} className="w-full h-full object-cover" />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeVariantImage(variantIndex, imageIndex)}
+                                                                className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-all shadow-lg scale-90 hover:scale-100"
+                                                            >
+                                                                 <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Mô tả chi tiết</Label>
-                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+
+                <div className="space-y-2 border-t border-gray-100 pt-6">
+                    <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Mô tả chi tiết sản phẩm</Label>
+                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} placeholder="Mô tả các đặc điểm nổi bật, lịch sử bảo dưỡng..." className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500/20 outline-none" />
                 </div>
-            </div>
+            </div> {/* End 1. Thông tin cơ bản section */}
+
 
             {/* 2. Thông số động cơ */}
             <div className="space-y-4">
@@ -566,7 +720,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+                 <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-semibold text-gray-800">Quản lý sản phẩm</h2>
                 <Button onClick={() => setIsAddOpen(true)} className="bg-[#E65E2C] hover:bg-[#d95222] text-white">Thêm sản phẩm mới</Button>
             </div>
@@ -601,8 +755,8 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                                 </td>
                                 <td className="px-6 py-4 text-gray-700">
                                     <div className="flex flex-col">
-                                        <span className="font-semibold">{prod.brand || '---'}</span>
-                                        <span className="text-xs text-gray-500">{prod.modelName || '---'}</span>
+                                        <span className="font-semibold">{prod.brand || '---'} {prod.modelName || ''}</span>
+                                        <span className="text-xs text-gray-500">{prod.variant || '---'}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 font-bold text-orange-600">{prod.price?.toLocaleString('vi-VN')}₫</td>
@@ -637,7 +791,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                         </DialogHeader>
                     </div>
                     <div className="px-6 max-h-[70vh] overflow-y-auto">
-                        <ProductForm />
+                        {renderProductForm()}
                     </div>
                     <DialogFooter className="px-6 py-4 bg-gray-50 border-t">
                         <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="hover:bg-gray-200">Đóng</Button>
@@ -660,7 +814,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                         </DialogHeader>
                     </div>
                     <div className="px-6 max-h-[70vh] overflow-y-auto">
-                        <ProductForm />
+                        {renderProductForm()}
                     </div>
                     <DialogFooter className="px-6 py-4 bg-gray-50 border-t">
                         <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="hover:bg-gray-200">Hủy bỏ</Button>

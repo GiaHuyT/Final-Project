@@ -188,7 +188,7 @@ export default function ProfilePage() {
       await http.patch('/users/profile', {
         username: values.username,
         phonenumber: values.phonenumber,
-        ...(avatarFile === 'REMOVE' ? { avatar: null } : {})
+        avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl
       });
       
       if (avatarFile === 'REMOVE') finalAvatarUrl = null;
@@ -280,7 +280,7 @@ export default function ProfilePage() {
 
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                  <AvatarImage src={previewAvatarUrl || ""} alt={userNameDisplay} />
+                  <AvatarImage src={previewAvatarUrl || undefined} alt={userNameDisplay} />
                   <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
                     {userNameDisplay.substring(0, 1).toUpperCase()}
                   </AvatarFallback>

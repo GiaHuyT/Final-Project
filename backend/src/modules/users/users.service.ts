@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import type { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -66,31 +66,34 @@ export class UsersService {
   }
 
   async update(id: number, data: any) {
+    if (!id || isNaN(Number(id))) {
+      throw new BadRequestException(`ID người dùng không hợp lệ: ${id}`);
+    }
+
     try {
-      // If password is empty string, don't update it
-      if (data.password === "") {
-        delete data.password;
+      const updateData: any = {};
+      
+      // Chỉ lấy các trường hợp lệ để tránh lỗi Prisma
+      if (data.username !== undefined) updateData.username = data.username;
+      if (data.email !== undefined) updateData.email = data.email;
+      if (data.avatar !== undefined) updateData.avatar = data.avatar;
+      
+      if (data.phonenumber !== undefined) {
+        updateData.phonenumber = data.phonenumber === "" ? null : data.phonenumber;
       }
 
-      if (data.password && typeof data.password === 'string') {
-        data.password = await bcrypt.hash(data.password, 10);
+      if (data.password && typeof data.password === 'string' && data.password !== "") {
+        updateData.password = await bcrypt.hash(data.password, 10);
       }
 
-      // Nếu phonenumber là chuỗi rỗng, chuyển thành null để tránh lỗi Unique constraint trong Prisma
-      if (data.phonenumber === "") {
-        data.phonenumber = null;
-      }
-
-      // Đảm bảo chỉ gửi các trường hợp lệ vào Prisma để tránh lỗi 500
-      const { id: _, ...updateData } = data; // Loại bỏ id nếu nó vô tình nằm trong data body
 
       return await this.prisma.user.update({
-        where: { id },
+        where: { id: Number(id) },
         data: updateData,
       });
     } catch (error) {
-      console.error(`Lỗi cập nhật User ID ${id}:`, error);
-      throw error;
+      console.error(`[UsersService] Lỗi cập nhật User ID ${id}:`, error);
+      throw new BadRequestException('Không thể cập nhật thông tin người dùng. ' + error.message);
     }
   }
 

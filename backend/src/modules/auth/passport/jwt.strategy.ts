@@ -18,11 +18,24 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const user = await this.usersService.findById(payload.sub);
+    console.log('[JwtStrategy] Payload sub:', payload.sub);
+    const user = await this.usersService.findById(Number(payload.sub));
+    
     if (!user) {
+      console.error('[JwtStrategy] Không tìm thấy user với id:', payload.sub);
       throw new UnauthorizedException('User not found');
     }
-    const { password, ...safeUser } = user as any;
-    return safeUser;
+
+    console.log('[JwtStrategy] Tìm thấy user, ID gốc:', user.id);
+    
+    // Đảm bảo trả về một plain object có chứa id
+    return {
+      id: Number(user.id),
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      phonenumber: user.phonenumber
+    };
   }
 }

@@ -54,58 +54,33 @@ async function main() {
     },
   });
 
-  // 2. Tạo Category
-  const catElectronic = await prisma.category.create({
-    data: { name: 'Điện tử' },
-  });
-  const catFurniture = await prisma.category.create({
-    data: { name: 'Nội thất' },
+  // 2. Tạo Category cơ bản
+  const defaultCategory = await prisma.category.create({
+    data: { name: 'Ô tô' },
   });
 
-  // 3. Tạo Sản phẩm cho Vendor
-  await prisma.product.createMany({
-    data: [
-      {
-        name: 'iPhone 15 Pro',
-        description: 'Máy mới 100%',
-        price: 25000000,
-        stock: 10,
-        vendorId: vendor.id,
-        categoryId: catElectronic.id,
-      },
-      {
-        name: 'Bàn làm việc gỗ',
-        description: 'Gỗ sồi tự nhiên',
-        price: 1500000,
-        stock: 5,
-        vendorId: vendor.id,
-        categoryId: catFurniture.id,
-      },
-    ],
-  });
-
-  // 4. Tạo dữ liệu Hãng & Dòng xe
+  // 3. Tạo dữ liệu Hãng, Dòng xe & Phiên bản
   const carData = [
-    { brand: 'Toyota', models: ['Corolla', 'Camry', 'Vios', 'Fortuner', 'Hilux', 'Land Cruiser', 'Yaris'] },
-    { brand: 'Honda', models: ['Civic', 'Accord', 'CR-V', 'HR-V', 'City', 'Brio', 'Pilot'] },
-    { brand: 'Hyundai', models: ['Accent', 'Elantra', 'Tucson', 'Santa Fe', 'Creta', 'Kona', 'Palisade'] },
-    { brand: 'Kia', models: ['Morning', 'Cerato', 'K5', 'Seltos', 'Sportage', 'Sorento', 'Carnival'] },
-    { brand: 'Mazda', models: ['Mazda2', 'Mazda3', 'Mazda6', 'CX-3', 'CX-5', 'CX-8', 'CX-9'] },
-    { brand: 'Ford', models: ['Ranger', 'Everest', 'Explorer', 'Escape', 'Focus', 'Mustang', 'F-150'] },
-    { brand: 'Chevrolet', models: ['Spark', 'Cruze', 'Malibu', 'Trax', 'Equinox', 'Traverse', 'Colorado'] },
-    { brand: 'Nissan', models: ['Sunny', 'Almera', 'Altima', 'X-Trail', 'Navara', 'Terra', 'Patrol'] },
-    { brand: 'Mitsubishi', models: ['Mirage', 'Attrage', 'Xpander', 'Outlander', 'Pajero Sport', 'Triton', 'Eclipse Cross'] },
-    { brand: 'Suzuki', models: ['Celerio', 'Swift', 'Ertiga', 'XL7', 'Jimny', 'Carry', 'Vitara'] },
-    { brand: 'BMW', models: ['3 Series', '5 Series', '7 Series', 'X1', 'X3', 'X5', "X7"] },
-    { brand: 'Mercedes-Benz', models: ['C-Class', 'E-Class', 'S-Class', 'GLA', 'GLC', 'GLE', 'GLS'] },
-    { brand: 'Audi', models: ['A3', 'A4', 'A6', 'A8', 'Q3', 'Q5', 'Q7'] },
-    { brand: 'Volkswagen', models: ['Polo', 'Golf', 'Passat', 'Jetta', 'Tiguan', 'Touareg', 'T-Cross'] },
-    { brand: 'Lexus', models: ['IS', 'ES', 'LS', 'NX', 'RX', 'GX', 'LX'] },
-    { brand: 'Subaru', models: ['Impreza', 'Legacy', 'Forester', 'Outback', 'XV (Crosstrek)', 'WRX', 'BRZ'] },
-    { brand: 'Peugeot', models: ['208', '308', '408', '508', '2008', '3008', '5008'] },
-    { brand: 'Volvo', "models": ['S60', 'S90', 'XC40', 'XC60', 'XC90', 'V60', 'V90'] },
-    { brand: 'VinFast', models: ['Fadil', 'Lux A2.0', 'Lux SA2.0', 'VF e34', 'VF 5', 'VF 6', 'VF 8'] },
-    { brand: 'Tesla', models: ['Model S', 'Model 3', 'Model X', 'Model Y', 'Cybertruck', 'Roadster'] }
+    { brand: 'Toyota', models: [{ name: 'Vios', variants: ['E MT', 'E CVT', 'G CVT'] }, { name: 'Camry', variants: ['2.0G', '2.0Q', '2.5Q'] }, { name: 'Corolla Altis', variants: ['1.8G', '1.8V', 'Hybrid'] }, { name: 'Fortuner', variants: ['2.4 MT', '2.4 AT', '2.8 AT 4x4'] }, { name: 'Hilux', variants: ['2.4E MT', '2.4E AT', 'Adventure'] }, { name: 'Land Cruiser', variants: ['VX', 'ZX'] }, { name: 'Yaris Cross', variants: ['G', 'Hybrid'] }, { name: 'Raize', variants: ['G', 'Turbo'] }, { name: 'Innova', variants: ['E', 'G', 'Venturer'] }] },
+    { brand: 'Honda', models: [{ name: 'City', variants: ['G', 'L', 'RS'] }, { name: 'Civic', variants: ['E', 'G', 'RS'] }, { name: 'Accord', variants: ['1.5 Turbo'] }, { name: 'CR-V', variants: ['G', 'L', 'L AWD'] }, { name: 'HR-V', variants: ['G', 'L', 'RS'] }, { name: 'BR-V', variants: ['G', 'L'] }, { name: 'Jazz', variants: ['V', 'RS'] }, { name: 'Pilot', variants: ['Elite'] }] },
+    { brand: 'Hyundai', models: [{ name: 'Accent', variants: ['MT', 'AT', 'AT ĐB'] }, { name: 'Elantra', variants: ['1.6 AT', '2.0 AT', 'Sport'] }, { name: 'Sonata', variants: ['2.0', '2.5'] }, { name: 'Tucson', variants: ['Xăng', 'Dầu', 'Turbo'] }, { name: 'Santa Fe', variants: ['Exclusive', 'Prestige', 'Calligraphy'] }, { name: 'Creta', variants: ['Tiêu chuẩn', 'Đặc biệt', 'Cao cấp'] }, { name: 'Kona', variants: ['2.0 AT', '1.6 Turbo'] }, { name: 'Palisade', variants: ['Exclusive', 'Prestige'] }] },
+    { brand: 'Kia', models: [{ name: 'Morning', variants: ['MT', 'AT', 'GT-Line'] }, { name: 'Cerato', variants: ['1.6 MT', '1.6 AT', '2.0 AT'] }, { name: 'K5', variants: ['2.0 Luxury', '2.0 Premium', '2.5 GT-Line'] }, { name: 'Seltos', variants: ['Deluxe', 'Luxury', 'Premium'] }, { name: 'Sportage', variants: ['2.0', '2.0 Diesel'] }, { name: 'Sorento', variants: ['Luxury', 'Premium', 'Signature'] }, { name: 'Carnival', variants: ['Luxury', 'Premium'] }, { name: 'Sonet', variants: ['Deluxe', 'Luxury'] }] },
+    { brand: 'Mazda', models: [{ name: 'Mazda2', variants: ['1.5 AT'] }, { name: 'Mazda3', variants: ['Deluxe', 'Luxury', 'Premium'] }, { name: 'Mazda6', variants: ['2.0', '2.5'] }, { name: 'CX-3', variants: ['Luxury', 'Premium'] }, { name: 'CX-30', variants: ['Luxury', 'Premium'] }, { name: 'CX-5', variants: ['Deluxe', 'Luxury', 'Premium'] }, { name: 'CX-8', variants: ['Luxury', 'Premium'] }, { name: 'CX-9', variants: ['Signature'] }] },
+    { brand: 'Ford', models: [{ name: 'Ranger', variants: ['XL', 'XLS', 'Wildtrak', 'Raptor'] }, { name: 'Everest', variants: ['Ambiente', 'Sport', 'Titanium'] }, { name: 'Explorer', variants: ['Limited'] }, { name: 'Escape', variants: ['1.5', '2.0'] }, { name: 'Focus', variants: ['Trend', 'Sport'] }, { name: 'Mustang', variants: ['2.3L', 'GT'] }, { name: 'F-150', variants: ['XLT', 'Lariat'] }] },
+    { brand: 'BMW', models: [{ name: '1 Series', variants: ['118i'] }, { name: '3 Series', variants: ['320i', '330i'] }, { name: '5 Series', variants: ['520i', '530i'] }, { name: '7 Series', variants: ['730Li', '740Li'] }, { name: 'X1', variants: ['sDrive18i'] }, { name: 'X3', variants: ['xDrive20i', 'xDrive30i'] }, { name: 'X5', variants: ['xDrive40i'] }, { name: 'X7', variants: ['xDrive40i'] }] },
+    { brand: 'Mercedes-Benz', models: [{ name: 'A-Class', variants: ['A200', 'A250'] }, { name: 'C-Class', variants: ['C200', 'C300 AMG'] }, { name: 'E-Class', variants: ['E200', 'E300 AMG'] }, { name: 'S-Class', variants: ['S450', 'S500'] }, { name: 'GLA', variants: ['GLA200'] }, { name: 'GLC', variants: ['GLC200', 'GLC300'] }, { name: 'GLE', variants: ['GLE450'] }, { name: 'GLS', variants: ['GLS450'] }] },
+    { brand: 'VinFast', models: [{ name: 'Fadil', variants: ['Base', 'Plus'] }, { name: 'Lux A2.0', variants: ['Tiêu chuẩn', 'Nâng cao'] }, { name: 'Lux SA2.0', variants: ['Tiêu chuẩn', 'Nâng cao'] }, { name: 'VF e34', variants: ['Standard'] }, { name: 'VF 5', variants: ['Plus'] }, { name: 'VF 6', variants: ['Eco', 'Plus'] }, { name: 'VF 7', variants: ['Eco', 'Plus'] }, { name: 'VF 8', variants: ['Eco', 'Plus'] }, { name: 'VF 9', variants: ['Eco', 'Plus'] }] },
+    { brand: 'Tesla', models: [{ name: 'Model 3', variants: ['RWD', 'Long Range', 'Performance'] }, { name: 'Model Y', variants: ['Long Range', 'Performance'] }, { name: 'Model S', variants: ['Dual Motor', 'Plaid'] }, { name: 'Model X', variants: ['Dual Motor', 'Plaid'] }, { name: 'Cybertruck', variants: ['RWD', 'AWD', 'Cyberbeast'] }] },
+    { brand: 'Audi', models: [{ name: 'A3', variants: ['35 TFSI', '40 TFSI'] }, { name: 'A4', variants: ['40 TFSI', '45 TFSI'] }, { name: 'A6', variants: ['45 TFSI', '55 TFSI'] }, { name: 'A8', variants: ['L 55 TFSI'] }, { name: 'Q3', variants: ['35 TFSI', '40 TFSI'] }, { name: 'Q5', variants: ['45 TFSI'] }, { name: 'Q7', variants: ['45 TFSI', '55 TFSI'] }, { name: 'Q8', variants: ['55 TFSI'] }] },
+    { brand: 'Lexus', models: [{ name: 'IS', variants: ['300', '350 F Sport'] }, { name: 'ES', variants: ['250', '300h'] }, { name: 'LS', variants: ['500', '500h'] }, { name: 'NX', variants: ['250', '350 F Sport'] }, { name: 'RX', variants: ['350', '500h'] }, { name: 'GX', variants: ['460'] }, { name: 'LX', variants: ['600'] }] },
+    { brand: 'Volkswagen', models: [{ name: 'Polo', variants: ['Trendline', 'Comfortline'] }, { name: 'Golf', variants: ['TSI', 'GTI'] }, { name: 'Passat', variants: ['Comfort', 'Highline'] }, { name: 'Jetta', variants: ['Comfortline'] }, { name: 'Tiguan', variants: ['Elegance', 'Luxury'] }, { name: 'Touareg', variants: ['Luxury'] }, { name: 'T-Cross', variants: ['Style'] }] },
+    { brand: 'Volvo', models: [{ name: 'S60', variants: ['B5', 'Recharge'] }, { name: 'S90', variants: ['B6'] }, { name: 'XC40', variants: ['Recharge'] }, { name: 'XC60', variants: ['B6', 'Recharge'] }, { name: 'XC90', variants: ['B6', 'Recharge'] }, { name: 'V60', variants: ['Cross Country'] }, { name: 'V90', variants: ['Cross Country'] }] },
+    { brand: 'Subaru', models: [{ name: 'Impreza', variants: ['2.0i'] }, { name: 'Legacy', variants: ['2.5i'] }, { name: 'Forester', variants: ['i-S', 'i-L'] }, { name: 'Outback', variants: ['2.5i', 'XT'] }, { name: 'Crosstrek', variants: ['2.0i'] }, { name: 'WRX', variants: ['MT', 'CVT'] }, { name: 'BRZ', variants: ['Premium'] }] },
+    { brand: 'Peugeot', models: [{ name: '208', variants: ['Active', 'Allure'] }, { name: '308', variants: ['Allure', 'GT'] }, { name: '408', variants: ['Premium', 'GT'] }, { name: '508', variants: ['GT'] }, { name: '2008', variants: ['Active', 'GT'] }, { name: '3008', variants: ['Allure', 'GT'] }, { name: '5008', variants: ['Allure', 'GT'] }] },
+    { brand: 'Land Rover', models: [{ name: 'Range Rover', variants: ['SE', 'Autobiography'] }, { name: 'Range Rover Sport', variants: ['SE', 'Dynamic'] }, { name: 'Defender', variants: ['90', '110'] }, { name: 'Discovery', variants: ['SE'] }, { name: 'Discovery Sport', variants: ['S', 'R-Dynamic'] }] },
+    { brand: 'Porsche', models: [{ name: '911', variants: ['Carrera', 'Turbo S'] }, { name: 'Cayenne', variants: ['Standard', 'Turbo'] }, { name: 'Macan', variants: ['Standard', 'GTS'] }, { name: 'Panamera', variants: ['4', 'Turbo'] }, { name: 'Taycan', variants: ['4S', 'Turbo'] }] },
+    { brand: 'BYD', models: [{ name: 'Dolphin', variants: ['Standard', 'Extended'] }, { name: 'Atto 3', variants: ['Dynamic', 'Premium'] }, { name: 'Seal', variants: ['RWD', 'AWD'] }, { name: 'Han', variants: ['EV'] }, { name: 'Tang', variants: ['EV AWD'] }] },
+    { brand: 'MG', models: [{ name: 'ZS', variants: ['Standard', 'Luxury'] }, { name: 'HS', variants: ['1.5T', '2.0T'] }, { name: 'MG5', variants: ['STD', 'LUX'] }, { name: 'MG7', variants: ['Premium'] }, { name: 'Cyberster', variants: ['EV'] }] }
   ];
 
   for (const item of carData) {
@@ -113,11 +88,50 @@ async function main() {
       data: { name: item.brand }
     });
     for (const model of item.models) {
-      await prisma.carModel.create({
-        data: { name: model, brandId: brand.id }
+      const createdModel = await prisma.carModel.create({
+        data: { name: model.name, brandId: brand.id }
       });
+      if (model.variants) {
+        for (const variant of model.variants) {
+          await prisma.carVariant.create({
+            data: { name: variant, modelId: createdModel.id }
+          });
+        }
+      }
     }
   }
+
+  // 4. Tạo Sản phẩm mẫu cho Vendor
+  await prisma.product.createMany({
+    data: [
+      {
+        name: 'Toyota Vios 1.5G 2023',
+        description: 'Xe gia đình tiết kiệm',
+        price: 592000000,
+        stock: 5,
+        vendorId: vendor.id,
+        categoryId: defaultCategory.id,
+        brand: 'Toyota',
+        modelName: 'Vios',
+        variant: 'G CVT',
+        year: 2023,
+        condition: 'Xe mới',
+      },
+      {
+        name: 'Ford Ranger Wildtrak 2024',
+        description: 'Bán tải bán chạy nhất',
+        price: 979000000,
+        stock: 3,
+        vendorId: vendor.id,
+        categoryId: defaultCategory.id,
+        brand: 'Ford',
+        modelName: 'Ranger',
+        variant: 'Wildtrak',
+        year: 2024,
+        condition: 'Xe mới',
+      },
+    ],
+  });
 
   console.log('Gieo hạt dữ liệu thành công! 🌱');
 }
