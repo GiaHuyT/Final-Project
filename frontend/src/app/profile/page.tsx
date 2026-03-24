@@ -1,468 +1,214 @@
-'use client';
-
-import { useEffect, useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import http from '@/lib/http';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'react-hot-toast';
-import {
-  User,
-  ShoppingCart,
-  MapPin,
-  Clock,
-  Gavel,
-  Bell,
-  Box,
-  Truck,
-  Car,
-  Wrench,
-  Heart,
-  Store,
-  Trash2,
-  Edit,
-  Plus
-} from 'lucide-react';
-import Link from 'next/link';
-import AddressModal from '@/components/address/AddressModal';
-
-// Schema validation
-const profileSchema = z.object({
-  email: z.string().email(),
-  username: z.string().min(2, "Username phải có ít nhất 2 ký tự"),
-  phonenumber: z.string().optional(), // Added phone number
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
+"use client";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import http from "@/lib/http";
+import { toast } from "react-hot-toast";
+import { Loader2, Car, Gavel, Bell, User, ArrowRight } from "lucide-react";
 
 export default function ProfilePage() {
-  const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [userNameDisplay, setUserNameDisplay] = useState("Người dùng");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+    const [user, setUser] = useState<any>(null);
+    const [products, setProducts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
-  const [tab, setTab] = useState("profile");
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [profileRes, productsRes] = await Promise.all([
+                    http.get('/users/profile'),
+                    // Just an example endpoint: adjust based on user role if needed
+                    http.get('/products/vendor/me').catch(() => ({ data: [] }))
+                ]);
+                setUser(profileRes.data);
+                setProducts(productsRes.data || []);
+            } catch (error) {
+                console.error("Error fetching profile data:", error);
+                toast.error("Không thể tải thông tin hồ sơ");
+            } finally {
+                setLoading(false);
+            }
+        };
 
-  // Address states
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<any>(null);
+        fetchData();
+    }, []);
 
-  // Setup form
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
-  });
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-slate-50">
+                <Loader2 className="animate-spin h-12 w-12 text-blue-600" />
+            </div>
+        );
+    }
 
-  // Fetch data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const { data } = await http.get('/users/profile');
-        console.log('Profile Data Fetched:', data);
-        setUserNameDisplay(data.username || "Người dùng");
-        setAvatarUrl(data.avatar || null);
-        setPreviewAvatarUrl(data.avatar || null);
-        reset({
-          email: data.email,
-          username: data.username,
-          phonenumber: data.phonenumber || "",
-        });
-      } catch (error) {
-        console.error('Fetch Profile Error:', error);
-        toast.error('Không thể tải thông tin cá nhân');
-      } finally {
-        setLoading(false);
-      }
+    // Determine membership phrasing based on role
+    const getRoleName = (role: string) => {
+        if (role === 'ADMIN') return 'Quản Trị Hệ Thống';
+        if (role === 'VENDOR') return 'Nhà Cung Cấp Xác Minh';
+        return 'Thành Viên Cơ Bản';
     };
-    fetchProfile();
-  }, [reset]);
 
-  // Fetch addresses
-  const fetchAddresses = async () => {
-    try {
-      const { data } = await http.get('/addresses');
-      setAddresses(data);
-    } catch (error) {
-      console.error('Fetch Addresses Error:', error);
-      toast.error('Không thể tải danh sách địa chỉ');
-    }
-  };
+    const getMembershipTier = (role: string) => {
+        if (role === 'ADMIN') return 'Quyền Hành Cao Nhất';
+        if (role === 'VENDOR') return 'Hạng Thương Gia';
+        return 'Hạng Phổ Thông';
+    };
 
-  useEffect(() => {
-    if (tab === 'addresses') {
-      fetchAddresses();
-    }
-  }, [tab]);
+    const getRoleDescription = (role: string) => {
+        if (role === 'ADMIN') return 'Bạn có toàn quyền truy cập và quản lý mọi dữ liệu trên hệ thống AutoBid.';
+        if (role === 'VENDOR') return 'Chào mừng đối tác, bạn có thể niêm yết xe và quản lý giao dịch đấu giá.';
+        return 'Bạn có thể theo dõi và đặt giá thầu cho mọi chiếc xe trên nền tảng.';
+    };
 
-  const handleSaveAddress = async (formData: any) => {
-    try {
-      // Clean up for API (ensure lat/lng are numbers)
-      const dataToSave = {
-        ...formData,
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
-      };
-
-      if (editingAddress) {
-        await http.patch(`/addresses/${editingAddress.id}`, dataToSave);
-        toast.success('Cập nhật địa chỉ thành công');
-      } else {
-        await http.post('/addresses', dataToSave);
-        toast.success('Thêm địa chỉ mới thành công');
-      }
-      setIsAddressModalOpen(false);
-      setEditingAddress(null);
-      fetchAddresses();
-    } catch (error) {
-      console.error('Save Address Error:', error);
-      toast.error('Có lỗi xảy ra khi lưu địa chỉ');
-    }
-  };
-
-  const handleDeleteAddress = async (id: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
-    try {
-      await http.delete(`/addresses/${id}`);
-      toast.success('Xóa địa chỉ thành công');
-      fetchAddresses();
-    } catch (error) {
-      console.error('Delete Address Error:', error);
-      toast.error('Không thể xóa địa chỉ');
-    }
-  };
-
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn tệp ảnh!');
-      return;
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Ảnh quá lớn (tối đa 2MB)!');
-      return;
-    }
-
-    const localUrl = URL.createObjectURL(file);
-    setPreviewAvatarUrl(localUrl);
-    setAvatarFile(file);
-    
-    // Reset file input so selecting the same file again triggers change
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
-  // Handle Submit
-  const onSubmit = async (values: ProfileFormValues) => {
-    setIsSaving(true);
-    try {
-      let finalAvatarUrl = avatarUrl;
-
-      // Xử lý upload ảnh trước nếu có thay đổi
-      if (avatarFile instanceof File) {
-        const formData = new FormData();
-        formData.append('file', avatarFile);
-        const res = await http.post('/users/avatar', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        if (res.status === 201 || res.status === 200) {
-          finalAvatarUrl = res.data.avatarUrl;
-        }
-      }
-
-      // Xử lý cập nhật thông tin profile
-      await http.patch('/users/profile', {
-        username: values.username,
-        phonenumber: values.phonenumber,
-        avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl
-      });
-      
-      if (avatarFile === 'REMOVE') finalAvatarUrl = null;
-
-      setUserNameDisplay(values.username);
-      setAvatarUrl(finalAvatarUrl);
-      setPreviewAvatarUrl(finalAvatarUrl);
-      setAvatarFile(null);
-
-      // Cập nhật localStorage
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const userObj = JSON.parse(storedUser);
-        userObj.username = values.username;
-        userObj.phonenumber = values.phonenumber;
-        userObj.avatar = finalAvatarUrl;
-        localStorage.setItem("user", JSON.stringify(userObj));
-      }
-
-      toast.success('Cập nhật hồ sơ thành công!');
-      window.dispatchEvent(new Event('user-updated'));
-    } catch (error: any) {
-      console.error('Update Profile Error:', error);
-      const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
-      toast.error(Array.isArray(message) ? message[0] : message);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) => (
-    <div
-      onClick={onClick}
-      className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${active ? 'text-orange-600 bg-orange-50 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
-    >
-      <Icon className="w-5 h-5" />
-      <span className="text-sm">{label}</span>
-      {active && <span className="ml-auto text-xs">›</span>}
-    </div>
-  );
-
-  if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50/50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-      </div>
-    );
-  }
+        <div className="bg-slate-50 min-h-screen font-sans text-slate-900 pb-20">
+            <main className="pt-24 pb-16 px-6 lg:px-12 max-w-[1400px] mx-auto">
+                {/* Header Section */}
+                <header className="mb-12">
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900 mb-2">Gara của tôi</h1>
+                    <p className="text-slate-500 font-medium text-lg">Quản lý hồ sơ, tài sản theo dõi và các cài đặt chung.</p>
+                </header>
 
-  return (
-    <div className="min-h-screen bg-gray-50/30 p-4 md:p-8 lg:p-12">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+                    {/* Sidebar Navigation */}
+                    <aside className="w-full lg:w-64 flex-shrink-0">
+                        <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-hide">
+                            <button className="flex items-center gap-3 px-5 py-4 text-blue-600 border-b-2 lg:border-b-0 lg:border-l-4 border-blue-600 bg-blue-50/50 transition-all whitespace-nowrap rounded-r-xl">
+                                <User className="w-5 h-5 flex-shrink-0" />
+                                <span className="font-bold text-sm tracking-wide">Hồ sơ cá nhân</span>
+                            </button>
+                            <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                                <Car className="w-5 h-5 flex-shrink-0" />
+                                <span className="font-bold text-sm tracking-wide">Xe đang theo dõi</span>
+                            </button>
+                            <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                                <Gavel className="w-5 h-5 flex-shrink-0" />
+                                <span className="font-bold text-sm tracking-wide">Lịch sử đấu giá</span>
+                            </button>
+                            <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                                <Bell className="w-5 h-5 flex-shrink-0" />
+                                <span className="font-bold text-sm tracking-wide">Thông báo</span>
+                            </button>
+                        </nav>
+                    </aside>
 
-        {/* Sidebar */}
-        <div className="md:col-span-3 lg:col-span-3 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 overflow-hidden">
-            <div className="space-y-1">
-              <SidebarItem icon={User} label="Hồ sơ của tôi" active={tab === "profile"} onClick={() => setTab("profile")} />
-              <SidebarItem icon={ShoppingCart} label="Giỏ hàng" />
-              <SidebarItem icon={MapPin} label="Số địa chỉ" active={tab === "addresses"} onClick={() => setTab("addresses")} />
-              <SidebarItem icon={Clock} label="Đơn hàng" />
-              <SidebarItem icon={Gavel} label="Danh sách phiên trả giá" />
-              <SidebarItem icon={Bell} label="Thông báo" />
-              <SidebarItem icon={Box} label="Đăng tin hàng" />
-              <SidebarItem icon={Truck} label="Thuê xe ghép" />
-              <SidebarItem icon={Car} label="Thuê xe riêng" />
-              <SidebarItem icon={Wrench} label="Lịch sử tìm sửa chữa" />
-              <SidebarItem icon={Heart} label="Danh sách yêu thích" />
-            </div>
-          </div>
-
-          <Button variant="outline" className="w-full bg-white border-dashed border-gray-300 hover:border-orange-500 hover:text-orange-600 h-10 p-0 overflow-hidden">
-            <Link href="/vendor" className="flex items-center justify-center w-full h-full gap-2">
-              <Store className="w-4 h-4" />
-              Tài khoản nhà cung cấp
-            </Link>
-          </Button>
-        </div>
-
-        {/* Main Content */}
-        <div className="md:col-span-9 lg:col-span-9">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8">
-
-            {/* Header & Avatar */}
-            <div className="space-y-6 border-b border-gray-100 pb-8">
-              <h1 className="text-2xl text-gray-800 font-normal">
-                Xin chào, <span className="font-semibold">{userNameDisplay}</span>
-              </h1>
-
-              <div className="flex items-center gap-6">
-                <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                  <AvatarImage src={previewAvatarUrl || undefined} alt={userNameDisplay} />
-                  <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
-                    {userNameDisplay.substring(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                  {isSaving && avatarFile instanceof File && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                    </div>
-                  )}
-                </Avatar>
-                <div className="flex gap-3">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <Button
-                    onClick={handleAvatarClick}
-                    disabled={isSaving}
-                    className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
-                  >
-                    Select Image
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="text-gray-600 border-gray-200"
-                    disabled={isSaving || !previewAvatarUrl}
-                    onClick={() => {
-                      if (!previewAvatarUrl) return;
-                      setPreviewAvatarUrl(null);
-                      setAvatarFile('REMOVE');
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Form */}
-            {tab === "profile" ? (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-6">Thông tin cá nhân</h2>
-
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Username (Displayed as "Họ" + "Tên" in mockup but user requested single field) */}
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="username" className="text-sm font-medium text-gray-700">Username</Label>
-                      <Input
-                        id="username"
-                        {...register('username')}
-                        className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                      />
-                      {errors.username && <p className="text-red-500 text-xs">{errors.username.message}</p>}
-                    </div>
-
-                    {/* Email */}
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-                      <Input
-                        id="email"
-                        {...register('email')}
-                        disabled
-                        className="bg-gray-100 text-gray-500 border-gray-200"
-                      />
-                    </div>
-
-                    {/* Phone */}
-                    <div className="space-y-2">
-                      <Label htmlFor="phonenumber" className="text-sm font-medium text-gray-700">Số điện thoại</Label>
-                      <Input
-                        id="phonenumber"
-                        {...register('phonenumber')}
-                        className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                        placeholder="Nhập số điện thoại"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-4">
-                    <Button type="submit" disabled={isSaving} className="bg-[#E65E2C] hover:bg-[#d95222] text-white min-w-[120px]">
-                      {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-                    </Button>
-                  </div>
-                </form>
-              </div>
-            ) : tab === "addresses" ? (
-              <div className="space-y-6">
-                <div className="flex justify-between items-center bg-orange-50/50 p-4 rounded-xl border border-orange-100">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-800">Số địa chỉ của tôi</h2>
-                    <p className="text-sm text-gray-500">Quản lý các địa chỉ nhận hàng của bạn</p>
-                  </div>
-                  <Button
-                    onClick={() => { setEditingAddress(null); setIsAddressModalOpen(true); }}
-                    className="bg-[#E65E2C] hover:bg-[#d95222] text-white gap-2 shadow-lg shadow-orange-200 transition-all hover:scale-105"
-                  >
-                    <Plus className="w-4 h-4" /> Thêm địa chỉ mới
-                  </Button>
-                </div>
-
-                <div className="space-y-4">
-                  {addresses.length > 0 ? (
-                    addresses.map((addr) => (
-                      <div key={addr.id} className="group border border-gray-100 rounded-xl p-5 bg-white hover:border-orange-200 hover:shadow-md transition-all">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-3">
-                              <span className="font-bold text-gray-800 text-lg">{addr.title}</span>
-                              {addr.isDefault && (
-                                <span className="text-[10px] bg-green-50 text-green-600 px-2 py-0.5 rounded-full border border-green-200 font-bold uppercase tracking-wider">Mặc định</span>
-                              )}
+                    {/* Content Area */}
+                    <div className="flex-grow space-y-10">
+                        {/* Personal Info Bento Section */}
+                        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Profile Card */}
+                            <div className="md:col-span-2 bg-white rounded-3xl p-8 shadow-sm border border-slate-100 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full translate-x-1/2 -translate-y-1/2 opacity-50 pointer-events-none"></div>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10">
+                                    <h2 className="text-2xl font-black tracking-tight text-slate-900">Thông tin Cá nhân</h2>
+                                    <button className="px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-widest bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors w-fit">
+                                        Chỉnh sửa hồ sơ
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 relative z-10">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-widest font-black text-slate-400">Họ và tên hoặc Tổ chức</label>
+                                        <p className="text-xl font-bold text-slate-900">{user?.username || "—"}</p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-widest font-black text-slate-400">Địa chỉ Email</label>
+                                        <p className="text-xl font-bold text-slate-900">{user?.email || "—"}</p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-widest font-black text-slate-400">Số điện thoại</label>
+                                        <p className="text-xl font-bold text-slate-900">{user?.phonenumber || "—"}</p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] uppercase tracking-widest font-black text-slate-400">Đăng ký ngày</label>
+                                        <p className="text-xl font-bold text-slate-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : "—"}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 text-gray-600">
-                              <span className="font-medium">{addr.receiverName}</span>
-                              <span className="text-gray-300">|</span>
-                              <span>{addr.receiverPhone}</span>
+                            
+                            {/* Membership Status */}
+                            <div className="bg-slate-900 text-white rounded-3xl p-8 flex flex-col justify-between shadow-xl shadow-slate-900/10 relative overflow-hidden">
+                                {/* Decorative BG */}
+                                <div className="absolute -right-10 -bottom-10 opacity-10">
+                                    <span className="material-symbols-outlined text-9xl">workspace_premium</span>
+                                </div>
+                                <div className="relative z-10">
+                                    <span className="inline-block px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest text-white mb-6 backdrop-blur-md">
+                                        {getMembershipTier(user?.role)}
+                                    </span>
+                                    <h3 className="text-3xl font-black tracking-tight leading-tight mb-3">
+                                        {getRoleName(user?.role)}
+                                    </h3>
+                                    <p className="text-sm font-medium text-slate-300 leading-relaxed">
+                                        {getRoleDescription(user?.role)}
+                                    </p>
+                                </div>
+                                <div className="mt-8 flex items-center gap-2 text-sm font-bold text-white cursor-pointer hover:text-blue-300 transition-colors w-max relative z-10">
+                                    Chi tiết đặc quyền <ArrowRight className="w-4 h-4" />
+                                </div>
                             </div>
-                            <div className="space-y-0.5">
-                              <p className="text-sm text-gray-500 italic">{addr.detail}</p>
-                              <p className="text-sm text-gray-700">{addr.ward}, {addr.district}, {addr.province}</p>
-                            </div>
-                            {addr.latitude && addr.longitude && (
-                              <div className="flex items-center gap-1 text-[10px] text-blue-500 font-medium bg-blue-50 w-fit px-2 py-0.5 rounded">
-                                <MapPin className="w-3 h-3" /> Đã ghim vị trí ({addr.latitude.toFixed(4)}, {addr.longitude.toFixed(4)})
-                              </div>
+                        </section>
+
+                        {/* Recent Activity / Tracked Assets */}
+                        <section className="space-y-6">
+                            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 border-b border-slate-200 pb-4">Tài sản theo dõi</h2>
+                            {products.length === 0 ? (
+                                <div className="border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 min-h-[300px]">
+                                    <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-6">
+                                        <Car className="w-8 h-8 text-slate-300" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 mb-2">Chưa có xe nào trong gara</h3>
+                                    <p className="text-sm font-medium text-slate-500 mb-8 max-w-sm">Duyệt qua danh mục xe thể thao hiện tại và lưu những chiếc bạn quan tâm.</p>
+                                    <Link href="/auctions" className="px-8 py-4 bg-blue-600 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20">
+                                        Khám phá sàn giao dịch
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {products.map((product) => (
+                                        <div key={product.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl hover:border-slate-200 transition-all cursor-pointer flex flex-col">
+                                            <Link href={`/products/${product.id}`} className="block flex-1">
+                                                <div className="h-56 relative overflow-hidden bg-slate-100">
+                                                    <img alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src={product.imageUrl || "/images/static/car-placeholder.png"} />
+                                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-red-500 p-2.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
+                                                    </div>
+                                                </div>
+                                                <div className="p-6">
+                                                    <div className="flex justify-between items-start gap-4 mb-3">
+                                                        <h3 className="font-extrabold text-lg text-slate-900 line-clamp-2 leading-tight">{product.name}</h3>
+                                                    </div>
+                                                    <p className="text-2xl font-black text-blue-600 mb-4">{product.price.toLocaleString()} <span className="text-[12px] align-top text-blue-400">đ</span></p>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-3 mb-6">
+                                                        <div className="bg-slate-50 rounded-lg p-2.5 flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-slate-400 text-sm">directions_car</span>
+                                                            <span className="text-xs font-bold text-slate-700">{product.brand || 'Xe'}</span>
+                                                        </div>
+                                                        <div className="bg-slate-50 rounded-lg p-2.5 flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-slate-400 text-sm">speed</span>
+                                                            <span className="text-xs font-bold text-slate-700">{product.mileage ? `${product.mileage} km` : 'Mới'}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mb-3">
+                                                        <div className="h-full bg-emerald-500 w-full"></div>
+                                                    </div>
+                                                    <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest">Trạng thái: Tài sản hợp lệ</p>
+                                                </div>
+                                            </Link>
+                                        </div>
+                                    ))}
+                                    <div className="border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center p-8 text-center bg-slate-50/50 group hover:border-blue-300 hover:bg-blue-50/30 transition-all cursor-pointer">
+                                        <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
+                                            <span className="material-symbols-outlined text-slate-400 group-hover:text-white transition-colors">add</span>
+                                        </div>
+                                        <h3 className="font-bold text-sm text-slate-900 mb-2">Thêm mục tiêu mới</h3>
+                                        <p className="text-xs font-medium text-slate-500">Mở rộng danh sách tài sản bạn đang nhắm tới.</p>
+                                    </div>
+                                </div>
                             )}
-                          </div>
-                          <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-blue-600 border-blue-100 hover:bg-blue-50"
-                              onClick={() => { setEditingAddress(addr); setIsAddressModalOpen(true); }}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-red-500 border-red-100 hover:bg-red-50"
-                              onClick={() => handleDeleteAddress(addr.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="py-12 text-center bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                      <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <p className="text-gray-500 font-medium">Bạn chưa có địa chỉ nào</p>
-                      <button
-                        onClick={() => setIsAddressModalOpen(true)}
-                        className="text-orange-600 text-sm font-bold mt-2 hover:underline"
-                      >
-                        Thêm địa chỉ đầu tiên ngay
-                      </button>
+                        </section>
                     </div>
-                  )}
                 </div>
-
-                <AddressModal
-                  isOpen={isAddressModalOpen}
-                  onClose={() => { setIsAddressModalOpen(false); setEditingAddress(null); }}
-                  onSave={handleSaveAddress}
-                  initialData={editingAddress}
-                />
-              </div>
-            ) : (
-              <div className="py-20 text-center text-gray-400">
-                Chức năng đang được phát triển
-              </div>
-            )}
-
-          </div>
+            </main>
         </div>
-
-      </div>
-    </div>
-  );
+    );
 }

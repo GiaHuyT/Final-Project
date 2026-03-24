@@ -524,7 +524,7 @@ export default function UserManagementPage() {
                                 <SelectTrigger className="h-12 rounded-2xl border-2 border-gray-100 font-black shadow-sm transition-all focus:ring-4 focus:ring-blue-100">
                                     <SelectValue placeholder="Chọn vai trò" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                                <SelectContent className="z-[100] rounded-2xl border-none shadow-2xl p-2">
                                     <SelectItem value="ADMIN" className="font-black rounded-xl focus:bg-red-50 focus:text-red-600 px-4 py-3">PHỤ TRÁCH HỆ THỐNG (ADMIN)</SelectItem>
                                     <SelectItem value="VENDOR" className="font-black rounded-xl focus:bg-blue-50 focus:text-blue-600 px-4 py-3">NHÀ CUNG CẤP (VENDOR)</SelectItem>
                                     <SelectItem value="CUSTOMER" className="font-black rounded-xl focus:bg-gray-50 px-4 py-3">NGƯỜI MUA (CUSTOMER)</SelectItem>
@@ -532,9 +532,9 @@ export default function UserManagementPage() {
                             </Select>
                         </div>
                     </div>
-                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3">
+                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-[-1]">
                         <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all">Quay lại</Button>
-                        <Button onClick={handleUpdateUser} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-10 h-12 rounded-2xl shadow-xl shadow-blue-200 uppercase tracking-tighter transition-all active:scale-95">Lưu thông tin</Button>
+                        <Button onClick={handleUpdateUser} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-10 h-12 rounded-2xl shadow-xl shadow-blue-200 uppercase tracking-tighter transition-all active:scale-95 z-0">Lưu thông tin</Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -604,7 +604,7 @@ export default function UserManagementPage() {
                                 <SelectTrigger className="h-12 rounded-2xl border-2 border-gray-100 font-black shadow-sm transition-all focus:ring-4 focus:ring-orange-100">
                                     <SelectValue placeholder="Chọn vai trò" />
                                 </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                                <SelectContent className="z-[100] rounded-2xl border-none shadow-2xl p-2">
                                     <SelectItem value="ADMIN" className="font-black rounded-xl focus:bg-red-50 focus:text-red-600 px-4 py-3">PHỤ TRÁCH HỆ THỐNG (ADMIN)</SelectItem>
                                     <SelectItem value="VENDOR" className="font-black rounded-xl focus:bg-blue-50 focus:text-blue-600 px-4 py-3">NHÀ CUNG CẤP (VENDOR)</SelectItem>
                                     <SelectItem value="CUSTOMER" className="font-black rounded-xl focus:bg-gray-50 px-4 py-3">NGƯỜI MUA (CUSTOMER)</SelectItem>
@@ -612,9 +612,9 @@ export default function UserManagementPage() {
                             </Select>
                         </div>
                     </div>
-                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3">
+                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-[-1]">
                         <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all">Đóng cửa sổ</Button>
-                        <Button onClick={handleCreateUser} className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 h-12 rounded-2xl shadow-xl shadow-orange-200 uppercase tracking-tighter transition-all active:scale-95">Tạo tài khoản</Button>
+                        <Button onClick={handleCreateUser} className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 h-12 rounded-2xl shadow-xl shadow-orange-200 uppercase tracking-tighter transition-all active:scale-95 z-0">Tạo tài khoản</Button>
                     </div>
                 </DialogContent>
             </Dialog>

@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-variant": "#d7e3fa",
+              "inverse-surface": "#253142",
+              "tertiary-fixed": "#ffdcc4",
+              "outline-variant": "#c4c6cc",
+              "on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#c4c4df",
+              "outline": "#74777d",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#e0e0fc",
+              "on-tertiary-fixed": "#301400",
+              "surface-container-highest": "#d7e3fa",
+              "on-tertiary": "#ffffff",
+              "surface-container": "#e6eeff",
+              "on-primary-fixed-variant": "#274e3d",
+              "tertiary-fixed-dim": "#ffb781",
+              "primary": "#000000",
+              "surface-dim": "#cfdbf1",
+              "surface-bright": "#f9f9ff",
+              "on-secondary-container": "#5f6178",
+              "on-error": "#ffffff",
+              "on-secondary-fixed-variant": "#43455b",
+              "secondary-container": "#ddddf9",
+              "on-tertiary-container": "#ca6a00",
+              "on-secondary-fixed": "#181a2e",
+              "primary-container": "#002114",
+              "on-background": "#101c2c",
+              "tertiary-container": "#301400",
+              "on-primary-container": "#648d78",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed-dim": "#a5d0b9",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#44474c",
+              "surface-container-high": "#dde9ff",
+              "primary-fixed": "#c1ecd4",
+              "on-surface": "#101c2c",
+              "surface-container-low": "#eff3ff",
+              "surface": "#f9f9ff",
+              "background": "#f9f9ff",
+              "inverse-on-surface": "#ebf1ff",
+              "error-container": "#ffdad6",
+              "inverse-primary": "#a5d0b9",
+              "surface-tint": "#3f6653",
+              "tertiary": "#000000",
+              "secondary": "#5b5d74",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#703800",
+              "on-primary-fixed": "#002114"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Manrope', sans-serif; }
+        .glass-panel {
+            background: rgba(215, 227, 250, 0.6);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col h-screen w-64 border-r-0 bg-slate-50 dark:bg-slate-900 font-manrope tracking-tight text-sm font-semibold py-6 px-4 shrink-0 sticky top-0">
+<div class="mb-10 px-2 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">speed</span>
+</div>
+<div class="flex flex-col">
+<span class="text-xl font-bold tracking-tighter text-slate-900 dark:text-slate-50">Precision Engine</span>
+<span class="text-[10px] uppercase tracking-widest text-slate-400">Admin Console</span>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-600 dark:text-blue-400 font-bold border-l-4 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+<span>Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span>Auctions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Vendors</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 border-t border-slate-200 pt-6">
+<button class="w-full mb-4 py-3 px-4 bg-primary text-on-primary rounded-full font-bold flex items-center justify-center gap-2 active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>New Auction</span>
+</button>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-40 w-full px-8 h-16 flex justify-between items-center bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl shadow-sm shadow-slate-200/50 dark:shadow-none">
+<div class="flex items-center gap-8 flex-1">
+<div class="relative max-w-md w-full focus-within:ring-2 focus-within:ring-blue-500/20 rounded-xl transition-all">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-xl">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-xl py-2 pl-10 pr-4 text-sm focus:bg-surface-container-highest transition-colors" placeholder="Search inventory by VIN or model..." type="text"/>
+</div>
+<nav class="hidden lg:flex items-center gap-6 font-manrope font-medium text-sm">
+<a class="text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-2" href="#">Overview</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all" href="#">Reports</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all" href="#">Activity</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 hover:text-blue-500 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-600 hover:text-blue-500 transition-all">
+<span class="material-symbols-outlined">history</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden ml-2 ring-2 ring-white ring-offset-2 ring-offset-slate-100">
+<img alt="Admin Profile" class="w-full h-full object-cover" data-alt="professional male avatar with minimalist geometric style and corporate aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbx2ZbcC20FYGUS_yZM5l_tIr8TDMwufsDTJqSJYOkcI5vZS5_WhbmU2LmVzdC8Oya5VXV6FbfyBZjh5C2sY9o-sHn3_uvRIDgjap-a1tmoxC_JU_Utm0QGGkLRCp1F2VWkxPx53pbuytiFEEjNZRyJOC07IZIJ6uBxsTKwNdIyCxmmCDWj5qBhCpAJH09mv5s5FvhYE1CMOxbNTjAhS8bgdag_CbHt15JlpLWaSkwQEDlNAEj5JTNa97FgjUNDJKWiw4unevvOQ9-"/>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Header Section with Asymmetric Layout -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="max-w-2xl">
+<p class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-primary-container mb-2">Inventory Management</p>
+<h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-on-surface">Vehicle Fleet</h1>
+<p class="mt-4 text-on-surface-variant max-w-md leading-relaxed">Manage your premium automotive assets. Monitor auction status, performance metrics, and transaction history in real-time.</p>
+</div>
+<button class="bg-primary text-on-primary px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg shadow-primary/10 hover:shadow-xl transition-all active:scale-95 shrink-0">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Add New Vehicle</span>
+</button>
+</div>
+<!-- Stats Tonal Layering Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-blue-600">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-blue-600">directions_car</span>
+<span class="text-xs font-bold text-blue-600">+12% vs last month</span>
+</div>
+<h3 class="mt-4 text-3xl font-bold">142</h3>
+<p class="text-sm text-on-surface-variant font-medium">Active Listings</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-emerald-600">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-emerald-600">check_circle</span>
+<span class="text-xs font-bold text-emerald-600">84% sell rate</span>
+</div>
+<h3 class="mt-4 text-3xl font-bold">28</h3>
+<p class="text-sm text-on-surface-variant font-medium">Sold This Week</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-orange-500">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-orange-500">pending_actions</span>
+<span class="text-xs font-bold text-orange-500">Avg. 4 days</span>
+</div>
+<h3 class="mt-4 text-3xl font-bold">12</h3>
+<p class="text-sm text-on-surface-variant font-medium">Pending Auctions</p>
+</div>
+</div>
+<!-- Filters & Controls -->
+<div class="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-outline-variant/15">
+<div class="flex items-center gap-2">
+<button class="px-5 py-2 rounded-full bg-primary text-on-primary text-xs font-bold">All Listings</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">Active</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">Sold</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-low text-on-surface-variant text-xs font-bold hover:bg-surface-container-high transition-colors">Pending</button>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 text-xs font-bold border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 text-xs font-bold border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm">sort</span>
+                            Sort: Newest
+                        </button>
+</div>
+</div>
+<!-- Inventory Grid (Asymmetric Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Listing Card 1 (Active) -->
+<div class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+<div class="relative h-64 overflow-hidden">
+<img alt="Porsche 911 GT3" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="front three-quarter view of a modern charcoal grey Porsche 911 GT3 in a minimalist concrete architectural space with dramatic shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDy071csileeqhzyYNGrW3NxEASGVjFf0llJEY6wMIuj2a8DoL1SoDByxvKteXqGRwpTHzNUchLiaLoJSoixTncNF_3XvTWTLoc5jRRKv-9mkRIIHrIJ-a1bVD3hZn9H4nmfg4u2VWxMrUtfSCI5WLMJpoDZ8jwWmZXLDTLmQasSmGSSHKbc-R2zcIznSCihkR0GHQ5hvD5FjlDQV6_Z1ANV7nD5iD6KWITQ7MNUg08Rn7u57ZOZP2GVwlybSVpb-7wWYW_kSlSl7-G"/>
+<div class="absolute top-4 left-4">
+<span class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-blue-600/20">Active Auction</span>
+</div>
+<div class="absolute bottom-4 right-4 glass-panel px-3 py-1.5 rounded-lg flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">timer</span>
+<span class="text-xs font-bold">02:14:45</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold tracking-tight">2022 Porsche 911 GT3</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-base">speed</span>
+<span>4,250 mi</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-base">location_on</span>
+<span>Miami, FL</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Current Bid</p>
+<p class="text-2xl font-black text-primary">$184,500</p>
+</div>
+<button class="p-3 bg-surface-container-low hover:bg-primary hover:text-on-primary rounded-full transition-all">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Listing Card 2 (Pending) -->
+<div class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+<div class="relative h-64 overflow-hidden">
+<img alt="BMW M8 Competition" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="sleek black BMW M8 Competition parked in a modern industrial garage with bright linear neon lighting highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpCEJD_EhHD1jvped_FbAp4-125xgYTDV-HXcAHzMFbKstYalWy-gu0lUduNC-WbUwhv_fs-elk0U1Upb-zwl_YH5X925kn1kDvA6stq21lkmuBqWUzhpPzfgshPeB-HbM038B_fRM3YXe4lDzhGjllTeRDTxnMBbUVEyqQPeUaXTVk2f-TlfRSNqY1HesCRVx6U2g2ZdbWbHjtYCFqCl8h_SeNIL3uLGHnqTUgkTtWtWlWjTCqustIIiPqXL9j7arolm2wQ2ILVOh"/>
+<div class="absolute top-4 left-4">
+<span class="bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg shadow-orange-500/20">Pending Review</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold tracking-tight">2023 BMW M8 Competition</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-base">speed</span>
+<span>820 mi</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-base">location_on</span>
+<span>Dallas, TX</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Est. Reserve</p>
+<p class="text-2xl font-black text-primary">$132,000</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-primary text-on-primary text-xs font-bold rounded-full">Review</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Listing Card 3 (Sold) -->
+<div class="group flex flex-col bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 opacity-90">
+<div class="relative h-64 overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
+<img alt="Ferrari F8 Tributo" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="close up of the rear taillight and spoiler of a bright red Ferrari F8 Tributo in high-contrast sunlight with soft bokeh background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYjolIofH9RJvBpMD8AH7RvV6IPE2Yt78emoPivB1Ue5JXm48x5CKpC7T3Sn_pEVMfK4tYTdthZ109KO5KYwwAawQv6yXmjgxJzXhCXdGD3gL41JHgWRAfRNu9y_lfIPssYgx-0qDPkvyiEXRV-klV0Ln8B7qho26c7QPnB6S72cgN9OMSdczfVe7JimUDiXfGyGI43BYaHb0WCFAR0EA_d2z8ddXEefB75aWANBrTgVCsjLiJ2_xr-8mzqEykPfCUEbfZ0wqOO6z5"/>
+<div class="absolute inset-0 bg-primary/20 backdrop-blur-[2px]"></div>
+<div class="absolute top-4 left-4">
+<span class="bg-slate-900 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Sold</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-xl font-bold tracking-tight">2021 Ferrari F8 Tributo</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="flex gap-4 mb-6">
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-base">speed</span>
+<span>2,100 mi</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs font-medium text-on-surface-variant">
+<span class="material-symbols-outlined text-base">event</span>
+<span>Sold: Aug 12</span>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Sale Price</p>
+<p class="text-2xl font-black text-emerald-600">$312,500</p>
+</div>
+<button class="p-3 bg-surface-container-low hover:bg-slate-900 hover:text-white rounded-full transition-all">
+<span class="material-symbols-outlined">description</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<div class="mt-12">
+<h2 class="text-2xl font-bold tracking-tight mb-6">Recent Inventory Activity</h2>
+<div class="bg-surface-container-low rounded-2xl overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="border-b border-outline-variant/15">
+<tr>
+<th class="px-6 py-4 text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Vehicle</th>
+<th class="px-6 py-4 text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Status</th>
+<th class="px-6 py-4 text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Last Action</th>
+<th class="px-6 py-4 text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Date</th>
+<th class="px-6 py-4 text-[10px] uppercase font-bold text-on-surface-variant tracking-widest text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-slate-200 overflow-hidden shrink-0">
+<img alt="Mercedes S-Class" class="w-full h-full object-cover" data-alt="side profile of a sleek white Mercedes S-Class driving on a coastal road at sunset" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxSY4kyiBdWcXb92W50cJeNVd7K2RqSUjgN9FsQrdbA-LvoSikmt6_bJamn9CRLpCGrm7Zo8MXzFT9SQ2mWuleUmzRHCM_4fLS-49iCXBLN5VkSFBZXz3zK7NJZsl3czRcTUCFZ1EuA_LpRogrMlT-9nBjRa4tX77CP0sOI6B9EDqGv-Aj2_7uPRyAaXMrHvbZUb3_qUUeHyey9qZXkJ2SKrR-H43v0fHONVcVpekFwYoCBVyLFqKc-Nxz88NMQdellxnwq5gZ03MM"/>
+</div>
+<div>
+<p class="text-sm font-bold">2024 Mercedes-Benz S580</p>
+<p class="text-[10px] text-on-surface-variant">VIN: 1WDBF5EB...921</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Active</span>
+</td>
+<td class="px-6 py-4 text-sm font-medium">New Bid Placed</td>
+<td class="px-6 py-4 text-sm text-on-surface-variant">2 mins ago</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:underline text-xs font-bold">Details</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-slate-200 overflow-hidden shrink-0">
+<img alt="Audi R8" class="w-full h-full object-cover" data-alt="high angle view of a yellow Audi R8 parked on a dark cobblestone street under soft street lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_zqPCEPWsDs4j6X5nFjQgRUdwBsiid3cQSf_dba1hDpTqIIrng11PykCb3LAcqav_6EYR91xEQesID1WK0K1isPMQFvKIgi2sCww9iBfjlfCzHl7mb0EKfZ6oSySqNu8uLUSFyCXC7qMhdSI_r6L_1yYk0bPJCQWOeB94oMplqNeU9Y79__bGSIVDMryeig1bEqrWhJ7vKcdYZNHVLzUWUHvaRWW81wuL9u-PNBlZozBA3DDyJ2AN2nHPfISMfCQfETU1Yjcw1Scv"/>
+</div>
+<div>
+<p class="text-sm font-bold">2020 Audi R8 V10</p>
+<p class="text-[10px] text-on-surface-variant">VIN: WUA1B4F4...118</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-orange-100 text-orange-700">Pending</span>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Photo Verification</td>
+<td class="px-6 py-4 text-sm text-on-surface-variant">1 hour ago</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:underline text-xs font-bold">Review</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation (BottomNavBar) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-slate-100 flex justify-around items-center h-16 px-6 z-50">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-blue-600" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">directions_car</span>
+<span class="text-[10px] font-bold">Fleet</span>
+</a>
+<div class="relative -top-6">
+<button class="w-12 h-12 bg-primary text-on-primary rounded-full shadow-lg shadow-primary/30 flex items-center justify-center">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-[10px] font-bold">Stats</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold">Menu</span>
+</a>
+</nav>
+</body></html>

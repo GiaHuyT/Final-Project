@@ -214,7 +214,8 @@ export default function VendorRentalCarsPage() {
                                         <tr key={rental.id} className="hover:bg-blue-50/5 transition-colors group">
                                             <td className="px-10 py-6 align-middle">
                                                 <div className="w-16 h-12 rounded-xl overflow-hidden shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-300">
-                                                    <img src={rental.imageUrl || '/placeholder-car.jpg'} className="w-full h-full object-cover" />
+                                                    <img src={rental.imageUrl || '/images/static/car-placeholder.png'} className="w-full h-full object-cover" />
+
                                                 </div>
                                             </td>
                                             <td className="px-10 py-6 align-middle">

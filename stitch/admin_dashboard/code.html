@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Precision Engine | Admin Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600;700;800&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-variant": "#d7e3fa",
+              "inverse-surface": "#253142",
+              "tertiary-fixed": "#ffdcc4",
+              "outline-variant": "#c4c6cc",
+              "on-secondary": "#ffffff",
+              "secondary-fixed-dim": "#c4c4df",
+              "outline": "#74777d",
+              "on-error-container": "#93000a",
+              "secondary-fixed": "#e0e0fc",
+              "on-tertiary-fixed": "#301400",
+              "surface-container-highest": "#d7e3fa",
+              "on-tertiary": "#ffffff",
+              "surface-container": "#e6eeff",
+              "on-primary-fixed-variant": "#274e3d",
+              "tertiary-fixed-dim": "#ffb781",
+              "primary": "#000000",
+              "surface-dim": "#cfdbf1",
+              "surface-bright": "#f9f9ff",
+              "on-secondary-container": "#5f6178",
+              "on-error": "#ffffff",
+              "on-secondary-fixed-variant": "#43455b",
+              "secondary-container": "#ddddf9",
+              "on-tertiary-container": "#ca6a00",
+              "on-secondary-fixed": "#181a2e",
+              "primary-container": "#002114",
+              "on-background": "#101c2c",
+              "tertiary-container": "#301400",
+              "on-primary-container": "#648d78",
+              "surface-container-lowest": "#ffffff",
+              "primary-fixed-dim": "#a5d0b9",
+              "error": "#ba1a1a",
+              "on-surface-variant": "#44474c",
+              "surface-container-high": "#dde9ff",
+              "primary-fixed": "#c1ecd4",
+              "on-surface": "#101c2c",
+              "surface-container-low": "#eff3ff",
+              "surface": "#f9f9ff",
+              "background": "#f9f9ff",
+              "inverse-on-surface": "#ebf1ff",
+              "error-container": "#ffdad6",
+              "inverse-primary": "#a5d0b9",
+              "surface-tint": "#3f6653",
+              "tertiary": "#000000",
+              "secondary": "#5b5d74",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed-variant": "#703800",
+              "on-primary-fixed": "#002114"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3 { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-surface-variant">
+<div class="flex min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="flex flex-col h-screen w-64 border-r-0 bg-slate-50 dark:bg-slate-900 flex flex-col h-full py-6 px-4 font-manrope tracking-tight text-sm font-semibold sticky top-0">
+<div class="mb-10 flex items-center gap-3 px-2">
+<div class="w-10 h-10 bg-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">earth_engine</span>
+</div>
+<div>
+<div class="text-xl font-bold tracking-tighter text-slate-900 dark:text-slate-50">Precision Engine</div>
+<div class="text-[10px] uppercase tracking-widest text-slate-500">Admin Console</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-600 dark:text-blue-400 font-bold border-l-4 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">directions_car</span>
+<span>Inventory</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">gavel</span>
+<span>Auctions</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">group</span>
+<span>Vendors</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-slate-200 dark:border-slate-800 space-y-1">
+<button class="w-full bg-primary text-on-primary rounded-full py-3 px-4 flex items-center justify-center gap-2 mb-4 hover:opacity-90 transition-all active:scale-95 duration-150 ease-in-out">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>New Auction</span>
+</button>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar Component -->
+<header class="full-width top-0 sticky z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl flex justify-between items-center w-full px-8 h-16 shadow-sm shadow-slate-200/50 dark:shadow-none">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full group focus-within:ring-2 focus-within:ring-blue-500/20 rounded-lg">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-900 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-0 focus:outline-none placeholder:text-slate-500" placeholder="Search engines, vendors, or bids..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<nav class="hidden md:flex items-center gap-8 font-manrope font-medium text-sm">
+<a class="text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-2" href="#">Overview</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all" href="#">Reports</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-500 transition-all" href="#">Activity</a>
+</nav>
+<div class="flex items-center gap-4 text-slate-600">
+<button class="hover:text-blue-500 transition-all"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:text-blue-500 transition-all"><span class="material-symbols-outlined">history</span></button>
+<div class="h-8 w-8 rounded-full overflow-hidden bg-slate-200 border border-slate-200">
+<img alt="Admin Profile" class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male executive in a studio setting with clean lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhpdtPOiVhQOBY9hBkrxjoRuRpCZpYfk2v9iKK0ASpcZKR-P-PoND_WCPcf-WTqdOhliXpzfhuFSMKTRxhhhZjTpBw00F3OhyLBmhx00NvwsHzqLnNzs-iq6gh714wo1FVlGsBMcU3iQxIiFD8G6zNjmHRLlIMl0B6vLdZus1op8y4pPds5CHU_M3tSRTrJ9Ee9p8-3uocG8AfwXcV9odwrsMVFHZ7_mBMNA_S809eFAd98T4ToMftbgOzzAkw86WZLfzcO_2pJnhU"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 space-y-8 overflow-y-auto">
+<!-- Hero Metrics (Asymmetric Bento Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Revenue Highlight -->
+<div class="md:col-span-7 bg-surface-container-lowest p-8 rounded-xl flex flex-col justify-between relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-secondary-container/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] uppercase tracking-widest font-bold text-on-secondary-container">Total Platform Revenue</span>
+<h2 class="text-5xl font-extrabold tracking-tighter mt-1">$4,829,400.00</h2>
+</div>
+<div class="px-3 py-1 bg-primary-fixed text-on-primary-fixed rounded-full text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12.5%
+                                </div>
+</div>
+<!-- Mini Revenue Chart Projection -->
+<div class="flex items-end gap-1 h-32 mt-8">
+<div class="bg-surface-container-low w-full h-[40%] rounded-t-sm"></div>
+<div class="bg-surface-container-low w-full h-[55%] rounded-t-sm"></div>
+<div class="bg-surface-container-low w-full h-[45%] rounded-t-sm"></div>
+<div class="bg-surface-container-low w-full h-[70%] rounded-t-sm"></div>
+<div class="bg-surface-container-low w-full h-[60%] rounded-t-sm"></div>
+<div class="bg-blue-600 w-full h-[85%] rounded-t-sm"></div>
+<div class="bg-blue-700 w-full h-[95%] rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Growth Module -->
+<div class="md:col-span-5 bg-surface-container-low p-8 rounded-xl flex flex-col justify-between">
+<div>
+<span class="text-[10px] uppercase tracking-widest font-bold text-on-secondary-container">User Growth</span>
+<h2 class="text-4xl font-extrabold tracking-tighter mt-1">12,842</h2>
+<p class="text-sm text-on-surface-variant mt-2">Active buyers and sellers across 14 countries.</p>
+</div>
+<div class="mt-8 space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-500">New this week</span>
+<span class="font-bold">+842</span>
+</div>
+<div class="w-full bg-white rounded-full h-2">
+<div class="bg-blue-600 h-2 rounded-full w-[65%]"></div>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-slate-500">Target conversion</span>
+<span class="font-bold">78%</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Technical Analytics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Auction Velocity -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-tertiary-container">speed</span>
+<h3 class="font-bold">Auction Velocity</h3>
+</div>
+<div class="text-3xl font-bold mb-2">4.2 <span class="text-sm font-normal text-slate-400">bids / min</span></div>
+<div class="h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-blue-600 w-3/4 shadow-[0_0_8px_rgba(37,99,235,0.4)]"></div>
+</div>
+</div>
+<!-- Vendor Health -->
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-green-600">verified</span>
+<h3 class="font-bold">Vendor Health</h3>
+</div>
+<div class="text-3xl font-bold mb-2">98.4%</div>
+<div class="flex gap-1">
+<div class="h-2 w-full bg-green-500 rounded-full"></div>
+<div class="h-2 w-full bg-green-500 rounded-full"></div>
+<div class="h-2 w-full bg-green-500 rounded-full"></div>
+<div class="h-2 w-full bg-green-100 rounded-full"></div>
+</div>
+</div>
+<!-- System Uptime -->
+<div class="bg-surface-container-lowest p-6 rounded-xl">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-blue-500">settings_ethernet</span>
+<h3 class="font-bold">System Load</h3>
+</div>
+<div class="text-3xl font-bold mb-2">142ms <span class="text-sm font-normal text-slate-400">latency</span></div>
+<div class="text-xs text-on-surface-variant">Regional nodes operating at optimal capacity.</div>
+</div>
+</div>
+<!-- Main Activity Chart Section -->
+<div class="bg-surface-container-low rounded-xl p-8">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+<div>
+<h3 class="text-2xl font-bold tracking-tight">Active Bidding Sessions</h3>
+<p class="text-on-surface-variant text-sm">Real-time engagement tracking across primary markets.</p>
+</div>
+<div class="flex gap-2">
+<button class="px-4 py-2 bg-white rounded-full text-xs font-bold border border-slate-200">Last 24 Hours</button>
+<button class="px-4 py-2 bg-primary text-white rounded-full text-xs font-bold">Live Stream</button>
+</div>
+</div>
+<div class="relative h-[400px] w-full bg-white/50 rounded-xl overflow-hidden border border-white/40 flex items-center justify-center">
+<!-- Simulated Modern Data Viz Layout -->
+<div class="absolute inset-0 p-8 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-blue-600"></div>
+<span class="text-xs font-bold text-slate-600">European Market</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-orange-500"></div>
+<span class="text-xs font-bold text-slate-600">North America</span>
+</div>
+</div>
+<div class="text-right">
+<div class="text-xs text-slate-400">Current Peak</div>
+<div class="text-xl font-bold">1,420 Users</div>
+</div>
+</div>
+<!-- SVG Waveform Simulation -->
+<svg class="w-full h-64 overflow-visible" preserveaspectratio="none" viewbox="0 0 1000 200">
+<path class="opacity-80" d="M0,150 Q100,100 200,130 T400,80 T600,110 T800,50 T1000,90" fill="none" stroke="#2563eb" stroke-width="4"></path>
+<path class="opacity-60" d="M0,180 Q120,150 250,170 T500,120 T750,160 T1000,100" fill="none" stroke="#f97316" stroke-width="4"></path>
+<rect fill="rgba(37,99,235,0.05)" height="200" width="20" x="390" y="0"></rect>
+</svg>
+<div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-4 border-t border-slate-100">
+<span>00:00</span>
+<span>04:00</span>
+<span>08:00</span>
+<span>12:00</span>
+<span>16:00</span>
+<span>20:00</span>
+<span>24:00</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Transactions / Logs -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden">
+<div class="px-8 py-6 border-b border-surface-container flex justify-between items-center">
+<h3 class="font-bold">Recent High-Value Logs</h3>
+<button class="text-blue-600 text-xs font-bold hover:underline">View Audit Trail</button>
+</div>
+<div class="divide-y divide-surface-container">
+<div class="px-8 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600">shopping_cart</span>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900">1967 Porsche 911 Auction Won</div>
+<div class="text-xs text-slate-500">Final bid: $245,000 • User #8421</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-sm font-bold text-on-surface">+ $12,250 (Fee)</div>
+<div class="text-[10px] text-slate-400">2 mins ago</div>
+</div>
+</div>
+<div class="px-8 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600">person_add</span>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900">New Platinum Vendor Verified</div>
+<div class="text-xs text-slate-500">Stuttgart Heritage Motors</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-sm font-bold text-green-600">Active</div>
+<div class="text-[10px] text-slate-400">14 mins ago</div>
+</div>
+</div>
+<div class="px-8 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-blue-600">account_balance_wallet</span>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900">Escrow Release Requested</div>
+<div class="text-xs text-slate-500">Transaction ID #AU-4421-XB</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-sm font-bold text-slate-900">$89,000.00</div>
+<div class="text-[10px] text-slate-400">1 hour ago</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

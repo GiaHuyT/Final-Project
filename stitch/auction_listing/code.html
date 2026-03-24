@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AutoBid | Live Auctions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container": "#e6eeff",
+              "secondary-fixed": "#e0e0fc",
+              "surface": "#f9f9ff",
+              "on-secondary-container": "#5f6178",
+              "on-background": "#101c2c",
+              "surface-bright": "#f9f9ff",
+              "on-error-container": "#93000a",
+              "on-secondary-fixed-variant": "#43455b",
+              "on-primary": "#ffffff",
+              "on-surface": "#101c2c",
+              "on-secondary": "#ffffff",
+              "tertiary-fixed": "#ffdcc4",
+              "primary": "#000000",
+              "outline": "#74777d",
+              "on-tertiary-fixed": "#301400",
+              "surface-container-high": "#dde9ff",
+              "secondary-container": "#ddddf9",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#ca6a00",
+              "secondary-fixed-dim": "#c4c4df",
+              "inverse-on-surface": "#ebf1ff",
+              "primary-fixed-dim": "#a5d0b9",
+              "inverse-primary": "#a5d0b9",
+              "on-primary-fixed": "#002114",
+              "tertiary-container": "#301400",
+              "primary-container": "#002114",
+              "secondary": "#5b5d74",
+              "surface-container-highest": "#d7e3fa",
+              "error-container": "#ffdad6",
+              "surface-tint": "#3f6653",
+              "surface-container-lowest": "#ffffff",
+              "on-secondary-fixed": "#181a2e",
+              "tertiary": "#000000",
+              "primary-fixed": "#c1ecd4",
+              "tertiary-fixed-dim": "#ffb781",
+              "surface-variant": "#d7e3fa",
+              "surface-dim": "#cfdbf1",
+              "background": "#f9f9ff",
+              "on-tertiary-fixed-variant": "#703800",
+              "inverse-surface": "#253142",
+              "on-primary-container": "#648d78",
+              "surface-container-low": "#eff3ff",
+              "error": "#ba1a1a",
+              "on-primary-fixed-variant": "#274e3d",
+              "on-surface-variant": "#44474c",
+              "on-error": "#ffffff",
+              "outline-variant": "#c4c6cc"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-nav {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface selection:bg-surface-container-highest">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/60 dark:bg-slate-950/60 backdrop-blur-xl shadow-sm dark:shadow-none">
+<div class="flex justify-between items-center h-16 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-black tracking-tighter text-slate-900 dark:text-white">AutoBid</span>
+<div class="hidden md:flex gap-6 items-center">
+<a class="font-manrope tracking-tight font-semibold text-sm text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1" href="#">Auctions</a>
+<a class="font-manrope tracking-tight font-semibold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Inventory</a>
+<a class="font-manrope tracking-tight font-semibold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Categories</a>
+<a class="font-manrope tracking-tight font-semibold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors" href="#">Sell</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/10 focus-within:border-primary/20 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-sm mr-2">search</span>
+<input class="bg-transparent border-none text-sm focus:ring-0 placeholder:text-on-surface-variant/50 w-48" placeholder="Search vehicles..." type="text"/>
+</div>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 duration-200 ease-in-out">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">favorite</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all active:scale-95 duration-200 ease-in-out relative">
+<span class="material-symbols-outlined text-slate-900 dark:text-slate-100">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<img alt="User avatar" class="w-8 h-8 rounded-full border border-outline-variant/20" data-alt="Close-up portrait of a professional man in a minimalist studio setting with soft directional lighting and clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8iVVtg0M18E_7XjUIcKqikXUVQzSIsSTwPYh42oufmdvBVAFHcMaSLeEcixDN814CH0jhOnqSzvvwGDMcdHWT8Q3Xmv7lXH2C2QUhGgwToSvMl9zQT-K-UvH09D-BKynuBnMjQuDG0REJBLP30CtrDxMDulj8S14Aixp2XAMCMwV8unaljIrm6RGSjGMKGywroRCdbUcIraKMXMKhnvuLhL5Ech62y4O_2wusol9pMCcw6BWDGcVHvQyw8ncy3YdaxYZXbCpPoGwP"/>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-20 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+<!-- Header & Filters Section -->
+<header class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<h1 class="font-headline text-5xl font-extrabold tracking-tighter text-on-surface mb-2">Live Auctions</h1>
+<p class="text-on-surface-variant max-w-xl font-body">Exclusive access to rare performance vehicles and luxury classics. Engineered for enthusiasts.</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-sm font-semibold text-primary">
+<span class="w-2 h-2 bg-tertiary rounded-full animate-pulse shadow-[0_0_8px_rgba(0,0,0,0.3)]"></span>
+                        142 Vehicles Live
+                    </span>
+<button class="flex items-center gap-2 px-6 py-2 bg-primary text-on-primary rounded-full font-bold active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg">tune</span>
+                        Refine
+                    </button>
+</div>
+</div>
+<!-- Filter Bar: Horizontal Scrollable on Mobile -->
+<div class="mt-10 flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+<div class="flex-shrink-0 group">
+<label class="block text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1 ml-1">Brand</label>
+<select class="appearance-none bg-surface-container-low border-none rounded-xl px-5 py-3 pr-10 text-sm font-semibold focus:ring-2 ring-primary/10 min-w-[160px]">
+<option>All Makes</option>
+<option>Porsche</option>
+<option>Ferrari</option>
+<option>BMW</option>
+<option>Mercedes-Benz</option>
+</select>
+</div>
+<div class="flex-shrink-0 group">
+<label class="block text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1 ml-1">Era</label>
+<select class="appearance-none bg-surface-container-low border-none rounded-xl px-5 py-3 pr-10 text-sm font-semibold focus:ring-2 ring-primary/10 min-w-[140px]">
+<option>Any Year</option>
+<option>2020 - Present</option>
+<option>2010 - 2019</option>
+<option>2000 - 2009</option>
+<option>Pre-2000</option>
+</select>
+</div>
+<div class="flex-shrink-0 group">
+<label class="block text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1 ml-1">Price Range</label>
+<select class="appearance-none bg-surface-container-low border-none rounded-xl px-5 py-3 pr-10 text-sm font-semibold focus:ring-2 ring-primary/10 min-w-[180px]">
+<option>All Prices</option>
+<option>Under $50k</option>
+<option>$50k - $150k</option>
+<option>$150k - $500k</option>
+<option>$500k+</option>
+</select>
+</div>
+<div class="flex-shrink-0 group">
+<label class="block text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1 ml-1">Sort By</label>
+<select class="appearance-none bg-surface-container-low border-none rounded-xl px-5 py-3 pr-10 text-sm font-semibold focus:ring-2 ring-primary/10 min-w-[180px]">
+<option>Ending Soon</option>
+<option>Newest Listed</option>
+<option>Highest Bid</option>
+<option>Lowest Bid</option>
+</select>
+</div>
+</div>
+</header>
+<!-- Auction Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12">
+<!-- Auction Card 1 -->
+<div class="group flex flex-col gap-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/10] bg-surface-container-low">
+<img alt="Silver Porsche 911" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Sleek silver Porsche 911 parked in a minimalist concrete architectural space with dramatic shadows and high-end studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtUGiigU7tCd68tZ2sQcemR34hvJrlFEJ9nI8BF9ZTuaYI4JmLAERFzPuDhbfwF5hMDvoFGJt4-Ym62lrzn5eOytCrS_Xk8yYpMvG5mzWirBoxaMY_jMguEpgpSBt8tdGtW3h3jiRBFt7-700REqNHJ9jfbbTrAn79UYhtUxjVh3QHPhC8toF3ePptcG4Vheu7Mdt_7MxSuG42J-T2Ddbcl2lNqOikdnk7H2Bp7uSo0e353_GDtPbrxL2OUqmbXbrN4CebDGp9pcSN"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-primary/80 backdrop-blur-md text-on-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Featured</span>
+<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 22h 14m
+                        </span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold tracking-tight">2023 Porsche 911 GT3 RS</h3>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant leading-none mb-1">Current Bid</p>
+<p class="font-headline text-2xl font-extrabold text-primary tracking-tighter">$242,000</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-y border-outline-variant/10">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">speed</span>
+<span class="text-xs font-semibold">1,240 mi</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-xs font-semibold">Automatic</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span class="text-xs font-semibold">Stuttgart, DE</span>
+</div>
+</div>
+<button class="w-full mt-2 py-4 rounded-full bg-primary text-on-primary font-bold text-sm tracking-wide active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                        Place Bid
+                        <span class="material-symbols-outlined text-lg">trending_up</span>
+</button>
+</div>
+</div>
+<!-- Auction Card 2 -->
+<div class="group flex flex-col gap-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/10] bg-surface-container-low">
+<img alt="Red Ferrari" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Deep red classic Ferrari in a dark premium showroom with focused spotlights catching the metallic curves and chrome details" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxErGri6AIIWThunliEQaNHPEmzwW5Xa97yTR_OSL3ZyZi0D0k3bY1L-YP4O0c0xhdDTWnqM0Qr_gxyMa5RAIEgDPdTmfCm1aaIncLgmNJiYeHh_5Hnp1qRu-diaNhhiCDKH6jNP1iTZMTN-Gk8Ww_Jk8GXqB_e8TYUVmUJ4nTAMrGiEXjQLoUeyIJIdE0k54xjkhU4JPqwPyn66euDj4igbQ5G4R_ykoH5o8H01h0PhFH19zoFXAfROlVxfS5VSZPuFbCQSQjNYgV"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-error/90 backdrop-blur-md text-on-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Ending Soon</span>
+<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px] text-error" style="font-variation-settings: 'FILL' 1;">timer</span> 04m 12s
+                        </span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold tracking-tight">1992 Ferrari F40</h3>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant leading-none mb-1">Current Bid</p>
+<p class="font-headline text-2xl font-extrabold text-primary tracking-tighter">$3,150,000</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-y border-outline-variant/10">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">speed</span>
+<span class="text-xs font-semibold">12,400 mi</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-xs font-semibold">Manual</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span class="text-xs font-semibold">Maranello, IT</span>
+</div>
+</div>
+<button class="w-full mt-2 py-4 rounded-full bg-surface-container-highest text-primary font-bold text-sm tracking-wide active:scale-[0.98] transition-all flex justify-center items-center gap-2 hover:bg-surface-container-high">
+                        Place Bid
+                        <span class="material-symbols-outlined text-lg">trending_up</span>
+</button>
+</div>
+</div>
+<!-- Auction Card 3 -->
+<div class="group flex flex-col gap-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/10] bg-surface-container-low">
+<img alt="Midnight Blue BMW" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Midnight blue BMW M3 Competition driving on a coastal road during blue hour with long exposure motion blur in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7J2rtKj15-zuT6BmKGfNPN1wByWIYaQFP6RsdeEU8zznQcFIJilL6vZmdTOSEir1lmfkKeZqQxm9tePNmCQTz3t4zFMcN63uuTBk6gM-mXBo5q57wC5Z_RVuWzmibsL7PooX5mECJTATsyWqg_xUkldd241AkGkQuePYGeD1yLtroYosQCV6zGPpvz53TNJ88keKRma9ZkSO0zcANkHX0-EYi7ggn1YDaYknW1PnBqKgkwe0AwdeCUwqK7QTbDvWxQruusRC3Vq-J"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 2d 11h
+                        </span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold tracking-tight">2024 BMW M3 CS</h3>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant leading-none mb-1">Current Bid</p>
+<p class="font-headline text-2xl font-extrabold text-primary tracking-tighter">$118,500</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-y border-outline-variant/10">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">speed</span>
+<span class="text-xs font-semibold">450 mi</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-xs font-semibold">Automatic</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span class="text-xs font-semibold">Munich, DE</span>
+</div>
+</div>
+<button class="w-full mt-2 py-4 rounded-full bg-primary text-on-primary font-bold text-sm tracking-wide active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                        Place Bid
+                        <span class="material-symbols-outlined text-lg">trending_up</span>
+</button>
+</div>
+</div>
+<!-- Auction Card 4 -->
+<div class="group flex flex-col gap-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/10] bg-surface-container-low">
+<img alt="Vintage Mercedes" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Silver vintage Mercedes-Benz 300SL Gullwing in a sunlit cobblestone courtyard with soft Mediterranean afternoon light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0yoSCbiWTmJvujPtai5mBKXT-oBgBRLtptgdrS4pJMJ2sGDlbrw7osNI1-FFITyIwJtqXkqOZwvavNjOs29kT-7VoKoTb_bPRa2Iue1f8GVLOzg3RCU_5emiCABp5s1n5ZiFiy-u96dCaKUVlX5LwB6RVL5VKoQrGnuwMHZstxxuGEg7O_edGOIE4zn0oaguwaxPB6GjzPo-9gmUWNzTdwKZaopgD2r5i4Xb-kJhXl8K7cniaiNb1qM7-w03W7Ws_tPTyR4Q6J-GS"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 5d 04h
+                        </span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold tracking-tight">1955 Mercedes 300SL</h3>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant leading-none mb-1">Current Bid</p>
+<p class="font-headline text-2xl font-extrabold text-primary tracking-tighter">$1,200,000</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-y border-outline-variant/10">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">speed</span>
+<span class="text-xs font-semibold">42,000 mi</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-xs font-semibold">Manual</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span class="text-xs font-semibold">Stuttgart, DE</span>
+</div>
+</div>
+<button class="w-full mt-2 py-4 rounded-full bg-primary text-on-primary font-bold text-sm tracking-wide active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                        Place Bid
+                        <span class="material-symbols-outlined text-lg">trending_up</span>
+</button>
+</div>
+</div>
+<!-- Auction Card 5 -->
+<div class="group flex flex-col gap-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/10] bg-surface-container-low">
+<img alt="Lamborghini" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Arancio Borealis orange Lamborghini Huracan STO on a high-tech landing pad with neon aesthetic lighting at dusk" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJMoj8Lr_-I-IDjhKtdCurmb6qhoSICpdHT1xCWkF59H5zxNSZ6paynLdgXdbEFS--Yh7pldByrwj3uEJtgTU2-X9YTC31LMo01Jv94-h3LB21ReLl7Ph2OwacYv8BNn3vzeA1h9x034sqRCZsimDqpGzmaFDKoQMVCGHqxsIMzFpGyf5tFUCV9nRMHayPipGkk2HIFBUyK821cIOI1QvhJHDdGft0u67E179jOBg5QVTrr5BKJjXPFEOl9yG299d9EShcJCqPEjd0"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 12h 45m
+                        </span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold tracking-tight">2022 Lamborghini STO</h3>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant leading-none mb-1">Current Bid</p>
+<p class="font-headline text-2xl font-extrabold text-primary tracking-tighter">$415,000</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-y border-outline-variant/10">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">speed</span>
+<span class="text-xs font-semibold">820 mi</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-xs font-semibold">Automatic</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span class="text-xs font-semibold">Sant'Agata, IT</span>
+</div>
+</div>
+<button class="w-full mt-2 py-4 rounded-full bg-primary text-on-primary font-bold text-sm tracking-wide active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                        Place Bid
+                        <span class="material-symbols-outlined text-lg">trending_up</span>
+</button>
+</div>
+</div>
+<!-- Auction Card 6 -->
+<div class="group flex flex-col gap-4">
+<div class="relative overflow-hidden rounded-xl aspect-[16/10] bg-surface-container-low">
+<img alt="Chevrolet Corvette" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" data-alt="Modern Chevrolet Corvette Z06 in white parked in a high-gloss black showroom with geometric ceiling lights reflecting on the body" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDvtqSxAxDp9PvKx44ruWjMIoZtkOVtghRl9tro8t3vfjZzsqop_hM-gLx8QEwxNN_CICuYahEquJ_l8ZYSKNuqJ9zXSxZ0UunBWWZkGGv19lo-IklwL0GenstLktE9-ZqNFajYf8Ayry8JkFGBjCNi6PDLrHxDWozIs9MWHtnPg7o32NRBSIFs43us-QZM8bl6gOECjSFQO0NtuU6JC8SQSFXlbnzkIdJ_ARgGlc7DjaA67PYPhvHQ4BnTcSXgV6SBIGFih1fnKxc"/>
+<div class="absolute top-4 left-4 flex gap-2">
+<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">timer</span> 3d 08h
+                        </span>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold tracking-tight">2023 Corvette Z06</h3>
+<div class="text-right">
+<p class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant leading-none mb-1">Current Bid</p>
+<p class="font-headline text-2xl font-extrabold text-primary tracking-tighter">$165,000</p>
+</div>
+</div>
+<div class="flex items-center gap-4 py-3 border-y border-outline-variant/10">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">speed</span>
+<span class="text-xs font-semibold">1,100 mi</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">settings</span>
+<span class="text-xs font-semibold">Automatic</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-lg">location_on</span>
+<span class="text-xs font-semibold">Bowling Green, US</span>
+</div>
+</div>
+<button class="w-full mt-2 py-4 rounded-full bg-primary text-on-primary font-bold text-sm tracking-wide active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                        Place Bid
+                        <span class="material-symbols-outlined text-lg">trending_up</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-20 flex justify-center items-center gap-2">
+<button class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-on-primary font-bold text-sm">1</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container transition-colors font-bold text-sm">2</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container transition-colors font-bold text-sm">3</button>
+<span class="px-2 text-on-surface-variant">...</span>
+<button class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container transition-colors font-bold text-sm">12</button>
+<button class="w-10 h-10 rounded-full flex items-center justify-center border border-outline-variant/20 hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-900 w-full py-12 border-t border-slate-200 dark:border-slate-800">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 px-6 lg:px-12 max-w-7xl mx-auto">
+<div class="col-span-2 md:col-span-1">
+<span class="text-xl font-bold text-slate-900 dark:text-white mb-4 block">AutoBid</span>
+<p class="text-slate-500 dark:text-slate-400 font-inter text-xs uppercase tracking-widest font-medium leading-relaxed">
+                    © 2024 AutoBid Precision Engine.<br/>All rights reserved.
+                </p>
+</div>
+<div>
+<h4 class="font-inter text-xs uppercase tracking-widest font-bold text-slate-900 dark:text-white mb-4">Marketplace</h4>
+<ul class="flex flex-col gap-3">
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Auctions</a></li>
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Selling Guide</a></li>
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Buying Guide</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-inter text-xs uppercase tracking-widest font-bold text-slate-900 dark:text-white mb-4">Legal</h4>
+<ul class="flex flex-col gap-3">
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Terms of Service</a></li>
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Privacy Policy</a></li>
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Auction Rules</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-inter text-xs uppercase tracking-widest font-bold text-slate-900 dark:text-white mb-4">Support</h4>
+<ul class="flex flex-col gap-3">
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">Contact Support</a></li>
+<li><a class="font-inter text-xs uppercase tracking-widest font-medium text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors duration-300" href="#">FAQ</a></li>
+</ul>
+</div>
+</div>
+</footer>
+</body></html>

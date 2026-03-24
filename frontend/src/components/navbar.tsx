@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Cookies from "js-cookie";
-import { Menu, X, User } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,12 +12,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 export function Navbar() {
     const [user, setUser] = useState<any>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
         const syncUser = () => {
@@ -46,121 +46,61 @@ export function Navbar() {
         window.location.reload();
     };
 
+    if (pathname?.startsWith('/auth')) {
+        return null;
+    }
+
     return (
-        <nav className="border-b bg-white sticky top-0 z-50">
-            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                {/* Logo - Empty as requested */}
-                <div className="font-bold text-xl w-32">
-                    <Link href="/">
-                        {/* Logo Placeholder */}
-                    </Link>
+        <nav className="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-xl shadow-sm">
+            <div className="flex justify-between items-center h-16 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+                <Link href="/" className="text-2xl font-black tracking-tighter text-slate-900 font-headline">AutoBid</Link>
+                <div className="hidden md:flex items-center space-x-8 tracking-tight font-semibold text-sm">
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/auctions">Đấu giá</Link>
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/categories">Các mẫu xe</Link>
                 </div>
 
-                {/* Desktop Navigation */}
-                <div className="hidden md:flex items-center gap-8">
-                    <Link href="/" className="text-sm font-medium hover:text-blue-600 transition-colors">
-                        Home
-                    </Link>
-                    <Link href="/auctions" className="text-sm font-medium hover:text-blue-600 transition-colors">
-                        Auctions
-                    </Link>
-                    <Link href="/about" className="text-sm font-medium hover:text-blue-600 transition-colors">
-                        About
-                    </Link>
-                    <Link href="/contact" className="text-sm font-medium hover:text-blue-600 transition-colors">
-                        Contact
-                    </Link>
-                </div>
-
-                {/* Auth Buttons / User Menu */}
-                <div className="hidden md:flex items-center gap-4 w-32 justify-end">
+                <div className="flex items-center space-x-4">
                     {isLoggedIn ? (
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={user?.avatar || "/avatars/01.png"} alt={`@${user?.username || 'user'}`} />
-                                        <AvatarFallback>{user?.username?.[0]?.toUpperCase() || <User className="h-4 w-4" />}</AvatarFallback>
-                                    </Avatar>
-                                </Button>
+                            <DropdownMenuTrigger className="relative h-8 w-8 rounded-full outline-none ring-2 ring-primary/20 flex items-center justify-center bg-primary text-on-primary font-bold text-sm cursor-pointer hover:scale-105 transition-transform select-none">
+                                {user?.username?.[0]?.toUpperCase() || "U"}
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56" align="end" forceMount>
-                                <DropdownMenuLabel className="font-normal">
+                                <DropdownMenuLabel className="font-normal font-body">
                                     <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none">{user?.username || "User"}</p>
-                                        <p className="text-xs leading-none text-muted-foreground">
-                                            {user?.email || user?.phoneNumber || "user@example.com"}
+                                        <p className="text-sm font-bold leading-none">{user?.username || "Người dùng"}</p>
+                                        <p className="text-xs leading-none text-slate-500">
+                                            {user?.email || "user@example.com"}
                                         </p>
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
-                                    <Link href="/profile">Profile</Link>
+                                    <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body">Hồ sơ</Link>
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                                    Log out
+                                {user?.role === 'VENDOR' && (
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/vendor/products" className="cursor-pointer font-semibold text-sm font-body">Cửa hàng</Link>
+                                    </DropdownMenuItem>
+                                )}
+                                {user?.role === 'ADMIN' && (
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/admin/products" className="cursor-pointer font-semibold text-sm font-body">Quản trị</Link>
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem onClick={handleLogout} className="text-error font-bold text-sm cursor-pointer mt-2 font-body">
+                                    Đăng xuất
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
-                        <div className="flex items-center gap-2">
-                            <Link href="/auth/login">
-                                <Button variant="ghost" size="sm">Login</Button>
-                            </Link>
-                            <Link href="/auth/register">
-                                <Button size="sm">Register</Button>
-                            </Link>
+                        <div className="flex items-center gap-4">
+                            <Link href="/auth/login" className="text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors font-body">Đăng nhập</Link>
+                            <Link href="/auth/register" className="bg-primary text-on-primary px-5 py-2 rounded-full font-headline font-bold text-xs tracking-widest uppercase hover:bg-slate-800 transition-colors">Đăng ký</Link>
                         </div>
                     )}
                 </div>
-
-                {/* Mobile Menu Toggle */}
-                <button
-                    className="md:hidden p-2"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                    {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                </button>
             </div>
-
-            {/* Mobile Menu */}
-            {isMobileMenuOpen && (
-                <div className="md:hidden border-t p-4 space-y-4 bg-white">
-                    <div className="flex flex-col gap-4">
-                        <Link href="/" className="text-sm font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-                            Home
-                        </Link>
-                        <Link href="/auctions" className="text-sm font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-                            Auctions
-                        </Link>
-                        <Link href="/about" className="text-sm font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-                            About
-                        </Link>
-                        <Link href="/contact" className="text-sm font-medium hover:text-blue-600" onClick={() => setIsMobileMenuOpen(false)}>
-                            Contact
-                        </Link>
-                        <div className="border-t pt-4 flex flex-col gap-2">
-                            {isLoggedIn ? (
-                                <>
-                                    <Link href="/profile">
-                                        <Button variant="outline" className="w-full justify-start">Profile</Button>
-                                    </Link>
-                                    <Button variant="destructive" className="w-full justify-start" onClick={handleLogout}>Log out</Button>
-                                </>
-                            ) : (
-                                <>
-                                    <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Button variant="outline" className="w-full">Login</Button>
-                                    </Link>
-                                    <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
-                                        <Button className="w-full">Register</Button>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
         </nav>
     );
 }

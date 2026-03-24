@@ -1,25 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import {
-    Users,
-    Package,
-    ShoppingCart,
-    TrendingUp,
-    ArrowUpRight,
-    ArrowDownRight,
-    Clock,
-    Loader2,
-    Gavel
-} from 'lucide-react';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from '@/components/ui/card';
-import { Badge } from "@/components/ui/badge";
+import { Loader2 } from 'lucide-react';
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
 
@@ -60,108 +42,118 @@ export default function AdminDashboard() {
         );
     }
 
-    const statItems = [
-        {
-            title: "Tổng người dùng",
-            value: stats?.totalUsers || 0,
-            icon: Users,
-            color: "text-blue-600",
-            bg: "bg-blue-100"
-        },
-        {
-            title: "Sản phẩm",
-            value: stats?.totalProducts || 0,
-            icon: Package,
-            color: "text-purple-600",
-            bg: "bg-purple-100"
-        },
-        {
-            title: "Đấu giá đang chạy",
-            value: stats?.activeAuctions || 0,
-            icon: Gavel,
-            color: "text-orange-600",
-            bg: "bg-orange-100"
-        },
-        {
-            title: "Doanh thu",
-            value: `${(stats?.totalRevenue || 0).toLocaleString()} ₫`,
-            icon: TrendingUp,
-            color: "text-green-600",
-            bg: "bg-green-100"
-        }
-    ];
-
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Tổng quan</h1>
-                <p className="text-muted-foreground">Chào mừng bạn trở lại, quản trị viên.</p>
+        <div className="p-8 space-y-8 overflow-y-auto w-full max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="mb-8">
+                <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Tổng quan hệ thống</h1>
+                <p className="text-slate-500 mt-2">Giám sát doanh thu, người dùng và các giao dịch gần đây.</p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {statItems.map((item, index) => (
-                    <Card key={index} className="overflow-hidden">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-                            <div className={`rounded-full p-2 ${item.bg}`}>
-                                <item.icon className={`h-4 w-4 ${item.color}`} />
+            {/* Hero Metrics (Asymmetric Bento Grid) */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                {/* Revenue Highlight */}
+                <div className="md:col-span-7 bg-white border border-slate-100 p-8 rounded-xl flex flex-col justify-between relative overflow-hidden group shadow-sm">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                    <div className="relative z-10">
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Tổng doanh thu hệ thống</span>
+                                <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mt-1 text-slate-900">
+                                    {(stats?.totalRevenue || 0).toLocaleString()} ₫
+                                </h2>
                             </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{item.value}</div>
-                            <p className="text-xs text-muted-foreground flex items-center mt-1">
-                                <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
-                                <span className="text-green-500 font-medium">Cập nhật mới nhất</span>
-                            </p>
-                        </CardContent>
-                    </Card>
-                ))}
+                            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-sm">trending_up</span> Cập nhật
+                            </div>
+                        </div>
+                        {/* Mini Revenue Chart Projection Wrapper */}
+                        <div className="flex items-end gap-1 h-32 mt-8">
+                            {[40, 55, 45, 70, 60, 85, 95].map((h, i) => (
+                                <div key={i} className={`w-full rounded-t-sm ${i >= 5 ? 'bg-blue-600' : 'bg-slate-100'}`} style={{ height: `${h}%` }}></div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Growth Module */}
+                <div className="md:col-span-5 bg-slate-50 border border-slate-100 p-8 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Tổng người dùng</span>
+                        <h2 className="text-4xl font-extrabold tracking-tighter mt-1 text-slate-900">{stats?.totalUsers || 0}</h2>
+                        <p className="text-sm text-slate-500 mt-2">Thành viên và nhà cung cấp hoạt động trên nền tảng.</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
-                    <CardHeader>
-                        <CardTitle>Biểu đồ phát triển</CardTitle>
-                        <CardDescription>
-                            Thống kê lượng người dùng và sản phẩm mới trong hệ thống.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg bg-muted/20">
-                        <span className="text-muted-foreground">Biểu đồ sẽ hiển thị tại đây</span>
-                    </CardContent>
-                </Card>
+            {/* Technical Analytics Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Active Auctions */}
+                <div className="bg-white border border-slate-100 shadow-sm p-6 rounded-xl relative">
+                    <div className="flex items-center gap-3 mb-4">
+                        <span className="material-symbols-outlined text-orange-500">gavel</span>
+                        <h3 className="font-bold text-slate-700">Đấu giá đang mở</h3>
+                    </div>
+                    <div className="text-3xl font-bold mb-2 text-slate-900">{stats?.activeAuctions || 0} <span className="text-sm font-normal text-slate-400">phiên</span></div>
+                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-orange-500 w-3/4"></div>
+                    </div>
+                </div>
 
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle>Đơn hàng gần đây</CardTitle>
-                        <CardDescription>Các đơn hàng mới nhất trên hệ thống.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {stats?.recentOrders.length === 0 ? (
-                                <p className="text-sm text-center text-muted-foreground py-8">Chưa có đơn hàng nào.</p>
-                            ) : (
-                                stats?.recentOrders.map((order: any, i: number) => (
-                                    <div key={i} className="flex items-start gap-3 border-b pb-3 last:border-0 last:pb-0">
-                                        <div className="mt-0.5 rounded-full bg-primary/10 p-1.5">
-                                            <Clock className="h-3.5 w-3.5 text-primary" />
-                                        </div>
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-sm font-medium leading-none">#ORD-{order.id} - {order.totalPrice.toLocaleString()} ₫</p>
-                                            <p className="text-xs text-muted-foreground">Khách: {order.customer.username}</p>
-                                            <p className="text-[10px] text-muted-foreground">
-                                                {new Date(order.createdAt).toLocaleString('vi-VN')}
-                                            </p>
-                                        </div>
-                                        <Badge variant="outline" className="text-[10px] scale-90 origin-right">
-                                            {order.status === 'PENDING' ? 'Chờ' : order.status}
-                                        </Badge>
+                {/* Total Products */}
+                <div className="bg-white border border-slate-100 shadow-sm p-6 rounded-xl">
+                    <div className="flex items-center gap-3 mb-4">
+                        <span className="material-symbols-outlined text-blue-600">directions_car</span>
+                        <h3 className="font-bold text-slate-700">Tổng Sản phẩm</h3>
+                    </div>
+                    <div className="text-3xl font-bold mb-2 text-slate-900">{stats?.totalProducts || 0} <span className="text-sm font-normal text-slate-400">xe</span></div>
+                    <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-600 w-full"></div>
+                    </div>
+                </div>
+
+                {/* Total Orders */}
+                <div className="bg-white border border-slate-100 shadow-sm p-6 rounded-xl">
+                    <div className="flex items-center gap-3 mb-4">
+                        <span className="material-symbols-outlined text-green-600">shopping_cart</span>
+                        <h3 className="font-bold text-slate-700">Tổng đơn hàng</h3>
+                    </div>
+                    <div className="text-3xl font-bold mb-2 text-slate-900">{stats?.totalOrders || 0} <span className="text-sm font-normal text-slate-400">lượt</span></div>
+                     <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-500 w-2/3"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Recent Transactions / Logs */}
+            <div className="bg-white border border-slate-100 shadow-sm rounded-xl overflow-hidden mt-8">
+                <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-900">Giao dịch gần đây</h3>
+                </div>
+                <div className="divide-y divide-slate-100">
+                    {stats?.recentOrders?.length === 0 ? (
+                        <div className="px-8 py-8 text-center text-slate-500">Chưa có giao dịch/đơn hàng nào.</div>
+                    ) : (
+                        stats?.recentOrders?.map((order: any, idx: number) => (
+                            <div key={idx} className="px-8 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                                        <span className="material-symbols-outlined text-blue-600">receipt_long</span>
                                     </div>
-                                ))
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                                    <div>
+                                        <div className="text-sm font-bold text-slate-900">Mã đơn: #{order.id}</div>
+                                        <div className="text-xs text-slate-500">Khách hàng: {order.customer?.username || 'Unknown'}</div>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-sm font-bold text-slate-900">{order.totalPrice.toLocaleString()} ₫</div>
+                                    <div className="text-[10px] text-slate-400">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
+                                    <div className="text-[10px] font-bold mt-1 uppercase text-blue-600">{order.status}</div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
         </div>
     );

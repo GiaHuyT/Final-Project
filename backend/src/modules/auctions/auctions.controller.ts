@@ -1,4 +1,6 @@
 import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Public } from '../../core/decorators/public.decorator';
+
 import { AuctionsService } from './auctions.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
@@ -9,14 +11,18 @@ import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 export class AuctionsController {
     constructor(private readonly auctionsService: AuctionsService) { }
 
+    @Public()
     @Get()
     @ApiOperation({ summary: 'Lấy tất cả đấu giá' })
+
     findAll() {
         return this.auctionsService.findAll();
     }
 
+    @Public()
     @Get(':id')
     @ApiOperation({ summary: 'Lấy chi tiết đấu giá' })
+
     findOne(@Param('id') id: string) {
         return this.auctionsService.findOne(+id);
     }

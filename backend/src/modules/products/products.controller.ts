@@ -1,4 +1,6 @@
 import { Controller, Get, Patch, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Public } from '../../core/decorators/public.decorator';
+
 import { ProductsService } from './products.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
@@ -9,8 +11,10 @@ import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 export class ProductsController {
     constructor(private readonly productsService: ProductsService) { }
 
+    @Public()
     @Get()
     @ApiOperation({ summary: 'Lấy tất cả sản phẩm' })
+
     findAll() {
         return this.productsService.findAll();
     }
@@ -21,8 +25,10 @@ export class ProductsController {
         return this.productsService.findByVendorId(req.user.id);
     }
 
+    @Public()
     @Get(':id')
     @ApiOperation({ summary: 'Lấy chi tiết sản phẩm' })
+
     findOne(@Param('id') id: string) {
         return this.productsService.findOne(+id);
     }
