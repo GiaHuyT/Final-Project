@@ -50,7 +50,7 @@ const statusConfig = {
     CANCELLED: { label: "Đã hủy", color: "destructive", icon: XCircle },
 };
 
-export default function OrderManagementPage() {
+export default function AdminOrdersPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -61,7 +61,6 @@ export default function OrderManagementPage() {
             const response = await http.get('/orders');
             setOrders(response.data);
         } catch (error) {
-            console.error("Lỗi khi lấy danh sách đơn hàng:", error);
             toast.error("Không thể tải danh sách đơn hàng");
         } finally {
             setLoading(false);
@@ -88,116 +87,136 @@ export default function OrderManagementPage() {
     );
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Quản lý đơn hàng</h1>
-                    <p className="text-muted-foreground">Theo dõi và cập nhật trạng thái các đơn hàng trên hệ thống.</p>
-                </div>
+        <div className="container mx-auto py-6">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 font-extrabold uppercase tracking-tighter">Quản lý đơn hàng</h1>
+                <p className="text-muted-foreground font-medium">Theo dõi và cập nhật trạng thái đơn hàng trên toàn hệ thống.</p>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>Danh sách đơn hàng</CardTitle>
-                        <div className="relative w-72">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Card className="border-none shadow-2xl shadow-gray-200/50 rounded-3xl overflow-hidden">
+                <CardHeader className="border-b bg-gray-50/50 px-8 py-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <CardTitle className="text-xl font-black uppercase tracking-widest text-blue-900">Danh sách đơn hàng</CardTitle>
+                            <CardDescription className="font-bold text-blue-600/60 uppercase text-[10px] tracking-widest mt-1">Tổng cộng {orders.length} đơn hàng hệ thống</CardDescription>
+                        </div>
+                        <div className="relative w-full md:w-80">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                                 type="search"
                                 placeholder="Tìm mã đơn, khách hàng..."
-                                className="pl-8"
+                                className="pl-12 h-12 rounded-2xl bg-white border-gray-200 focus:ring-4 focus:ring-blue-100 font-bold transition-all"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
                     {loading ? (
-                        <div className="flex h-32 items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <div className="flex h-80 items-center justify-center">
+                            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
                         </div>
                     ) : (
                         <div className="relative w-full overflow-auto">
-                            <table className="w-full caption-bottom text-sm">
-                                <thead className="[&_tr]:border-b">
-                                    <tr className="border-b transition-colors hover:bg-muted/50 font-medium">
-                                        <th className="h-12 px-4 text-left align-middle text-muted-foreground">Mã đơn hàng</th>
-                                        <th className="h-12 px-4 text-left align-middle text-muted-foreground">Khách hàng</th>
-                                        <th className="h-12 px-4 text-left align-middle text-muted-foreground">Tổng tiền</th>
-                                        <th className="h-12 px-4 text-left align-middle text-muted-foreground">Ngày đặt</th>
-                                        <th className="h-12 px-4 text-left align-middle text-muted-foreground">Trạng thái</th>
-                                        <th className="h-12 px-4 text-right align-middle text-muted-foreground">Thao tác</th>
+                            <table className="w-full text-sm text-left border-separate border-spacing-0">
+                                <thead className="bg-gray-100/80 text-gray-500 text-[10px] uppercase font-black tracking-widest sticky top-0 z-10">
+                                    <tr>
+                                        <th className="px-8 py-5 border-b">Mã đơn hàng</th>
+                                        <th className="px-8 py-5 border-b">Khách hàng</th>
+                                        <th className="px-8 py-5 border-b">Tổng tiền</th>
+                                        <th className="px-8 py-5 border-b">Ngày đặt</th>
+                                        <th className="px-8 py-5 border-b text-center">Trạng thái</th>
+                                        <th className="px-8 py-5 border-b text-right">Thao tác</th>
                                     </tr>
                                 </thead>
-                                <tbody className="[&_tr:last-child]:border-0">
+                                <tbody className="divide-y divide-gray-100">
                                     {filteredOrders.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="p-4 text-center text-muted-foreground">
-                                                Không tìm thấy đơn hàng nào.
+                                            <td colSpan={6} className="px-8 py-20 text-center text-gray-400 font-bold italic">
+                                                Không tìm thấy dữ liệu đơn hàng phù hợp.
                                             </td>
                                         </tr>
                                     ) : (
                                         filteredOrders.map((order) => {
                                             const config = statusConfig[order.status as keyof typeof statusConfig] || statusConfig.PENDING;
                                             return (
-                                                <tr key={order.id} className="border-b transition-colors hover:bg-muted/50">
-                                                    <td className="p-4 align-middle font-medium flex items-center gap-3">
-                                                        <div className="rounded-md bg-primary/10 p-2">
-                                                            <ShoppingCart className="h-4 w-4 text-primary" />
+                                                <tr key={order.id} className="hover:bg-blue-50/10 transition-colors group">
+                                                    <td className="px-8 py-5 align-middle">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="rounded-2xl bg-blue-100/50 p-2.5 border border-blue-200 group-hover:scale-110 transition-transform">
+                                                                <ShoppingCart className="h-5 w-5 text-blue-600" />
+                                                            </div>
+                                                            <span className="font-black text-gray-900 tracking-tighter text-base">#ORD-{order.id}</span>
                                                         </div>
-                                                        #ORD-{order.id}
                                                     </td>
-                                                    <td className="p-4 align-middle">{order.customer.username}</td>
-                                                    <td className="p-4 align-middle font-bold">{order.totalPrice.toLocaleString()} ₫</td>
-                                                    <td className="p-4 align-middle text-muted-foreground">
-                                                        {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                                                    <td className="px-8 py-5 align-middle">
+                                                        <div className="font-black text-gray-900">{order.customer.username}</div>
+                                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Thành viên hệ thống</div>
                                                     </td>
-                                                    <td className="p-4 align-middle">
+                                                    <td className="px-8 py-5 align-middle">
+                                                        <div className="font-black text-orange-600 text-base">
+                                                            {order.totalPrice.toLocaleString()} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 align-middle font-bold text-gray-500">
+                                                        {new Date(order.createdAt).toLocaleDateString('vi-VN', {
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric'
+                                                        })}
+                                                    </td>
+                                                    <td className="px-8 py-5 align-middle text-center">
                                                         <Badge
                                                             variant={config.color as any}
-                                                            className="gap-1.5"
+                                                            className="gap-2 rounded-full px-4 py-1.5 uppercase text-[10px] font-black shadow-sm border-2"
                                                         >
                                                             <config.icon className="h-3 w-3" />
                                                             {config.label}
                                                         </Badge>
                                                     </td>
-                                                    <td className="p-4 align-middle text-right">
+                                                    <td className="px-8 py-5 align-middle text-right">
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                <Button variant="ghost" className="h-10 w-10 p-0 rounded-2xl hover:bg-white hover:shadow-xl border border-transparent hover:border-gray-100 transition-all">
+                                                                    <MoreHorizontal className="h-5 w-5 text-gray-400" />
                                                                 </Button>
                                                             </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
-                                                                <DropdownMenuItem className="gap-2">
+                                                            <DropdownMenuContent align="end" className="rounded-[1.5rem] border-none shadow-3xl p-3 min-w-[180px]">
+                                                                <DropdownMenuLabel className="text-[10px] uppercase font-black text-gray-400 px-4 py-3 tracking-widest text-center">Quản trị đơn</DropdownMenuLabel>
+                                                                <DropdownMenuSeparator className="mb-2" />
+                                                                <DropdownMenuItem className="gap-3 rounded-xl px-4 py-3 focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-black text-xs uppercase tracking-tighter">
                                                                     <Eye className="h-4 w-4" />
-                                                                    Xem chi tiết
+                                                                    Chi tiết sản phẩm
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem className="gap-2">
+                                                                <DropdownMenuItem className="gap-3 rounded-xl px-4 py-3 focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-black text-xs uppercase tracking-tighter">
                                                                     <FileText className="h-4 w-4" />
-                                                                    Hóa đơn (PDF)
+                                                                    Xuất hóa đơn
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuSeparator className="my-2" />
                                                                 <DropdownMenuItem
+                                                                    className="gap-3 rounded-xl px-4 py-3 focus:bg-emerald-50 focus:text-emerald-600 cursor-pointer font-black text-xs uppercase tracking-tighter disabled:opacity-30"
                                                                     onClick={() => handleUpdateStatus(order.id, 'SHIPPING')}
                                                                     disabled={order.status !== 'PENDING'}
                                                                 >
-                                                                    Giao hàng
+                                                                    <Truck className="h-4 w-4" />
+                                                                    Xác nhận giao
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
+                                                                    className="gap-3 rounded-xl px-4 py-3 focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-black text-xs uppercase tracking-tighter disabled:opacity-30"
                                                                     onClick={() => handleUpdateStatus(order.id, 'DELIVERED')}
                                                                     disabled={order.status !== 'SHIPPING'}
                                                                 >
-                                                                    Hoàn thành
+                                                                    <CheckCircle2 className="h-4 w-4" />
+                                                                    Đã tới nơi
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
-                                                                    className="text-destructive"
+                                                                    className="gap-3 text-red-600 rounded-xl px-4 py-3 focus:bg-red-50 focus:text-red-600 cursor-pointer font-black text-xs uppercase tracking-tighter disabled:opacity-30"
                                                                     onClick={() => handleUpdateStatus(order.id, 'CANCELLED')}
                                                                     disabled={order.status === 'DELIVERED' || order.status === 'CANCELLED'}
                                                                 >
-                                                                    Hủy đơn
+                                                                    <XCircle className="h-4 w-4" />
+                                                                    Hủy bỏ ngay
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>

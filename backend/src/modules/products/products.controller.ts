@@ -36,13 +36,19 @@ export class ProductsController {
     @Post()
     @ApiOperation({ summary: 'Thêm sản phẩm mới' })
     create(@Request() req: any, @Body() data: any) {
-        return this.productsService.create(req.user.id, data);
+        const vendorId = req.user.role === 'ADMIN' && data.vendorId 
+            ? parseInt(data.vendorId) 
+            : req.user.id;
+        return this.productsService.create(vendorId, data);
     }
 
     @Patch(':id')
     @ApiOperation({ summary: 'Cập nhật sản phẩm' })
     update(@Param('id') id: string, @Request() req: any, @Body() data: any) {
-        return this.productsService.update(+id, req.user.id, data);
+        const vendorId = req.user.role === 'ADMIN' && data.vendorId 
+            ? parseInt(data.vendorId) 
+            : req.user.id;
+        return this.productsService.update(+id, vendorId, data);
     }
 
     @Delete(':id')

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
@@ -10,8 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'react-hot-toast';
+import { Loader2 } from 'lucide-react';
 
-// Schema validation
 const profileSchema = z.object({
     email: z.string().email(),
     username: z.string().min(2, "Tên nhà cung cấp phải có ít nhất 2 ký tự"),
@@ -29,14 +29,12 @@ export default function VendorProfilePage() {
     const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Setup form
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
     });
 
     const watchedUsername = watch('username');
 
-    // Fetch data
     const fetchProfile = async () => {
         try {
             const { data: profileData } = await http.get('/users/profile');
@@ -50,7 +48,7 @@ export default function VendorProfilePage() {
             });
         } catch (error: any) {
             console.error('Fetch Profile Error:', error);
-            toast.error('Không thể tải thông tin hồ sơ');
+            toast.error('Không thể tải thông tin hồ sơ nhà cung cấp');
         } finally {
             setLoading(false);
         }
@@ -137,28 +135,28 @@ export default function VendorProfilePage() {
 
     if (loading) {
         return (
-            <div className="flex h-[400px] items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
             <div className="space-y-6 border-b border-gray-100 pb-8">
                 <h1 className="text-2xl text-gray-800 font-normal">
-                    Hồ sơ nhà cung cấp: <span className="font-semibold">{watchedUsername || userNameDisplay}</span>
+                    Nhà cung cấp: <span className="font-semibold text-orange-600">{watchedUsername || userNameDisplay}</span>
                 </h1>
 
                 <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
                         <AvatarImage src={previewAvatarUrl || undefined} alt={watchedUsername || userNameDisplay} />
-                        <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
+                        <AvatarFallback className="text-2xl bg-orange-50 text-orange-600">
                             {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
                         </AvatarFallback>
                         {isSaving && avatarFile instanceof File && (
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                                <Loader2 className="h-6 w-6 animate-spin text-white" />
                             </div>
                         )}
                     </Avatar>
@@ -173,13 +171,13 @@ export default function VendorProfilePage() {
                         <Button
                             onClick={handleAvatarClick}
                             disabled={isSaving}
-                            className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
+                            className="bg-orange-600 hover:bg-orange-700 text-white"
                         >
-                            {isSaving && avatarFile instanceof File ? "Uploading..." : "Upload Avatar"}
+                            {isSaving && avatarFile instanceof File ? "Đang tải lên..." : "Tải ảnh mới"}
                         </Button>
                         <Button
                             variant="outline"
-                            className="text-gray-600 border-gray-200"
+                            className="text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
                             disabled={isSaving || !previewAvatarUrl}
                             onClick={() => {
                                 if (!previewAvatarUrl) return;
@@ -187,51 +185,60 @@ export default function VendorProfilePage() {
                                 setAvatarFile('REMOVE');
                             }}
                         >
-                            Remove
+                            Xóa ảnh
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="username" className="text-sm font-medium text-gray-700">Tên cửa hàng/đơn vị</Label>
-                        <Input
-                            id="username"
-                            {...register('username')}
-                            className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                        />
-                        {errors.username && <p className="text-red-500 text-xs">{errors.username.message}</p>}
+            <div className="space-y-6">
+                <h2 className="text-lg font-semibold text-gray-800">Thông tin chi tiết</h2>
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="username" className="text-sm font-medium text-gray-700">Tên cửa hàng/đơn vị</Label>
+                            <Input
+                                id="username"
+                                {...register('username')}
+                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
+                            />
+                            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email liên hệ</Label>
+                            <Input
+                                id="email"
+                                {...register('email')}
+                                disabled
+                                className="bg-gray-100 text-gray-500 border-gray-200"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="phonenumber" className="text-sm font-medium text-gray-700">Số điện thoại</Label>
+                            <Input
+                                id="phonenumber"
+                                {...register('phonenumber')}
+                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
+                                placeholder="Nhập số điện thoại"
+                            />
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email liên hệ</Label>
-                        <Input
-                            id="email"
-                            {...register('email')}
-                            disabled
-                            className="bg-gray-100 text-gray-500 border-gray-200"
-                        />
+                    <div className="flex justify-end pt-4 border-t border-gray-50">
+                        <Button type="submit" disabled={isSaving} className="bg-orange-600 hover:bg-orange-700 text-white min-w-[140px] shadow-sm shadow-orange-200">
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Đang lưu...
+                                </>
+                            ) : "Lưu thay đổi"}
+                        </Button>
                     </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="phonenumber" className="text-sm font-medium text-gray-700">Số điện thoại</Label>
-                        <Input
-                            id="phonenumber"
-                            {...register('phonenumber')}
-                            className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                            placeholder="Nhập số điện thoại"
-                        />
-                    </div>
-                </div>
-
-                <div className="flex justify-end pt-4">
-                    <Button type="submit" disabled={isSaving} className="bg-[#E65E2C] hover:bg-[#d95222] text-white min-w-[120px]">
-                        {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-                    </Button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     );
 }

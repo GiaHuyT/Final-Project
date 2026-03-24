@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import React from 'react';
+import { Bell } from 'lucide-react';
 
 export default function VendorNotificationsPage() {
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Thông báo</h1>
-            <div className="py-20 text-center text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
-                Bạn không có thông báo mới.
+        <div className="space-y-6">
+            <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-bold text-gray-800">Thông báo</h1>
+                <p className="text-sm text-muted-foreground">Xem các thông báo mới nhất từ hệ thống và khách hàng.</p>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-20 text-center">
+                <div className="mx-auto w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                    <Bell className="w-6 h-6 text-gray-400" />
+                </div>
+                <p className="text-gray-500">Bạn không có thông báo mới.</p>
             </div>
         </div>
     );
