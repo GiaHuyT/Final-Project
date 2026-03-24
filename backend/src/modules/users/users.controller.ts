@@ -123,6 +123,13 @@ export class UsersController {
   }
 
   @Public()
+  @Get('vendors')
+  @ApiOperation({ summary: 'Lấy tất cả nhà cung cấp (Public)' })
+  findVendors() {
+    return this.usersService.findVendors();
+  }
+
+  @Public()
   @Get('check-route')
   checkRoute() {
     return { status: 'UsersController is active' };

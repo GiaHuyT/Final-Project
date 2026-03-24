@@ -55,7 +55,7 @@ export default function ProfilePage() {
     const getRoleDescription = (role: string) => {
         if (role === 'ADMIN') return 'Bạn có toàn quyền truy cập và quản lý mọi dữ liệu trên hệ thống AutoBid.';
         if (role === 'VENDOR') return 'Chào mừng đối tác, bạn có thể niêm yết xe và quản lý giao dịch đấu giá.';
-        return 'Bạn có thể theo dõi và đặt giá thầu cho mọi chiếc xe trên nền tảng.';
+        return 'Bạn có thể thêm vào yêu thích và đặt giá thầu cho mọi chiếc xe trên nền tảng.';
     };
 
     return (
@@ -64,7 +64,7 @@ export default function ProfilePage() {
                 {/* Header Section */}
                 <header className="mb-12">
                     <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-slate-900 mb-2">Gara của tôi</h1>
-                    <p className="text-slate-500 font-medium text-lg">Quản lý hồ sơ, tài sản theo dõi và các cài đặt chung.</p>
+                    <p className="text-slate-500 font-medium text-lg">Quản lý hồ sơ, danh sách xe yêu thích và các cài đặt chung.</p>
                 </header>
 
                 <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
@@ -75,10 +75,10 @@ export default function ProfilePage() {
                                 <User className="w-5 h-5 flex-shrink-0" />
                                 <span className="font-bold text-sm tracking-wide">Hồ sơ cá nhân</span>
                             </button>
-                            <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                            <Link href="/wishlist" className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
                                 <Car className="w-5 h-5 flex-shrink-0" />
-                                <span className="font-bold text-sm tracking-wide">Xe đang theo dõi</span>
-                            </button>
+                                <span className="font-bold text-sm tracking-wide">Xe yêu thích</span>
+                            </Link>
                             <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
                                 <Gavel className="w-5 h-5 flex-shrink-0" />
                                 <span className="font-bold text-sm tracking-wide">Lịch sử đấu giá</span>
@@ -148,7 +148,7 @@ export default function ProfilePage() {
 
                         {/* Recent Activity / Tracked Assets */}
                         <section className="space-y-6">
-                            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 border-b border-slate-200 pb-4">Tài sản theo dõi</h2>
+                            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 border-b border-slate-200 pb-4">Danh sách yêu thích</h2>
                             {products.length === 0 ? (
                                 <div className="border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center p-12 text-center bg-slate-50/50 min-h-[300px]">
                                     <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-6">
@@ -200,8 +200,8 @@ export default function ProfilePage() {
                                         <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
                                             <span className="material-symbols-outlined text-slate-400 group-hover:text-white transition-colors">add</span>
                                         </div>
-                                        <h3 className="font-bold text-sm text-slate-900 mb-2">Thêm mục tiêu mới</h3>
-                                        <p className="text-xs font-medium text-slate-500">Mở rộng danh sách tài sản bạn đang nhắm tới.</p>
+                                        <h3 className="font-bold text-sm text-slate-900 mb-2">Thêm xe yêu thích mới</h3>
+                                        <p className="text-xs font-medium text-slate-500">Mở rộng danh sách những chiếc xe bạn đang quan tâm.</p>
                                     </div>
                                 </div>
                             )}

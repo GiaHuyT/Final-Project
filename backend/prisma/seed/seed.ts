@@ -33,13 +33,32 @@ async function main() {
     },
   });
 
-  const vendor = await prisma.user.create({
+  const vendor1 = await prisma.user.create({
     data: {
       username: 'vendor1',
       email: 'vendor1@example.com',
       password: hashedPassword,
       role: Role.VENDOR,
+      isApprovedVendor: true,
+    },
+  });
 
+  const vendor2 = await prisma.user.create({
+    data: {
+      username: 'vendor2',
+      email: 'vendor2@example.com',
+      password: hashedPassword,
+      role: Role.VENDOR,
+      isApprovedVendor: true,
+    },
+  });
+
+  const vendor3 = await prisma.user.create({
+    data: {
+      username: 'vendor3',
+      email: 'vendor3@example.com',
+      password: hashedPassword,
+      role: Role.VENDOR,
       isApprovedVendor: true,
     },
   });
@@ -101,36 +120,72 @@ async function main() {
     }
   }
 
-  // 4. Tạo Sản phẩm mẫu cho Vendor
+  // 4. Tạo Sản phẩm mẫu cho các Vendor
+  console.log('Đang tạo 60+ sản phẩm mẫu...');
+  const vendors = [vendor1, vendor2, vendor3];
+  const products = [];
+  let productIndex = 0;
+
+  for (const item of carData) {
+    const brandName = item.brand;
+    // Lấy tối đa 3 model cho mỗi hãng
+    const modelsToCreate = item.models.slice(0, 3);
+    
+    for (const model of modelsToCreate) {
+      const vendor = vendors[productIndex % vendors.length];
+      const variant = model.variants[0] || 'Standard';
+      const year = 2023 + (productIndex % 2); // 2023 or 2024
+      
+      // Determine image based on brand/type
+      let imageUrl = '/images/cars/white_luxury_sedan.png';
+      if (['SUV', 'Fortuner', 'Everest', 'Santa Fe', 'CR-V', 'GLC', 'RX', 'Tucson'].some(kw => model.name.includes(kw) || item.brand.includes(kw))) {
+        imageUrl = '/images/cars/black_modern_suv.png';
+      } else if (['EV', 'VinFast', 'Tesla', 'BYD', 'Seal', 'Model 3'].some(kw => model.name.includes(kw) || item.brand.includes(kw))) {
+        imageUrl = '/images/cars/blue_electric_sedan.png';
+      } else if (['Porsche', '911', 'Mustang', 'Sport', 'Supercar'].some(kw => model.name.includes(kw))) {
+        imageUrl = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800';
+      } else if (['Ranger', 'Hilux', 'Pickup', 'F-150'].some(kw => model.name.includes(kw))) {
+        imageUrl = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=800';
+      } else if (productIndex % 5 === 0) {
+        imageUrl = 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800';
+      } else if (productIndex % 5 === 1) {
+        imageUrl = 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=800';
+      } else if (productIndex % 5 === 2) {
+        imageUrl = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=800';
+      } else if (productIndex % 5 === 3) {
+        imageUrl = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=800';
+      } else {
+        imageUrl = 'https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=800';
+      }
+
+      // Base price by brand category
+      let basePrice = 600000000; // 600M
+      if (['BMW', 'Mercedes-Benz', 'Audi', 'Porsche', 'Land Rover', 'Lexus', 'Volvo'].includes(brandName)) {
+        basePrice = 2000000000; // 2B
+      }
+      const finalPrice = basePrice + (productIndex * 50000000); // Increment price slightly
+
+      products.push({
+        name: `${brandName} ${model.name} ${variant} ${year}`,
+        description: `Mẫu xe ${model.name} phiên bản ${variant} của ${brandName}. Thiết kế đẳng cấp, vận hành mạnh mẽ, đầy đủ tiện nghi hiện đại.`,
+        price: finalPrice,
+        stock: 1 + (productIndex % 5),
+        vendorId: vendor.id,
+        categoryId: defaultCategory.id,
+        brand: brandName,
+        modelName: model.name,
+        variant: variant,
+        year: year,
+        condition: productIndex % 4 === 0 ? 'Xe lướt' : 'Xe mới',
+        imageUrl: imageUrl,
+      });
+
+      productIndex++;
+    }
+  }
+
   await prisma.product.createMany({
-    data: [
-      {
-        name: 'Toyota Vios 1.5G 2023',
-        description: 'Xe gia đình tiết kiệm',
-        price: 592000000,
-        stock: 5,
-        vendorId: vendor.id,
-        categoryId: defaultCategory.id,
-        brand: 'Toyota',
-        modelName: 'Vios',
-        variant: 'G CVT',
-        year: 2023,
-        condition: 'Xe mới',
-      },
-      {
-        name: 'Ford Ranger Wildtrak 2024',
-        description: 'Bán tải bán chạy nhất',
-        price: 979000000,
-        stock: 3,
-        vendorId: vendor.id,
-        categoryId: defaultCategory.id,
-        brand: 'Ford',
-        modelName: 'Ranger',
-        variant: 'Wildtrak',
-        year: 2024,
-        condition: 'Xe mới',
-      },
-    ],
+    data: products,
   });
 
   console.log('Gieo hạt dữ liệu thành công! 🌱');

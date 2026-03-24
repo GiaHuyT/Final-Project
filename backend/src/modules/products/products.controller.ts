@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Post, Delete, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Delete, Param, Body, UseGuards, Request, Query } from '@nestjs/common';
 import { Public } from '../../core/decorators/public.decorator';
 
 import { ProductsService } from './products.service';
@@ -14,9 +14,15 @@ export class ProductsController {
     @Public()
     @Get()
     @ApiOperation({ summary: 'Lấy tất cả sản phẩm' })
-
-    findAll() {
-        return this.productsService.findAll();
+    findAll(@Query() query: any) {
+        return this.productsService.findAll({
+            brand: query.brand,
+            modelName: query.modelName,
+            vendorId: query.vendorId ? parseInt(query.vendorId) : undefined,
+            minPrice: query.minPrice ? parseFloat(query.minPrice) : undefined,
+            maxPrice: query.maxPrice ? parseFloat(query.maxPrice) : undefined,
+            sortBy: query.sortBy,
+        });
     }
 
     @Get('vendor/me')
@@ -28,7 +34,6 @@ export class ProductsController {
     @Public()
     @Get(':id')
     @ApiOperation({ summary: 'Lấy chi tiết sản phẩm' })
-
     findOne(@Param('id') id: string) {
         return this.productsService.findOne(+id);
     }

@@ -17,7 +17,7 @@ import { Bell, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mockNotifications = [
-    { id: 1, title: 'Đấu giá kết thúc', message: 'Sản phẩm bạn đang theo dõi đã kết thúc đấu giá', time: '10 phút trước', unread: true },
+    { id: 1, title: 'Đấu giá kết thúc', message: 'Sản phẩm trong danh sách yêu thích của bạn đã kết thúc đấu giá', time: '10 phút trước', unread: true },
     { id: 2, title: 'Thông báo', message: 'Cập nhật chính sách thanh toán mới', time: '1 ngày trước', unread: true },
     { id: 3, title: 'Hệ thống', message: 'Tài khoản của bạn đã được bảo mật 2 lớp', time: '3 ngày trước', unread: false },
 ];

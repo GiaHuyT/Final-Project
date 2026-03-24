@@ -5,8 +5,33 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class ProductsService {
     constructor(private prisma: PrismaService) { }
 
-    async findAll() {
+    async findAll(options?: {
+        brand?: string;
+        modelName?: string;
+        vendorId?: number;
+        minPrice?: number;
+        maxPrice?: number;
+        sortBy?: string;
+    }) {
+        console.log('[ProductsService] findAll options:', options);
+        const where: any = {};
+        if (options?.brand) where.brand = options.brand;
+        if (options?.modelName) where.modelName = options.modelName;
+        if (options?.vendorId) where.vendorId = options.vendorId;
+        if (options?.minPrice !== undefined || options?.maxPrice !== undefined) {
+            where.price = {};
+            if (options.minPrice !== undefined) where.price.gte = options.minPrice;
+            if (options.maxPrice !== undefined) where.price.lte = options.maxPrice;
+        }
+
+        let orderBy: any = { createdAt: 'desc' }; // Default
+        if (options?.sortBy === 'price_asc') orderBy = { price: 'asc' };
+        if (options?.sortBy === 'price_desc') orderBy = { price: 'desc' };
+        if (options?.sortBy === 'newest') orderBy = { createdAt: 'desc' };
+
         return this.prisma.product.findMany({
+            where,
+            orderBy,
             include: {
                 category: true,
                 // @ts-ignore
