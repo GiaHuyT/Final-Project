@@ -13,7 +13,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Bell } from "lucide-react";
+import { Bell, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const mockNotifications = [
@@ -110,6 +110,15 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center space-x-4">
+                    {isLoggedIn && (
+                        <Link 
+                            href="/wishlist" 
+                            className="relative h-8 w-8 rounded-full outline-none flex items-center justify-center text-slate-600 hover:text-primary transition-colors hover:bg-slate-100 cursor-pointer"
+                            title="Yêu thích"
+                        >
+                            <Heart className="h-5 w-5" />
+                        </Link>
+                    )}
                     {isLoggedIn && <NotificationBell />}
                     {isLoggedIn ? (
                         <DropdownMenu>
