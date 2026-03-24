@@ -1,358 +1,154 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useEffect, useState } from 'react';
 import http from '@/lib/http';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'react-hot-toast';
 import {
-    User,
-    Clock,
-    Bell,
     Box,
-    Wrench,
-    Store,
+    Clock,
     Truck,
+    Wrench,
     TrendingUp,
+    LayoutDashboard,
+    ArrowUpRight
 } from 'lucide-react';
-import Link from 'next/link';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle
+} from '@/components/ui/card';
+import { toast } from 'react-hot-toast';
 
-import ProductsTab from './components/ProductsTab';
-import OrdersTab from './components/OrdersTab';
-import RentalCarsTab from './components/RentalCarsTab';
-import RepairsTab from './components/RepairsTab';
-
-// Schema validation
-const profileSchema = z.object({
-    email: z.string().email(),
-    username: z.string().min(2, "Tên nhà cung cấp phải có ít nhất 2 ký tự"),
-    phonenumber: z.string().optional(),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
-
-
-
-export default function SupplierPage() {
+export default function VendorDashboard() {
     const [loading, setLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-    const [userNameDisplay, setUserNameDisplay] = useState("Nhà cung cấp");
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-    const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
-    const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const [tab, setTab] = useState("profile");
-
-    const [products, setProducts] = useState<any[]>([]);
-    const [orders, setOrders] = useState<any[]>([]);
-    const [rentals, setRentals] = useState<any[]>([]);
-    const [repairs, setRepairs] = useState<any[]>([]);
-
-    // Setup form
-    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ProfileFormValues>({
-        resolver: zodResolver(profileSchema),
+    const [stats, setStats] = useState({
+        totalProducts: 0,
+        totalOrders: 0,
+        totalRentals: 0,
+        totalRepairs: 0
     });
 
-    const watchedUsername = watch('username');
-
-    // Fetch data
-    const fetchData = async () => {
-        try {
-            const { data: profileData } = await http.get('/users/profile');
-            setUserNameDisplay(profileData.username || "Nhà cung cấp");
-            setAvatarUrl(profileData.avatar || null);
-            setPreviewAvatarUrl(profileData.avatar || null);
-            reset({
-                email: profileData.email,
-                username: profileData.username,
-                phonenumber: profileData.phonenumber || "",
-            });
-
-            // Fetch Vendor Products
-            const { data: productsData } = await http.get('/products/vendor/me');
-            setProducts(productsData || []);
-
-            // Fetch Vendor Orders
-            const { data: ordersData } = await http.get('/orders/vendor/me');
-            setOrders(ordersData || []);
-
-            // Fetch Vendor Rental Cars
-            const { data: rentalsData } = await http.get('/rental-cars/vendor/me');
-            setRentals(rentalsData || []);
-
-            // Fetch Vendor Repairs
-            const { data: repairsData } = await http.get('/repairs/vendor/me');
-            setRepairs(repairsData || []);
-
-        } catch (error: any) {
-            if (error.response?.status === 401) return; // Let http interceptor handle redirect
-            console.error('Fetch Data Error:', error);
-            toast.error('Không thể tải thông tin dữ liệu nhà cung cấp');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchData();
-    }, [reset]);
+        const fetchStats = async () => {
+            try {
+                // We can fetch data in parallel
+                const [products, orders, rentals, repairs] = await Promise.all([
+                    http.get('/products/vendor/me'),
+                    http.get('/orders/vendor/me'),
+                    http.get('/rental-cars/vendor/me'),
+                    http.get('/repairs/vendor/me')
+                ]);
 
-    const handleAvatarClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            toast.error('Vui lòng chọn tệp ảnh!');
-            return;
-        }
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error('Ảnh quá lớn (tối đa 2MB)!');
-            return;
-        }
-
-        const localUrl = URL.createObjectURL(file);
-        setPreviewAvatarUrl(localUrl);
-        setAvatarFile(file);
-        
-        // Reset file input so selecting the same file again triggers change
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    };
-
-    // Handle Submit
-    const onSubmit = async (values: ProfileFormValues) => {
-        setIsSaving(true);
-        try {
-            let finalAvatarUrl = avatarUrl;
-
-            // Xử lý upload ảnh trước nếu có thay đổi
-            if (avatarFile instanceof File) {
-                const formData = new FormData();
-                formData.append('file', avatarFile);
-                const res = await http.post('/users/avatar', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
+                setStats({
+                    totalProducts: products.data?.length || 0,
+                    totalOrders: orders.data?.length || 0,
+                    totalRentals: rentals.data?.length || 0,
+                    totalRepairs: repairs.data?.length || 0
                 });
-                if (res.status === 201 || res.status === 200) {
-                    finalAvatarUrl = res.data.avatarUrl;
-                }
+            } catch (error) {
+                console.error('Fetch Stats Error:', error);
+                toast.error('Không thể tải thông tin thống kê');
+            } finally {
+                setLoading(false);
             }
+        };
 
-            // Xử lý cập nhật thông tin profile
-            await http.patch('/users/profile', {
-                username: values.username,
-                phonenumber: values.phonenumber,
-                avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl
-            });
-            
-            if (avatarFile === 'REMOVE') finalAvatarUrl = null;
+        fetchStats();
+    }, []);
 
-            setUserNameDisplay(values.username);
-            setAvatarUrl(finalAvatarUrl);
-            setPreviewAvatarUrl(finalAvatarUrl);
-            setAvatarFile(null);
-
-            const storedUser = localStorage.getItem("user");
-            if (storedUser) {
-                const userObj = JSON.parse(storedUser);
-                userObj.username = values.username;
-                userObj.phonenumber = values.phonenumber;
-                userObj.avatar = finalAvatarUrl;
-                localStorage.setItem("user", JSON.stringify(userObj));
-            }
-
-            toast.success('Cập nhật hồ sơ nhà cung cấp thành công!');
-            window.dispatchEvent(new Event('user-updated'));
-        } catch (error: any) {
-            console.error('Update Profile Error:', error);
-            const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
-            toast.error(Array.isArray(message) ? message[0] : message);
-        } finally {
-            setIsSaving(false);
+    const statItems = [
+        {
+            title: "Sản phẩm",
+            value: stats.totalProducts,
+            icon: Box,
+            color: "text-blue-600",
+            bg: "bg-blue-100",
+            href: "/vendor/products"
+        },
+        {
+            title: "Đơn hàng",
+            value: stats.totalOrders,
+            icon: Clock,
+            color: "text-orange-600",
+            bg: "bg-orange-100",
+            href: "/vendor/orders"
+        },
+        {
+            title: "Xe cho thuê",
+            value: stats.totalRentals,
+            icon: Truck,
+            color: "text-green-600",
+            bg: "bg-green-100",
+            href: "/vendor/rental-cars"
+        },
+        {
+            title: "Yêu cầu sửa chữa",
+            value: stats.totalRepairs,
+            icon: Wrench,
+            color: "text-purple-600",
+            bg: "bg-purple-100",
+            href: "/vendor/repairs"
         }
-    };
-
-    const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) => (
-        <div
-            onClick={onClick}
-            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${active ? 'text-orange-600 bg-orange-50 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
-        >
-            <Icon className="w-5 h-5" />
-            <span className="text-sm">{label}</span>
-            {active && <span className="ml-auto text-xs">›</span>}
-        </div>
-    );
+    ];
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-gray-50/50">
+            <div className="flex h-[400px] items-center justify-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/30 p-4 md:p-8 lg:p-12">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="space-y-6">
+            <div className="flex items-center gap-2">
+                <LayoutDashboard className="w-6 h-6 text-orange-600" />
+                <h1 className="text-2xl font-bold text-gray-800">Tổng quan nhà cung cấp</h1>
+            </div>
 
-                {/* Sidebar */}
-                <div className="md:col-span-3 lg:col-span-3 space-y-6">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 overflow-hidden">
-                        <div className="space-y-1">
-                            <SidebarItem icon={Store} label="Hồ sơ nhà cung cấp" active={tab === "profile"} onClick={() => setTab("profile")} />
-                            <SidebarItem icon={Box} label="Quản lý sản phẩm" active={tab === "products"} onClick={() => setTab("products")} />
-                            <SidebarItem icon={Clock} label="Quản lý đơn hàng" active={tab === "orders"} onClick={() => setTab("orders")} />
-                            <SidebarItem icon={Truck} label="Xe thuê" active={tab === "rentals"} onClick={() => setTab("rentals")} />
-                            <SidebarItem icon={Wrench} label="Sửa chữa" active={tab === "repairs"} onClick={() => setTab("repairs")} />
-                            <SidebarItem icon={Bell} label="Thông báo" active={tab === "notifications"} onClick={() => setTab("notifications")} />
-                            <SidebarItem icon={TrendingUp} label="Báo cáo doanh thu" active={tab === "revenue"} onClick={() => setTab("revenue")} />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {statItems.map((item, index) => (
+                    <Card key={index} className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow cursor-default">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-gray-600">{item.title}</CardTitle>
+                            <div className={`rounded-full p-2 ${item.bg}`}>
+                                <item.icon className={`h-4 w-4 ${item.color}`} />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{item.value}</div>
+                            <p className="text-xs text-muted-foreground flex items-center mt-1">
+                                <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
+                                <span className="text-green-500 font-medium">Cập nhật mới nhất</span>
+                            </p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-4 border-none shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Hoạt động kinh doanh</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg bg-gray-50/50">
+                        <div className="text-center">
+                            <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                            <span className="text-muted-foreground">Biểu đồ tăng trưởng sẽ hiển thị tại đây</span>
                         </div>
-                    </div>
+                    </CardContent>
+                </Card>
 
-                    <Button variant="outline" className="w-full bg-white border-dashed border-gray-300 hover:border-orange-500 hover:text-orange-600 h-10 p-0 overflow-hidden">
-                        <Link href="/profile" className="flex items-center justify-center w-full h-full gap-2">
-                            <User className="w-4 h-4" />
-                            Tài khoản cá nhân
-                        </Link>
-                    </Button>
-                </div>
-
-                {/* Main Content */}
-                <div className="md:col-span-9 lg:col-span-9">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8">
-
-                        {/* Header & Avatar */}
-                        <div className="space-y-6 border-b border-gray-100 pb-8">
-                            <h1 className="text-2xl text-gray-800 font-normal">
-                                Nhà cung cấp: <span className="font-semibold">{watchedUsername || userNameDisplay}</span>
-                            </h1>
-
-                            <div className="flex items-center gap-6">
-                                <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                                    <AvatarImage src={previewAvatarUrl || undefined} alt={watchedUsername || userNameDisplay} />
-                                    <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
-                                        {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
-                                    </AvatarFallback>
-                                    {isSaving && avatarFile instanceof File && (
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                                        </div>
-                                    )}
-                                </Avatar>
-                                <div className="flex gap-3">
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleFileChange}
-                                        accept="image/*"
-                                        className="hidden"
-                                    />
-                                    <Button
-                                        onClick={handleAvatarClick}
-                                        disabled={isSaving}
-                                        className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
-                                    >
-                                        {isSaving && avatarFile instanceof File ? "Uploading..." : "Upload Avatar"}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="text-gray-600 border-gray-200"
-                                        disabled={isSaving || !previewAvatarUrl}
-                                        onClick={() => {
-                                            if (!previewAvatarUrl) return;
-                                            setPreviewAvatarUrl(null);
-                                            setAvatarFile('REMOVE');
-                                        }}
-                                    >
-                                        Remove
-                                    </Button>
-                                </div>
-                            </div>
+                <Card className="col-span-3 border-none shadow-sm">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Thông báo mới</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="py-12 text-center text-gray-400">
+                            Chưa có thông báo quan trọng.
                         </div>
-
-                        {/* Form */}
-                        {tab === "profile" && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-800 mb-6">Thông tin nhà cung cấp</h2>
-
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="username" className="text-sm font-medium text-gray-700">Tên cửa hàng/đơn vị</Label>
-                                            <Input
-                                                id="username"
-                                                {...register('username')}
-                                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                                            />
-                                            {errors.username && <p className="text-red-500 text-xs">{errors.username.message}</p>}
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email liên hệ</Label>
-                                            <Input
-                                                id="email"
-                                                {...register('email')}
-                                                disabled
-                                                className="bg-gray-100 text-gray-500 border-gray-200"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phonenumber" className="text-sm font-medium text-gray-700">Số điện thoại</Label>
-                                            <Input
-                                                id="phonenumber"
-                                                {...register('phonenumber')}
-                                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                                                placeholder="Nhập số điện thoại"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-end pt-4">
-                                        <Button type="submit" disabled={isSaving} className="bg-[#E65E2C] hover:bg-[#d95222] text-white min-w-[120px]">
-                                            {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
-                        )}
-
-                        {tab === "products" && <ProductsTab products={products} onRefresh={fetchData} />}
-                        {tab === "orders" && <OrdersTab orders={orders} onRefresh={fetchData} />}
-                        {tab === "rentals" && <RentalCarsTab rentalCars={rentals} onRefresh={fetchData} />}
-                        {tab === "repairs" && <RepairsTab repairs={repairs} onRefresh={fetchData} />}
-
-                        {tab === "notifications" && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-800 mb-6">Thông báo</h2>
-                                <div className="py-20 text-center text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
-                                    Bạn không có thông báo mới.
-                                </div>
-                            </div>
-                        )}
-
-                        {tab === "revenue" && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-800 mb-6">Báo cáo doanh thu</h2>
-                                <div className="py-20 text-center text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
-                                    Chưa có dữ liệu doanh thu để hiển thị.
-                                </div>
-                            </div>
-                        )}
-
-                    </div>
-                </div>
-
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );
