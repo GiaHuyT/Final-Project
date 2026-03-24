@@ -14,7 +14,8 @@ import {
     Edit,
     Lock,
     Unlock,
-    UserX
+    UserX,
+    EyeOff
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,6 +75,8 @@ export default function UserManagementPage() {
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
+    const [showEditPassword, setShowEditPassword] = useState(false);
+    const [showAddPassword, setShowAddPassword] = useState(false);
     
     const [editData, setEditData] = useState({
         username: "",
@@ -474,7 +477,7 @@ export default function UserManagementPage() {
                             Hiệu chỉnh thông tin
                          </DialogTitle>
                     </div>
-                    <div className="px-10 py-8 space-y-6">
+                    <div className="px-10 py-8 space-y-6 pb-32">
                         <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-2.5">
                                 <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Tên hiển thị</Label>
@@ -507,13 +510,22 @@ export default function UserManagementPage() {
                         </div>
                         <div className="space-y-2.5">
                             <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Mật khẩu mới (Nếu có)</Label>
-                            <Input
-                                type="password"
-                                placeholder="..."
-                                value={editData.password}
-                                onChange={(e) => setEditData({ ...editData, password: e.target.value })}
-                                className="h-12 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 font-bold"
-                            />
+                            <div className="relative flex items-center">
+                                <Input
+                                    type={showEditPassword ? "text" : "password"}
+                                    placeholder="..."
+                                    value={editData.password}
+                                    onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                                    className="h-12 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 font-bold pr-12"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditPassword(!showEditPassword)}
+                                    className="absolute right-4 text-gray-400 hover:text-blue-600 transition-colors"
+                                >
+                                    {showEditPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                         </div>
                         <div className="space-y-2.5">
                             <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Cấp bậc truy cập</Label>
@@ -524,7 +536,7 @@ export default function UserManagementPage() {
                                 <SelectTrigger className="h-12 rounded-2xl border-2 border-gray-100 font-black shadow-sm transition-all focus:ring-4 focus:ring-blue-100">
                                     <SelectValue placeholder="Chọn vai trò" />
                                 </SelectTrigger>
-                                <SelectContent className="z-[100] rounded-2xl border-none shadow-2xl p-2">
+                                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 z-[99999]">
                                     <SelectItem value="ADMIN" className="font-black rounded-xl focus:bg-red-50 focus:text-red-600 px-4 py-3">PHỤ TRÁCH HỆ THỐNG (ADMIN)</SelectItem>
                                     <SelectItem value="VENDOR" className="font-black rounded-xl focus:bg-blue-50 focus:text-blue-600 px-4 py-3">NHÀ CUNG CẤP (VENDOR)</SelectItem>
                                     <SelectItem value="CUSTOMER" className="font-black rounded-xl focus:bg-gray-50 px-4 py-3">NGƯỜI MUA (CUSTOMER)</SelectItem>
@@ -532,9 +544,9 @@ export default function UserManagementPage() {
                             </Select>
                         </div>
                     </div>
-                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-[-1]">
-                        <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all">Quay lại</Button>
-                        <Button onClick={handleUpdateUser} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-10 h-12 rounded-2xl shadow-xl shadow-blue-200 uppercase tracking-tighter transition-all active:scale-95 z-0">Lưu thông tin</Button>
+                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-10">
+                        <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all shadow-none">Quay lại</Button>
+                        <Button onClick={handleUpdateUser} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-10 h-12 rounded-2xl uppercase tracking-tighter transition-all shadow-none">Lưu thông tin</Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -550,7 +562,7 @@ export default function UserManagementPage() {
                             Thêm thành viên mới
                          </DialogTitle>
                     </div>
-                    <div className="px-10 py-8 space-y-6">
+                    <div className="px-10 py-8 space-y-6 pb-32">
                         <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-2.5">
                                 <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Tên đăng nhập</Label>
@@ -586,13 +598,22 @@ export default function UserManagementPage() {
                         </div>
                         <div className="space-y-2.5">
                             <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Mật khẩu truy cập</Label>
-                            <Input
-                                type="password"
-                                placeholder="..."
-                                value={addData.password}
-                                onChange={(e) => setAddData({ ...addData, password: e.target.value })}
-                                className={`h-12 rounded-2xl border-2 transition-all font-bold ${errors.password ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-orange-500 focus:ring-4 focus:ring-orange-100"}`}
-                            />
+                            <div className="relative flex items-center">
+                                <Input
+                                    type={showAddPassword ? "text" : "password"}
+                                    placeholder="..."
+                                    value={addData.password}
+                                    onChange={(e) => setAddData({ ...addData, password: e.target.value })}
+                                    className={`h-12 rounded-2xl border-2 transition-all font-bold pr-12 ${errors.password ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-orange-500 focus:ring-4 focus:ring-orange-100"}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddPassword(!showAddPassword)}
+                                    className="absolute right-4 text-gray-400 hover:text-orange-600 transition-colors"
+                                >
+                                    {showAddPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
                             {errors.password && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.password}</p>}
                         </div>
                         <div className="space-y-2.5">
@@ -604,7 +625,7 @@ export default function UserManagementPage() {
                                 <SelectTrigger className="h-12 rounded-2xl border-2 border-gray-100 font-black shadow-sm transition-all focus:ring-4 focus:ring-orange-100">
                                     <SelectValue placeholder="Chọn vai trò" />
                                 </SelectTrigger>
-                                <SelectContent className="z-[100] rounded-2xl border-none shadow-2xl p-2">
+                                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 z-[99999]">
                                     <SelectItem value="ADMIN" className="font-black rounded-xl focus:bg-red-50 focus:text-red-600 px-4 py-3">PHỤ TRÁCH HỆ THỐNG (ADMIN)</SelectItem>
                                     <SelectItem value="VENDOR" className="font-black rounded-xl focus:bg-blue-50 focus:text-blue-600 px-4 py-3">NHÀ CUNG CẤP (VENDOR)</SelectItem>
                                     <SelectItem value="CUSTOMER" className="font-black rounded-xl focus:bg-gray-50 px-4 py-3">NGƯỜI MUA (CUSTOMER)</SelectItem>
@@ -612,9 +633,9 @@ export default function UserManagementPage() {
                             </Select>
                         </div>
                     </div>
-                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-[-1]">
-                        <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all">Đóng cửa sổ</Button>
-                        <Button onClick={handleCreateUser} className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 h-12 rounded-2xl shadow-xl shadow-orange-200 uppercase tracking-tighter transition-all active:scale-95 z-0">Tạo tài khoản</Button>
+                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-10">
+                        <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all shadow-none">Đóng cửa sổ</Button>
+                        <Button onClick={handleCreateUser} className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 h-12 rounded-2xl uppercase tracking-tighter transition-all shadow-none">Tạo tài khoản</Button>
                     </div>
                 </DialogContent>
             </Dialog>

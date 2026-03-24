@@ -31,6 +31,8 @@ const menuItems = [
     { icon: TrendingUp, label: 'Doanh thu', href: '/vendor/revenue' },
 ];
 
+
+
 export function VendorSidebar() {
     const [isCollapsed, setIsCollapsed] = React.useState(false);
     const router = useRouter();
@@ -69,7 +71,7 @@ export function VendorSidebar() {
                                 key={index}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all group relative",
+                                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all group relative h-10",
                                     isActive 
                                         ? "bg-orange-50 text-orange-600 font-medium" 
                                         : "text-muted-foreground hover:text-orange-600 hover:bg-orange-50/50"
@@ -90,7 +92,7 @@ export function VendorSidebar() {
 
             <div className="mt-auto border-t p-4 space-y-2">
                 <Button variant="ghost" asChild className={cn(
-                    "w-full justify-start gap-3 text-muted-foreground hover:text-orange-600 hover:bg-orange-50",
+                    "w-full justify-start gap-3 text-muted-foreground hover:text-orange-600 hover:bg-orange-50 h-10",
                     isCollapsed && "px-2"
                 )}>
                     <Link href="/profile">
@@ -99,7 +101,7 @@ export function VendorSidebar() {
                     </Link>
                 </Button>
                 <Button variant="ghost" className={cn(
-                    "w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10",
+                    "w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 h-10",
                     isCollapsed && "px-2"
                 )} onClick={handleLogout}>
                     <LogOut className="h-5 w-5" />
