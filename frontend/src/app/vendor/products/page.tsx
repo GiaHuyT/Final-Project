@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
-import { Pencil, Trash2, Image as ImageIcon, Plus, Loader2, X, Car, Settings, ShieldCheck, Zap, Info, Gauge, Fuel, Ruler, Activity } from 'lucide-react';
+import { Pencil, Trash2, Image as ImageIcon, Plus, Loader2, X, Car, Settings, ShieldCheck, Zap, Info, Gauge, Fuel, Ruler, Activity, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
