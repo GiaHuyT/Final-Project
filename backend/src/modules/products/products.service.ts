@@ -113,6 +113,7 @@ export class ProductsService {
             where: { id },
             data: { 
                 ...productData, 
+                vendorId,
                 categoryId: data.categoryId ? parseInt(data.categoryId) : undefined,
                 // @ts-ignore
                 images: images && images.length > 0 ? {

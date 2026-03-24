@@ -1,358 +1,188 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import http from '@/lib/http';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { toast } from 'react-hot-toast';
+import React, { useEffect, useState } from 'react';
 import {
-    User,
-    Clock,
-    Bell,
     Box,
-    Wrench,
-    Store,
+    Clock,
     Truck,
+    Wrench,
     TrendingUp,
+    ArrowUpRight,
+    Loader2,
+    Package,
+    ShoppingCart,
 } from 'lucide-react';
-import Link from 'next/link';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle
+} from '@/components/ui/card';
+import { Badge } from "@/components/ui/badge";
+import http from '@/lib/http';
+import { toast } from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 
-import ProductsTab from './components/ProductsTab';
-import OrdersTab from './components/OrdersTab';
-import RentalCarsTab from './components/RentalCarsTab';
-import RepairsTab from './components/RepairsTab';
+interface VendorStats {
+    totalProducts: number;
+    totalOrders: number;
+    totalRentals: number;
+    totalRepairs: number;
+    recentOrders: any[];
+}
 
-// Schema validation
-const profileSchema = z.object({
-    email: z.string().email(),
-    username: z.string().min(2, "Tên nhà cung cấp phải có ít nhất 2 ký tự"),
-    phonenumber: z.string().optional(),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
-
-
-
-export default function SupplierPage() {
+export default function VendorDashboard() {
+    const [stats, setStats] = useState<VendorStats | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
-    const [userNameDisplay, setUserNameDisplay] = useState("Nhà cung cấp");
-    const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-    const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
-    const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const [tab, setTab] = useState("profile");
-
-    const [products, setProducts] = useState<any[]>([]);
-    const [orders, setOrders] = useState<any[]>([]);
-    const [rentals, setRentals] = useState<any[]>([]);
-    const [repairs, setRepairs] = useState<any[]>([]);
-
-    // Setup form
-    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ProfileFormValues>({
-        resolver: zodResolver(profileSchema),
-    });
-
-    const watchedUsername = watch('username');
-
-    // Fetch data
-    const fetchData = async () => {
-        try {
-            const { data: profileData } = await http.get('/users/profile');
-            setUserNameDisplay(profileData.username || "Nhà cung cấp");
-            setAvatarUrl(profileData.avatar || null);
-            setPreviewAvatarUrl(profileData.avatar || null);
-            reset({
-                email: profileData.email,
-                username: profileData.username,
-                phonenumber: profileData.phonenumber || "",
-            });
-
-            // Fetch Vendor Products
-            const { data: productsData } = await http.get('/products/vendor/me');
-            setProducts(productsData || []);
-
-            // Fetch Vendor Orders
-            const { data: ordersData } = await http.get('/orders/vendor/me');
-            setOrders(ordersData || []);
-
-            // Fetch Vendor Rental Cars
-            const { data: rentalsData } = await http.get('/rental-cars/vendor/me');
-            setRentals(rentalsData || []);
-
-            // Fetch Vendor Repairs
-            const { data: repairsData } = await http.get('/repairs/vendor/me');
-            setRepairs(repairsData || []);
-
-        } catch (error: any) {
-            if (error.response?.status === 401) return; // Let http interceptor handle redirect
-            console.error('Fetch Data Error:', error);
-            toast.error('Không thể tải thông tin dữ liệu nhà cung cấp');
-        } finally {
-            setLoading(false);
-        }
-    };
 
     useEffect(() => {
-        fetchData();
-    }, [reset]);
+        const fetchStats = async () => {
+            try {
+                setLoading(true);
+                // Simulate fetching stats by fetching all lists
+                const [productsRes, ordersRes, rentalsRes, repairsRes] = await Promise.all([
+                    http.get('/products/vendor/me'),
+                    http.get('/orders/vendor/me'),
+                    http.get('/rental-cars/vendor/me'),
+                    http.get('/repairs/vendor/me')
+                ]);
 
-    const handleAvatarClick = () => {
-        fileInputRef.current?.click();
-    };
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith('image/')) {
-            toast.error('Vui lòng chọn tệp ảnh!');
-            return;
-        }
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error('Ảnh quá lớn (tối đa 2MB)!');
-            return;
-        }
-
-        const localUrl = URL.createObjectURL(file);
-        setPreviewAvatarUrl(localUrl);
-        setAvatarFile(file);
-        
-        // Reset file input so selecting the same file again triggers change
-        if (fileInputRef.current) {
-            fileInputRef.current.value = "";
-        }
-    };
-
-    // Handle Submit
-    const onSubmit = async (values: ProfileFormValues) => {
-        setIsSaving(true);
-        try {
-            let finalAvatarUrl = avatarUrl;
-
-            // Xử lý upload ảnh trước nếu có thay đổi
-            if (avatarFile instanceof File) {
-                const formData = new FormData();
-                formData.append('file', avatarFile);
-                const res = await http.post('/users/avatar', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
+                setStats({
+                    totalProducts: productsRes.data.length,
+                    totalOrders: ordersRes.data.length,
+                    totalRentals: rentalsRes.data.length,
+                    totalRepairs: repairsRes.data.length,
+                    recentOrders: ordersRes.data.slice(0, 5)
                 });
-                if (res.status === 201 || res.status === 200) {
-                    finalAvatarUrl = res.data.avatarUrl;
-                }
+            } catch (error) {
+                console.error("Lỗi khi tải thống kê:", error);
+                toast.error("Không thể tải dữ liệu thống kê");
+            } finally {
+                setLoading(false);
             }
-
-            // Xử lý cập nhật thông tin profile
-            await http.patch('/users/profile', {
-                username: values.username,
-                phonenumber: values.phonenumber,
-                avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl
-            });
-            
-            if (avatarFile === 'REMOVE') finalAvatarUrl = null;
-
-            setUserNameDisplay(values.username);
-            setAvatarUrl(finalAvatarUrl);
-            setPreviewAvatarUrl(finalAvatarUrl);
-            setAvatarFile(null);
-
-            const storedUser = localStorage.getItem("user");
-            if (storedUser) {
-                const userObj = JSON.parse(storedUser);
-                userObj.username = values.username;
-                userObj.phonenumber = values.phonenumber;
-                userObj.avatar = finalAvatarUrl;
-                localStorage.setItem("user", JSON.stringify(userObj));
-            }
-
-            toast.success('Cập nhật hồ sơ nhà cung cấp thành công!');
-            window.dispatchEvent(new Event('user-updated'));
-        } catch (error: any) {
-            console.error('Update Profile Error:', error);
-            const message = error.response?.data?.message || 'Có lỗi xảy ra, vui lòng thử lại.';
-            toast.error(Array.isArray(message) ? message[0] : message);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const SidebarItem = ({ icon: Icon, label, active = false, onClick }: { icon: any, label: string, active?: boolean, onClick?: () => void }) => (
-        <div
-            onClick={onClick}
-            className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors ${active ? 'text-orange-600 bg-orange-50 font-medium' : 'text-gray-700 hover:bg-gray-50'}`}
-        >
-            <Icon className="w-5 h-5" />
-            <span className="text-sm">{label}</span>
-            {active && <span className="ml-auto text-xs">›</span>}
-        </div>
-    );
+        };
+        fetchStats();
+    }, []);
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-gray-50/50">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+            <div className="flex h-[60vh] items-center justify-center">
+                <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
             </div>
         );
     }
 
+    const statItems = [
+        {
+            title: "Sản phẩm",
+            value: stats?.totalProducts || 0,
+            icon: Package,
+            color: "text-blue-600",
+            bg: "bg-blue-100"
+        },
+        {
+            title: "Đơn hàng",
+            value: stats?.totalOrders || 0,
+            icon: ShoppingCart,
+            color: "text-green-600",
+            bg: "bg-green-100"
+        },
+        {
+            title: "Xe thuê",
+            value: stats?.totalRentals || 0,
+            icon: Truck,
+            color: "text-purple-600",
+            bg: "bg-purple-100"
+        },
+        {
+            title: "Sửa chữa",
+            value: stats?.totalRepairs || 0,
+            icon: Wrench,
+            color: "text-orange-600",
+            bg: "bg-orange-100"
+        }
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-50/30 p-4 md:p-8 lg:p-12">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6">
+        <div className="space-y-6">
+            <div className="flex flex-col gap-2">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-800">Tổng quan cửa hàng</h1>
+                <p className="text-muted-foreground">Chào mừng bạn quay lại quản lý cửa hàng của mình.</p>
+            </div>
 
-                {/* Sidebar */}
-                <div className="md:col-span-3 lg:col-span-3 space-y-6">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 overflow-hidden">
-                        <div className="space-y-1">
-                            <SidebarItem icon={Store} label="Hồ sơ nhà cung cấp" active={tab === "profile"} onClick={() => setTab("profile")} />
-                            <SidebarItem icon={Box} label="Quản lý sản phẩm" active={tab === "products"} onClick={() => setTab("products")} />
-                            <SidebarItem icon={Clock} label="Quản lý đơn hàng" active={tab === "orders"} onClick={() => setTab("orders")} />
-                            <SidebarItem icon={Truck} label="Xe thuê" active={tab === "rentals"} onClick={() => setTab("rentals")} />
-                            <SidebarItem icon={Wrench} label="Sửa chữa" active={tab === "repairs"} onClick={() => setTab("repairs")} />
-                            <SidebarItem icon={Bell} label="Thông báo" active={tab === "notifications"} onClick={() => setTab("notifications")} />
-                            <SidebarItem icon={TrendingUp} label="Báo cáo doanh thu" active={tab === "revenue"} onClick={() => setTab("revenue")} />
-                        </div>
-                    </div>
-
-                    <Button variant="outline" className="w-full bg-white border-dashed border-gray-300 hover:border-orange-500 hover:text-orange-600 h-10 p-0 overflow-hidden">
-                        <Link href="/profile" className="flex items-center justify-center w-full h-full gap-2">
-                            <User className="w-4 h-4" />
-                            Tài khoản cá nhân
-                        </Link>
-                    </Button>
-                </div>
-
-                {/* Main Content */}
-                <div className="md:col-span-9 lg:col-span-9">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8">
-
-                        {/* Header & Avatar */}
-                        <div className="space-y-6 border-b border-gray-100 pb-8">
-                            <h1 className="text-2xl text-gray-800 font-normal">
-                                Nhà cung cấp: <span className="font-semibold">{watchedUsername || userNameDisplay}</span>
-                            </h1>
-
-                            <div className="flex items-center gap-6">
-                                <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
-                                    <AvatarImage src={previewAvatarUrl || undefined} alt={watchedUsername || userNameDisplay} />
-                                    <AvatarFallback className="text-2xl bg-gray-100 text-gray-500">
-                                        {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
-                                    </AvatarFallback>
-                                    {isSaving && avatarFile instanceof File && (
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                                        </div>
-                                    )}
-                                </Avatar>
-                                <div className="flex gap-3">
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleFileChange}
-                                        accept="image/*"
-                                        className="hidden"
-                                    />
-                                    <Button
-                                        onClick={handleAvatarClick}
-                                        disabled={isSaving}
-                                        className="bg-[#E65E2C] hover:bg-[#d95222] text-white"
-                                    >
-                                        {isSaving && avatarFile instanceof File ? "Uploading..." : "Upload Avatar"}
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="text-gray-600 border-gray-200"
-                                        disabled={isSaving || !previewAvatarUrl}
-                                        onClick={() => {
-                                            if (!previewAvatarUrl) return;
-                                            setPreviewAvatarUrl(null);
-                                            setAvatarFile('REMOVE');
-                                        }}
-                                    >
-                                        Remove
-                                    </Button>
-                                </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {statItems.map((item, index) => (
+                    <Card key={index} className="overflow-hidden border-none shadow-sm bg-white">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium text-gray-600">{item.title}</CardTitle>
+                            <div className={`rounded-full p-2 ${item.bg}`}>
+                                <item.icon className={`h-4 w-4 ${item.color}`} />
                             </div>
-                        </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-gray-800">{item.value}</div>
+                            <p className="text-xs text-muted-foreground flex items-center mt-1">
+                                <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
+                                <span className="text-green-500 font-medium">Cập nhật mới nhất</span>
+                            </p>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
 
-                        {/* Form */}
-                        {tab === "profile" && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-800 mb-6">Thông tin nhà cung cấp</h2>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-4 border-none shadow-sm bg-white">
+                    <CardHeader>
+                        <CardTitle className="text-gray-800">Hiệu quả kinh doanh</CardTitle>
+                        <CardDescription>
+                            Biểu đồ thống kê lượng sản phẩm và đơn hàng theo thời gian.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg bg-gray-50/50">
+                        <span className="text-muted-foreground italic flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Dữ liệu biểu đồ đang được cập nhật...
+                        </span>
+                    </CardContent>
+                </Card>
 
-                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2 md:col-span-2">
-                                            <Label htmlFor="username" className="text-sm font-medium text-gray-700">Tên cửa hàng/đơn vị</Label>
-                                            <Input
-                                                id="username"
-                                                {...register('username')}
-                                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                                            />
-                                            {errors.username && <p className="text-red-500 text-xs">{errors.username.message}</p>}
+                <Card className="col-span-3 border-none shadow-sm bg-white">
+                    <CardHeader>
+                        <CardTitle className="text-gray-800">Đơn hàng mới</CardTitle>
+                        <CardDescription>Danh sách 5 đơn hàng gần nhất.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {stats?.recentOrders.length === 0 ? (
+                                <p className="text-sm text-center text-gray-400 py-12 italic">Chưa có đơn hàng nào.</p>
+                            ) : (
+                                stats?.recentOrders.map((order: any, i: number) => (
+                                    <div key={i} className="flex items-start gap-3 border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                                        <div className="mt-0.5 rounded-full bg-orange-50 p-2">
+                                            <Clock className="h-3.5 w-3.5 text-orange-600" />
                                         </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email liên hệ</Label>
-                                            <Input
-                                                id="email"
-                                                {...register('email')}
-                                                disabled
-                                                className="bg-gray-100 text-gray-500 border-gray-200"
-                                            />
+                                        <div className="flex-1 space-y-1">
+                                            <p className="text-sm font-medium leading-none text-gray-800">#{order.id} - {order.totalPrice.toLocaleString()} ₫</p>
+                                            <p className="text-xs text-gray-500">Khách: {order.customer?.username || 'Ẩn danh'}</p>
+                                            <p className="text-[10px] text-gray-400">
+                                                {new Date(order.createdAt).toLocaleString('vi-VN')}
+                                            </p>
                                         </div>
-
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phonenumber" className="text-sm font-medium text-gray-700">Số điện thoại</Label>
-                                            <Input
-                                                id="phonenumber"
-                                                {...register('phonenumber')}
-                                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
-                                                placeholder="Nhập số điện thoại"
-                                            />
-                                        </div>
+                                        <Badge variant="outline" className={cn(
+                                            "text-[10px] scale-90 origin-right px-2 py-0",
+                                            order.status === 'COMPLETED' ? "border-green-200 text-green-700 bg-green-50" :
+                                            order.status === 'SHIPPING' ? "border-blue-200 text-blue-700 bg-blue-50" :
+                                            "border-yellow-200 text-yellow-700 bg-yellow-50"
+                                        )}>
+                                            {order.status}
+                                        </Badge>
                                     </div>
-
-                                    <div className="flex justify-end pt-4">
-                                        <Button type="submit" disabled={isSaving} className="bg-[#E65E2C] hover:bg-[#d95222] text-white min-w-[120px]">
-                                            {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </div>
-                        )}
-
-                        {tab === "products" && <ProductsTab products={products} onRefresh={fetchData} />}
-                        {tab === "orders" && <OrdersTab orders={orders} onRefresh={fetchData} />}
-                        {tab === "rentals" && <RentalCarsTab rentalCars={rentals} onRefresh={fetchData} />}
-                        {tab === "repairs" && <RepairsTab repairs={repairs} onRefresh={fetchData} />}
-
-                        {tab === "notifications" && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-800 mb-6">Thông báo</h2>
-                                <div className="py-20 text-center text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
-                                    Bạn không có thông báo mới.
-                                </div>
-                            </div>
-                        )}
-
-                        {tab === "revenue" && (
-                            <div>
-                                <h2 className="text-lg font-semibold text-gray-800 mb-6">Báo cáo doanh thu</h2>
-                                <div className="py-20 text-center text-gray-400 bg-gray-50 rounded-xl border border-gray-100">
-                                    Chưa có dữ liệu doanh thu để hiển thị.
-                                </div>
-                            </div>
-                        )}
-
-                    </div>
-                </div>
-
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

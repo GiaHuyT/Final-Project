@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminSidebar } from './_components/sidebar';
-import { AdminTopbar } from './_components/topbar';
+import { VendorSidebar } from './_components/sidebar';
+import { VendorTopbar } from './_components/topbar';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-export default function AdminLayout({
+export default function VendorLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -24,13 +25,13 @@ export default function AdminLayout({
 
         try {
             const user = JSON.parse(userStr);
-            console.log("Current user in AdminLayout:", user);
-            if (user.role === 'ADMIN') {
+            if (user.role === 'VENDOR') {
                 setIsAuthorized(true);
             } else {
-                console.warn("User is not ADMIN. Role:", user.role);
+                console.warn("User is not VENDOR. Role:", user.role);
                 setIsAuthorized(false);
-                router.push('/'); // Redirect to home if not admin
+                toast.error("Bạn không có quyền truy cập khu vực Nhà cung cấp");
+                router.push('/');
             }
         }
         catch (error) {
@@ -42,22 +43,22 @@ export default function AdminLayout({
 
     if (isAuthorized === null) {
         return (
-            <div className="flex h-screen items-center justify-center bg-background">
-                <Loader2 className="h-10 w-10 animate-spin text-primary" />
+            <div className="flex h-screen items-center justify-center bg-gray-50/30">
+                <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
             </div>
         );
     }
 
     if (isAuthorized === false) {
-        return null; // Or a "Forbidden" message
+        return null;
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background">
-            <AdminSidebar />
+        <div className="flex h-screen overflow-hidden bg-gray-50/30">
+            <VendorSidebar />
             <div className="flex flex-1 flex-col overflow-hidden">
-                <AdminTopbar />
-                <main className="flex-1 overflow-y-auto p-6">
+                <VendorTopbar />
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                     {children}
                 </main>
             </div>
