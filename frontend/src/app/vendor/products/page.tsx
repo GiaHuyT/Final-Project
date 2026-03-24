@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
-import { Pencil, Trash2, Image as ImageIcon, Plus, Loader2, X, ChevronRight, Car, Settings, ShieldCheck, Zap } from 'lucide-react';
+import { Pencil, Trash2, Image as ImageIcon, Plus, Loader2, X, Car, Settings, ShieldCheck, Zap, Info, Gauge, Fuel, Ruler, Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 const CAR_COLORS = [
     { name: 'Trắng', hex: '#FFFFFF' }, { name: 'Đen', hex: '#000000' }, { name: 'Bạc', hex: '#C0C0C0' },
@@ -29,13 +30,53 @@ export default function VendorProductsPage() {
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
     const [formData, setFormData] = useState({
-        name: '', categoryId: '', price: '', stock: '1', description: '', status: true, imageUrl: '',
-        brand: '', modelName: '', variant: '', year: '', condition: 'Xe mới', licensePlate: '',
-        mileage: '0', conditionDetail: '', color: '', bodyType: '', fuelType: '', engineCapacity: '',
-        maxPower: '', maxTorque: '', transmission: '', driveType: '', length: '', width: '', height: '',
-        wheelbase: '', groundClearance: '', curbWeight: '', fuelTankCapacity: '', avgFuelConsumption: '',
-        autoConditioning: false, infotainment: false, appleCarplay: false, electricSeats: false,
-        camera360: false, airbags: '0', abs: false, esp: false, ba: false, rearSensor: false,
+        name: '',
+        categoryId: '',
+        price: '',
+        stock: '1',
+        description: '',
+        status: true,
+        imageUrl: '',
+        // Essential Info
+        brand: '',
+        modelName: '',
+        variant: '',
+        year: '',
+        condition: 'Xe mới',
+        licensePlate: '',
+        mileage: '0',
+        conditionDetail: '',
+        color: '',
+        bodyType: '',
+        // Engine Stats
+        fuelType: '',
+        engineCapacity: '',
+        maxPower: '',
+        maxTorque: '',
+        transmission: '',
+        driveType: '',
+        // Dimensions & Weight
+        length: '',
+        width: '',
+        height: '',
+        wheelbase: '',
+        groundClearance: '',
+        curbWeight: '',
+        // Fuel & Efficiency
+        fuelTankCapacity: '',
+        avgFuelConsumption: '',
+        // Amenities (Booleans)
+        autoConditioning: false,
+        infotainment: false,
+        appleCarplay: false,
+        electricSeats: false,
+        camera360: false,
+        // Safety
+        airbags: '0',
+        abs: false,
+        esp: false,
+        ba: false,
+        rearSensor: false,
         colorVariants: [{ color: '', images: [] as string[] }],
     });
 
@@ -56,8 +97,12 @@ export default function VendorProductsPage() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
         if (formErrors[name]) { setFormErrors(prev => { const newErrors = { ...prev }; delete newErrors[name]; return newErrors; }); }
-        if (type === 'checkbox') { const checked = (e.target as HTMLInputElement).checked; setFormData(prev => ({ ...prev, [name]: checked })); }
-        else { setFormData(prev => ({ ...prev, [name]: value })); }
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setFormData(prev => ({ ...prev, [name]: checked }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleVariantFileChange = async (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,15 +121,19 @@ export default function VendorProductsPage() {
             }
             currentVariant.images = newImages;
             updatedVariants[index] = currentVariant;
-            setFormData(prev => ({ ...prev, colorVariants: updatedVariants, imageUrl: prev.imageUrl || newImages[0] }));
+            setFormData(prev => ({
+                ...prev,
+                colorVariants: updatedVariants,
+                imageUrl: prev.imageUrl || newImages[0]
+            }));
+            toast.success('Đã tải ảnh lên');
         } catch (error) { toast.error('Không thể tải ảnh lên'); } finally { setIsLoading(false); event.target.value = ''; }
     };
 
     const validateForm = () => {
         const errors: Record<string, string> = {};
-        const addError = (id: string, message: string) => { errors[id] = message; };
         const required = ['name', 'brand', 'modelName', 'price', 'year', 'bodyType', 'fuelType', 'transmission'];
-        required.forEach(field => { if (!formData[field as keyof typeof formData]) addError(field, 'Trường này là bắt buộc'); });
+        required.forEach(field => { if (!formData[field as keyof typeof formData]) errors[field] = 'Trường này là bắt buộc'; });
         if (Object.keys(errors).length > 0) { setFormErrors(errors); toast.error('Vui lòng điền đủ thông tin bắt buộc'); return false; }
         return true;
     };
@@ -93,7 +142,26 @@ export default function VendorProductsPage() {
         if (!validateForm()) return;
         setIsLoading(true);
         try {
-            await http.post('/products', { ...formData, price: parseFloat(formData.price), stock: parseInt(formData.stock), year: parseInt(formData.year) });
+            const payload = {
+                ...formData,
+                categoryId: categories.length > 0 ? categories[0].id : 1,
+                price: parseFloat(formData.price) || 0,
+                stock: parseInt(formData.stock) || 0,
+                year: parseInt(formData.year) || undefined,
+                licensePlate: formData.condition === 'Xe cũ' ? formData.licensePlate : null,
+                mileage: formData.condition === 'Xe cũ' ? (parseFloat(formData.mileage) || 0) : null,
+                conditionDetail: formData.condition === 'Xe cũ' ? formData.conditionDetail : null,
+                length: parseFloat(formData.length) || undefined,
+                width: parseFloat(formData.width) || undefined,
+                height: parseFloat(formData.height) || undefined,
+                wheelbase: parseFloat(formData.wheelbase) || undefined,
+                groundClearance: parseFloat(formData.groundClearance) || undefined,
+                curbWeight: parseFloat(formData.curbWeight) || undefined,
+                fuelTankCapacity: parseFloat(formData.fuelTankCapacity) || undefined,
+                avgFuelConsumption: parseFloat(formData.avgFuelConsumption) || undefined,
+                airbags: parseInt(formData.airbags) || 0,
+            };
+            await http.post('/products', payload);
             toast.success('Thêm sản phẩm thành công');
             setIsAddOpen(false); fetchProducts();
         } catch (error) { toast.error('Có lỗi xảy ra'); } finally { setIsLoading(false); }
@@ -103,124 +171,306 @@ export default function VendorProductsPage() {
         if (!validateForm()) return;
         setIsLoading(true);
         try {
-            await http.patch(`/products/${selectedProduct.id}`, { ...formData, price: parseFloat(formData.price), stock: parseInt(formData.stock), year: parseInt(formData.year) });
+            const payload = {
+                ...formData,
+                categoryId: formData.categoryId || (categories.length > 0 ? categories[0].id : 1),
+                price: parseFloat(formData.price) || 0,
+                stock: parseInt(formData.stock) || 0,
+                year: parseInt(formData.year) || undefined,
+                licensePlate: formData.condition === 'Xe cũ' ? formData.licensePlate : null,
+                mileage: formData.condition === 'Xe cũ' ? (parseFloat(formData.mileage) || 0) : null,
+                conditionDetail: formData.condition === 'Xe cũ' ? formData.conditionDetail : null,
+                length: parseFloat(formData.length) || undefined,
+                width: parseFloat(formData.width) || undefined,
+                height: parseFloat(formData.height) || undefined,
+                wheelbase: parseFloat(formData.wheelbase) || undefined,
+                groundClearance: parseFloat(formData.groundClearance) || undefined,
+                curbWeight: parseFloat(formData.curbWeight) || undefined,
+                fuelTankCapacity: parseFloat(formData.fuelTankCapacity) || undefined,
+                avgFuelConsumption: parseFloat(formData.avgFuelConsumption) || undefined,
+                airbags: parseInt(formData.airbags) || 0,
+            };
+            await http.patch(`/products/${selectedProduct.id}`, payload);
             toast.success('Cập nhật thành công');
             setIsEditOpen(false); fetchProducts();
         } catch (error) { toast.error('Có lỗi xảy ra'); } finally { setIsLoading(false); }
     };
 
-    const renderProductForm = () => (
-        <div className="space-y-10 py-6 max-h-[70vh] overflow-y-auto px-1 custom-scrollbar">
-            <section className="space-y-6">
-                <div className="flex items-center gap-3 border-l-4 border-orange-600 pl-4">
-                    <Car className="w-5 h-5 text-orange-600" />
-                    <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">1. Thông tin Nhận diện</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Tên xe hiển thị</Label>
-                        <Input name="name" value={formData.name} onChange={handleChange} className={`rounded-xl h-12 shadow-sm ${formErrors.name ? 'border-red-500 bg-red-50' : ''}`} placeholder="VD: Toyota Camry 2.5Q 2024" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Hãng xe</Label>
-                        <select name="brand" value={formData.brand} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm shadow-sm">
-                            <option value="">-- Chọn hãng --</option>
-                            {brands.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Dòng xe (Model)</Label>
-                        <Input name="modelName" value={formData.modelName} onChange={handleChange} className="rounded-xl h-12 shadow-sm" placeholder="VD: Camry" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Năm sản xuất</Label>
-                        <Input name="year" type="number" value={formData.year} onChange={handleChange} className="rounded-xl h-12 shadow-sm" placeholder="2024" />
-                    </div>
-                </div>
-            </section>
+    const renderProductForm = () => {
+        const selectedBrandObj = brands.find(b => b.name === formData.brand);
+        const availableModels = selectedBrandObj ? selectedBrandObj.models : [];
+        const selectedModelObj = availableModels.find((m: any) => m.name === formData.modelName);
+        const availableVariants = selectedModelObj ? selectedModelObj.variants || [] : [];
 
-            <section className="space-y-6">
-                <div className="flex items-center gap-3 border-l-4 border-blue-600 pl-4">
-                    <Settings className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">2. Thông số Kỹ thuật</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Kiểu dáng</Label>
-                        <select name="bodyType" value={formData.bodyType} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm shadow-sm">
-                            <option value="">-- Chọn --</option>
-                            <option value="Sedan">Sedan</option><option value="SUV">SUV</option><option value="Hatchback">Hatchback</option><option value="MPV">MPV</option><option value="Pickup">Pickup</option>
-                        </select>
+        return (
+            <div className="space-y-12 py-6 max-h-[70vh] overflow-y-auto px-4 custom-scrollbar">
+                {/* Section 1: Basic Identifiers */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-orange-600 pl-4">
+                        <Car className="w-5 h-5 text-orange-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">1. Thông tin Nhận diện</h3>
                     </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Nhiên liệu</Label>
-                        <select name="fuelType" value={formData.fuelType} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm shadow-sm">
-                            <option value="">-- Chọn --</option>
-                            <option value="Xăng">Xăng</option><option value="Dầu">Dầu (Diesel)</option><option value="Điện">Điện</option><option value="Hybrid">Hybrid</option>
-                        </select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Hộp số</Label>
-                        <select name="transmission" value={formData.transmission} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm shadow-sm">
-                            <option value="">-- Chọn --</option>
-                            <option value="Số tự động">Số tự động (AT)</option><option value="Số sàn">Số sàn (MT)</option><option value="Vô cấp">Vô cấp (CVT)</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Giá bán (VNĐ)</Label>
-                        <Input name="price" type="number" value={formData.price} onChange={handleChange} className="rounded-xl h-12 shadow-sm font-black text-blue-600 text-lg" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="font-bold text-xs uppercase text-gray-400">Tình trạng</Label>
-                        <select name="condition" value={formData.condition} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm shadow-sm">
-                            <option value="Xe mới">Xe mới 100%</option>
-                            <option value="Xe cũ">Xe đã qua sử dụng</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-
-            <section className="space-y-6">
-                <div className="flex items-center gap-3 border-l-4 border-emerald-600 pl-4">
-                    <ImageIcon className="w-5 h-5 text-emerald-600" />
-                    <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">3. Màu sắc & Hình ảnh thực tế</h3>
-                </div>
-                {formData.colorVariants.map((variant, vIdx) => (
-                    <div key={vIdx} className="p-6 rounded-[2rem] bg-gray-50 border border-gray-100 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <Label className="font-black text-gray-600 uppercase text-[10px] tracking-widest">Phiên bản màu #{vIdx + 1}</Label>
-                            {formData.colorVariants.length > 1 && <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, colorVariants: p.colorVariants.filter((_, i) => i !== vIdx) }))} className="text-red-500 hover:bg-red-50 rounded-full"><X className="w-4 h-4" /></Button>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Tên sản phẩm hiển thị</Label>
+                            <Input name="name" value={formData.name} onChange={handleChange} className={cn("rounded-xl h-12 shadow-sm border-gray-100", formErrors.name && "border-red-500 bg-red-50")} placeholder="VD: Porsche 911 GT3 RS 2024" />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label className="text-xs font-bold text-gray-500">Chọn mã màu</Label>
-                                <div className="flex flex-wrap gap-2">
-                                    {CAR_COLORS.map(c => (
-                                        <button key={c.name} onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].color = c.name; setFormData(p => ({ ...p, colorVariants: nv })); }} className={`w-8 h-8 rounded-full border-2 transition-all ${variant.color === c.name ? 'border-orange-500 scale-110 shadow-lg' : 'border-transparent opacity-60'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-                                    ))}
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Hãng xe</Label>
+                            <select name="brand" value={formData.brand} onChange={(e) => setFormData(prev => ({ ...prev, brand: e.target.value, modelName: '', variant: '' }))} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-orange-100 transition-all">
+                                <option value="">-- Chọn hãng --</option>
+                                {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Dòng xe (Model)</Label>
+                            <select name="modelName" value={formData.modelName} onChange={(e) => setFormData(prev => ({ ...prev, modelName: e.target.value, variant: '' }))} disabled={!formData.brand} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm outline-none disabled:bg-gray-50 disabled:text-gray-300">
+                                <option value="">-- Chọn dòng xe --</option>
+                                {availableModels.map((m: any) => <option key={m.id} value={m.name}>{m.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Năm sản xuất</Label>
+                            <Input name="year" type="number" value={formData.year} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" placeholder="2024" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Phiên bản (Variant)</Label>
+                            <select name="variant" value={formData.variant} onChange={handleChange} disabled={!formData.modelName} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm outline-none disabled:bg-gray-50">
+                                <option value="">-- Chọn phiên bản --</option>
+                                {availableVariants.map((v: any) => <option key={v.id} value={v.name}>{v.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Giá bán (VNĐ)</Label>
+                            <Input name="price" type="number" value={formData.price} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100 font-bold text-blue-600" placeholder="6,000,000,000" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Tình trạng</Label>
+                            <select name="condition" value={formData.condition} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm">
+                                <option value="Xe mới">Xe mới 100%</option>
+                                <option value="Xe cũ">Xe đã qua sử dụng</option>
+                            </select>
+                        </div>
+                        {formData.condition === 'Xe cũ' && (
+                            <>
+                                <div className="space-y-2">
+                                    <Label className="font-bold text-xs uppercase text-gray-400">Biển số</Label>
+                                    <Input name="licensePlate" value={formData.licensePlate} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" placeholder="VD: 30A-123.45" />
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-xs font-bold text-gray-500">Tải ảnh thực tế (Ít nhất 1 ảnh)</Label>
-                                <Input type="file" multiple onChange={(e) => handleVariantFileChange(vIdx, e)} className="rounded-xl h-11 border-none bg-white shadow-sm cursor-pointer" />
-                            </div>
+                                <div className="space-y-2">
+                                    <Label className="font-bold text-xs uppercase text-gray-400">Số ODO (km)</Label>
+                                    <Input name="mileage" type="number" value={formData.mileage} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" />
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </section>
+
+                {/* Section 2: Engine & Performance */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-blue-600 pl-4">
+                        <Gauge className="w-5 h-5 text-blue-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">2. Động cơ & Vận hành</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Nhiên liệu</Label>
+                            <select name="fuelType" value={formData.fuelType} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm">
+                                <option value="">-- Chọn --</option>
+                                <option value="Xăng">Xăng</option><option value="Diesel">Dầu (Diesel)</option><option value="Điện">Điện</option><option value="Hybrid">Hybrid</option>
+                            </select>
                         </div>
-                        <div className="flex flex-wrap gap-3 mt-4">
-                            {variant.images.map((img, iIdx) => (
-                                <div key={iIdx} className="relative w-24 h-24 rounded-2xl overflow-hidden border border-gray-200 group">
-                                    <img src={img} className="w-full h-full object-cover" />
-                                    <button onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].images.splice(iIdx, 1); setFormData(p => ({ ...p, colorVariants: nv })); }} className="absolute top-1 right-1 bg-white/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3 text-red-500" /></button>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Dung tích máy</Label>
+                            <Input name="engineCapacity" value={formData.engineCapacity} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" placeholder="VD: 2.5L / 2494 cc" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Hộp số</Label>
+                            <select name="transmission" value={formData.transmission} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm">
+                                <option value="">-- Chọn --</option>
+                                <option value="Số sàn">Số sàn</option><option value="Tự động">Số tự động</option><option value="CVT">Vô cấp (CVT)</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Dẫn động</Label>
+                            <select name="driveType" value={formData.driveType} onChange={handleChange} className="flex h-12 w-full rounded-xl border border-gray-100 bg-white px-3 py-2 text-sm shadow-sm">
+                                <option value="">-- Chọn --</option>
+                                <option value="FWD">Cầu trước (FWD)</option><option value="RWD">Cầu sau (RWD)</option><option value="AWD">4 bánh (AWD)</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Công suất (hp/PS)</Label>
+                            <Input name="maxPower" value={formData.maxPower} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Mô-men xoắn (Nm)</Label>
+                            <Input name="maxTorque" value={formData.maxTorque} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Section 3: Dimensions & Weight */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-emerald-600 pl-4">
+                        <Ruler className="w-5 h-5 text-emerald-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">3. Kích thước & Trọng lượng</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Chiều dài (mm)</Label>
+                            <Input name="length" type="number" value={formData.length} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Chiều rộng (mm)</Label>
+                            <Input name="width" type="number" value={formData.width} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Chiều cao (mm)</Label>
+                            <Input name="height" type="number" value={formData.height} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Cơ sở (mm)</Label>
+                            <Input name="wheelbase" type="number" value={formData.wheelbase} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Khoảng sáng gầm (mm)</Label>
+                            <Input name="groundClearance" type="number" value={formData.groundClearance} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Trọng lượng (kg)</Label>
+                            <Input name="curbWeight" type="number" value={formData.curbWeight} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Section 4: Fuel Efficiency */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-teal-600 pl-4">
+                        <Fuel className="w-5 h-5 text-teal-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">4. Nhiên liệu & Tiêu thụ</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Dung tích bình xăng (L)</Label>
+                            <Input name="fuelTankCapacity" type="number" value={formData.fuelTankCapacity} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Tiêu thụ TB (L/100km)</Label>
+                            <Input name="avgFuelConsumption" type="number" value={formData.avgFuelConsumption} onChange={handleChange} className="rounded-xl h-12 border-gray-100 shadow-sm" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* Section 5: Comfort & Amenities */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-indigo-600 pl-4">
+                        <Zap className="w-5 h-5 text-indigo-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">5. Tiện nghi & Công nghệ</h3>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-6 rounded-3xl bg-gray-50/50 border border-gray-100">
+                        {[
+                            { id: 'autoConditioning', label: 'Điều hòa tự động' },
+                            { id: 'infotainment', label: 'Màn hình giải trí' },
+                            { id: 'appleCarplay', label: 'Apple CarPlay' },
+                            { id: 'electricSeats', label: 'Ghế chỉnh điện' },
+                            { id: 'camera360', label: 'Camera 360' },
+                        ].map((item) => (
+                            <div key={item.id} className="flex items-center gap-3 group">
+                                <label className="relative flex items-center cursor-pointer">
+                                    <input type="checkbox" name={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="peer sr-only" />
+                                    <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+                                    <span className="ml-3 text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">{item.label}</span>
+                                </label>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+
+                {/* Section 6: Safety */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-red-600 pl-4">
+                        <ShieldCheck className="w-5 h-5 text-red-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">6. Hệ thống An toàn</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-6 items-end">
+                        <div className="md:col-span-2 space-y-2">
+                            <Label className="font-bold text-xs uppercase text-gray-400">Số lượng túi khí</Label>
+                            <Input name="airbags" type="number" value={formData.airbags} onChange={handleChange} className="rounded-xl h-12 shadow-sm border-gray-100" />
+                        </div>
+                        <div className="md:col-span-4 flex flex-wrap gap-4 p-4 rounded-2xl bg-red-50/30 border border-red-100/50">
+                            {[
+                                { id: 'abs', label: 'ABS' },
+                                { id: 'esp', label: 'ESP' },
+                                { id: 'ba', label: 'BA' },
+                                { id: 'rearSensor', label: 'Cảm biến lùi' },
+                            ].map((item) => (
+                                <div key={item.id} className="flex items-center gap-2">
+                                    <input type="checkbox" id={item.id} name={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-4 h-4 rounded-md border-gray-300 text-red-600 focus:ring-red-500" />
+                                    <label htmlFor={item.id} className="text-xs font-black uppercase text-gray-500">{item.label}</label>
                                 </div>
                             ))}
                         </div>
                     </div>
-                ))}
-                <Button variant="outline" onClick={() => setFormData(p => ({ ...p, colorVariants: [...p.colorVariants, { color: '', images: [] }] }))} className="w-full rounded-2xl border-dashed border-2 py-8 bg-gray-50/50 hover:bg-orange-50/50 hover:border-orange-200 text-gray-400 hover:text-orange-600 font-bold transition-all"><Plus className="mr-2" /> Thêm phiên bản màu khác</Button>
-            </section>
-        </div>
-    );
+                </section>
+
+                {/* Section 7: Multimedia & Variants */}
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 border-l-4 border-violet-600 pl-4">
+                        <ImageIcon className="w-5 h-5 text-violet-600" />
+                        <h3 className="text-xl font-black uppercase tracking-tight text-gray-800">7. Phiên bản Màu & Hình ảnh</h3>
+                    </div>
+                    {formData.colorVariants.map((variant, vIdx) => (
+                        <div key={vIdx} className="p-8 rounded-[2.5rem] bg-white border-2 border-gray-50 shadow-sm space-y-6 relative group transition-all hover:border-violet-100">
+                            <div className="flex items-center justify-between">
+                                <Label className="font-black text-violet-600 uppercase text-xs tracking-widest bg-violet-50 px-4 py-1.5 rounded-full">Phiên bản màu #{vIdx + 1}: {variant.color || 'Chưa định danh'}</Label>
+                                {formData.colorVariants.length > 1 && (
+                                    <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, colorVariants: p.colorVariants.filter((_, i) => i !== vIdx) }))} className="text-red-500 hover:bg-red-50 rounded-full">
+                                        <X className="w-4 h-4" />
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <Label className="text-xs font-black text-gray-400 uppercase">1. Chọn mã màu thân xe</Label>
+                                    <div className="flex flex-wrap gap-2.5 p-4 bg-gray-50/50 rounded-2xl border border-gray-100">
+                                        {CAR_COLORS.map(c => (
+                                            <button key={c.name} type="button" onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].color = c.name; setFormData(p => ({ ...p, colorVariants: nv })); }} className={cn("w-9 h-9 rounded-full border-2 transition-all shadow-sm", variant.color === c.name ? 'border-violet-500 scale-110 ring-4 ring-violet-50' : 'border-white hover:scale-105')} style={{ backgroundColor: c.hex }} title={c.name} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-xs font-black text-gray-400 uppercase">2. Tải ảnh thực tế (Max 10)</Label>
+                                    <div className="relative h-28 flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-3xl bg-gray-50/30 hover:bg-violet-50/30 hover:border-violet-200 transition-all cursor-pointer group/upload">
+                                        <input type="file" multiple onChange={(e) => handleVariantFileChange(vIdx, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        <Plus className="w-8 h-8 text-gray-300 group-hover/upload:text-violet-500 transition-colors" />
+                                        <span className="text-[10px] font-black text-gray-400 uppercase mt-2">Clip to upload images</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-4 mt-6">
+                                {variant.images.map((img, iIdx) => (
+                                    <div key={iIdx} className="relative w-28 h-28 rounded-3xl overflow-hidden border-2 border-white shadow-xl group/thumb transition-transform hover:scale-105">
+                                        <img src={img} className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].images.splice(iIdx, 1); setFormData(p => ({ ...p, colorVariants: nv })); }} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover/thumb:opacity-100 transition-opacity shadow-lg">
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                    <Button variant="outline" type="button" onClick={() => setFormData(p => ({ ...p, colorVariants: [...p.colorVariants, { color: '', images: [] }] }))} className="w-full rounded-[2.5rem] border-dashed border-2 py-12 bg-gray-50/50 hover:bg-violet-50/50 hover:border-violet-200 text-gray-400 hover:text-violet-600 font-black uppercase text-xs tracking-[0.2em] transition-all">
+                        <Plus className="mr-2 w-5 h-5" /> Thêm album màu mới
+                    </Button>
+                </section>
+
+                <section className="space-y-4">
+                    <Label className="font-black text-xs uppercase text-gray-400 tracking-[0.2em]">Mô tả chi tiết bài đăng</Label>
+                    <textarea name="description" value={formData.description} onChange={handleChange} className="flex min-h-[160px] w-full rounded-3xl border border-gray-100 bg-white px-6 py-4 text-sm shadow-sm outline-none focus:ring-4 focus:ring-gray-50 transition-all" placeholder="Nhập mô tả xe, lịch sử bảo dưỡng, tình trạng pháp lý..." />
+                </section>
+            </div>
+        );
+    };
 
     return (
         <div className="space-y-8 pb-10">
@@ -230,7 +480,7 @@ export default function VendorProductsPage() {
                     <div className="h-1.5 w-24 bg-orange-600 rounded-full mt-2" />
                 </div>
                 <Button onClick={() => { setIsAddOpen(true); setFormData(p => ({ ...p, colorVariants: [{ color: '', images: [] }] })); }} className="rounded-[1.5rem] bg-orange-600 hover:bg-orange-700 h-14 px-8 font-black text-md uppercase gap-3 shadow-2xl shadow-orange-200 transition-all hover:-translate-y-1 active:scale-95">
-                    <Plus className="w-6 h-6" /> Đăng xe mới ngay
+                    <Plus className="w-6 h-6" /> Đăng xe mới
                 </Button>
             </div>
 
@@ -239,22 +489,29 @@ export default function VendorProductsPage() {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     {products.map((product) => (
-                        <div key={product.id} className="group relative bg-white rounded-[3rem] shadow-2xl shadow-gray-200/50 border border-gray-100 overflow-hidden hover:shadow-orange-200/40 transition-all duration-700">
-                            <div className="aspect-[16/10] relative overflow-hidden bg-gray-100">
-                                <img src={product.imageUrl || '/placeholder-car.jpg'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                        <div key={product.id} className="group relative bg-white rounded-[3.5rem] shadow-2xl shadow-gray-200/40 border border-gray-100 overflow-hidden hover:shadow-orange-200/30 transition-all duration-700">
+                            <div className="aspect-[16/10] relative overflow-hidden bg-gray-100 p-2">
+                                <div className="w-full h-full rounded-[2.5rem] overflow-hidden">
+                                    <img src={product.imageUrl || '/placeholder-car.jpg'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                                </div>
                                 <div className="absolute top-6 right-6 flex flex-col gap-2">
-                                    <Badge className={`${product.status ? 'bg-emerald-500' : 'bg-gray-400'} text-white border-none px-4 py-1.5 rounded-full text-[9px] font-black uppercase shadow-lg`}>{product.status ? 'Đang mở bán' : 'Tạm ẩn'}</Badge>
-                                    <Badge className="bg-white/90 backdrop-blur text-gray-900 border-none px-4 py-1.5 rounded-full text-[9px] font-black uppercase shadow-lg">{product.condition}</Badge>
+                                    <Badge className={cn("text-white border-none px-4 py-2 rounded-full text-[9px] font-black uppercase shadow-lg", product.status ? 'bg-emerald-500' : 'bg-gray-400')}>{product.status ? 'Đang mở bán' : 'Tạm ẩn'}</Badge>
+                                    <Badge className="bg-white/95 backdrop-blur text-gray-900 border-none px-4 py-2 rounded-full text-[9px] font-black uppercase shadow-lg border border-gray-100">{product.condition}</Badge>
                                 </div>
                             </div>
-                            <div className="p-8">
-                                <div className="text-[10px] font-black text-orange-600 uppercase tracking-[0.3em] mb-2">{product.brand} • {product.year}</div>
-                                <h3 className="text-2xl font-black text-gray-900 mb-6 group-hover:text-orange-600 transition-colors line-clamp-1">{product.name}</h3>
+                            <div className="p-8 pt-4">
+                                <div className="flex items-center gap-2 text-[10px] font-black text-orange-600 uppercase tracking-[0.2em] mb-3">
+                                    {product.brand} <ChevronRight className="w-3 h-3" /> {product.year}
+                                </div>
+                                <h3 className="text-2xl font-black text-gray-900 mb-6 group-hover:text-orange-600 transition-colors line-clamp-1 italic tracking-tighter uppercase">{product.name}</h3>
                                 <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                                    <div className="font-black text-blue-600 text-2xl tracking-tighter">{product.price.toLocaleString()} <span className="text-xs uppercase opacity-40 ml-1">đ</span></div>
+                                    <div>
+                                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Giá bán đề xuất</div>
+                                        <div className="font-black text-blue-600 text-2xl tracking-tighter">{product.price.toLocaleString()} <span className="text-xs uppercase opacity-40 ml-1">đ</span></div>
+                                    </div>
                                     <div className="flex gap-3">
-                                        <Button size="icon" variant="outline" onClick={() => { setSelectedProduct(product); setFormData({ ...product, price: product.price.toString(), stock: product.stock.toString(), year: product.year?.toString() || '', colorVariants: product.colorVariants?.map((cv: any) => ({ color: cv.color, images: cv.images?.map((im: any) => im.url) || [] })) || [{ color: '', images: [] }] }); setIsEditOpen(true); }} className="w-12 h-12 rounded-2xl bg-gray-50 border-none hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"><Pencil className="w-5 h-5" /></Button>
-                                        <Button size="icon" variant="outline" onClick={async () => { if (confirm('Xóa vĩnh viễn sản phẩm này?')) { try { await http.delete(`/products/${product.id}`); toast.success('Đã xóa'); fetchProducts(); } catch (err) { toast.error('Lỗi'); } } }} className="w-12 h-12 rounded-2xl bg-gray-50 border-none hover:bg-red-50 hover:text-red-600 transition-all shadow-sm"><Trash2 className="w-5 h-5" /></Button>
+                                        <Button size="icon" variant="outline" onClick={() => { setSelectedProduct(product); setFormData({ ...product, price: product.price.toString(), stock: product.stock.toString(), year: product.year?.toString() || '', colorVariants: product.colorVariants?.map((cv: any) => ({ color: cv.color, images: cv.images?.map((im: any) => im.url) || [] })) || [{ color: '', images: [] }] }); setIsEditOpen(true); }} className="w-14 h-14 rounded-2xl bg-gray-50 border-none hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"><Pencil className="w-5 h-5" /></Button>
+                                        <Button size="icon" variant="outline" onClick={async () => { if (confirm('Xóa vĩnh viễn sản phẩm này?')) { try { await http.delete(`/products/${product.id}`); toast.success('Đã xóa'); fetchProducts(); } catch (err) { toast.error('Lôi'); } } }} className="w-14 h-14 rounded-2xl bg-gray-50 border-none hover:bg-red-50 hover:text-red-600 transition-all shadow-sm"><Trash2 className="w-5 h-5" /></Button>
                                     </div>
                                 </div>
                             </div>
@@ -264,35 +521,41 @@ export default function VendorProductsPage() {
             )}
 
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogContent className="max-w-5xl rounded-[3.5rem] p-0 overflow-hidden border-none shadow-[0_0_100px_rgba(0,0,0,0.1)]">
+                <DialogContent className="max-w-6xl rounded-[4rem] p-0 overflow-hidden border-none shadow-[0_0_120px_rgba(0,0,0,0.15)] bg-white">
                     <DialogHeader className="bg-orange-600 px-12 py-10 text-white flex-row items-center justify-between">
                         <div>
-                            <DialogTitle className="text-3xl font-black uppercase tracking-tighter italic">Đăng xe mới</DialogTitle>
-                            <p className="text-orange-100 font-bold text-sm mt-1 uppercase tracking-widest opacity-80">Thông tin xe niêm yết</p>
+                            <DialogTitle className="text-4xl font-black uppercase tracking-tighter italic leading-none">Cửa sổ Đăng xe</DialogTitle>
+                            <p className="text-orange-100 font-bold text-xs mt-3 uppercase tracking-[0.3em] opacity-80 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-white animate-pulse" /> Đang thiết lập tin đăng mới trên hệ thống</p>
                         </div>
-                        <Car className="w-16 h-16 opacity-20 -rotate-12" />
+                        <Car className="w-24 h-24 opacity-10 -rotate-12 absolute -top-4 -right-4" />
                     </DialogHeader>
-                    <div className="px-12 py-10 bg-white">{renderProductForm()}</div>
-                    <DialogFooter className="bg-gray-50 px-12 py-8 flex items-center justify-between border-t">
-                        <p className="text-xs font-bold text-gray-400 uppercase italic">Vui lòng kiểm tra kỹ trước khi đăng</p>
+                    <div className="px-12 py-6">{renderProductForm()}</div>
+                    <DialogFooter className="bg-gray-50 px-12 py-8 flex items-center justify-between border-t border-gray-100">
+                        <div className="flex items-center gap-3">
+                            <Info className="w-4 h-4 text-orange-400" />
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">Hãy đảm bảo mọi thông số đều khớp với giấy tờ thực tế của xe</p>
+                        </div>
                         <div className="flex gap-4">
-                            <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl font-black uppercase text-xs tracking-widest">Hủy bỏ</Button>
-                            <Button onClick={handleAdd} disabled={isLoading} className="rounded-2xl bg-orange-600 hover:bg-orange-700 h-14 px-10 font-black text-white uppercase shadow-xl shadow-orange-100 transition-all">{isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Xuất bản ngay'}</Button>
+                            <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl font-black uppercase text-xs tracking-[0.2em] px-8 border border-gray-200">Hủy bỏ</Button>
+                            <Button onClick={handleAdd} disabled={isLoading} className="rounded-2xl bg-orange-600 hover:bg-orange-700 h-14 px-12 font-black text-white uppercase shadow-xl shadow-orange-100 transition-all active:scale-95">{isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Xuất bản tin ngay'}</Button>
                         </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="max-w-5xl rounded-[3.5rem] p-0 overflow-hidden border-none shadow-[0_0_100px_rgba(0,0,0,0.1)]">
+                <DialogContent className="max-w-6xl rounded-[4rem] p-0 overflow-hidden border-none shadow-[0_0_120px_rgba(0,0,0,0.15)] bg-white">
                     <DialogHeader className="bg-blue-600 px-12 py-10 text-white flex-row items-center justify-between">
-                        <div><DialogTitle className="text-3xl font-black uppercase tracking-tighter italic">Cập nhật Tin đăng</DialogTitle></div>
-                        <Settings className="w-16 h-16 opacity-20 animate-[spin_10s_linear_infinite]" />
+                        <div>
+                            <DialogTitle className="text-4xl font-black uppercase tracking-tighter italic leading-none">Hiệu chỉnh Tin đăng</DialogTitle>
+                            <p className="text-blue-100 font-bold text-xs mt-3 uppercase tracking-[0.3em] opacity-80 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-white animate-pulse" /> Chế độ biên tập dữ liệu xe niêm yết</p>
+                        </div>
+                        <Settings className="w-24 h-24 opacity-10 absolute -top-4 -right-4 animate-[spin_20s_linear_infinite]" />
                     </DialogHeader>
-                    <div className="px-12 py-10 bg-white">{renderProductForm()}</div>
-                    <DialogFooter className="bg-gray-50 px-12 py-8 border-t flex items-center justify-end gap-4">
-                        <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl font-black uppercase text-xs">Hủy</Button>
-                        <Button onClick={handleEdit} disabled={isLoading} className="rounded-2xl bg-blue-600 hover:bg-blue-700 h-14 px-10 font-black text-white uppercase shadow-xl shadow-blue-100 transition-all">Lưu thay đổi</Button>
+                    <div className="px-12 py-6">{renderProductForm()}</div>
+                    <DialogFooter className="bg-gray-50 px-12 py-8 border-t border-gray-100 flex items-center justify-end gap-6">
+                        <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl font-black uppercase text-xs tracking-widest px-8">Đóng</Button>
+                        <Button onClick={handleEdit} disabled={isLoading} className="rounded-2xl bg-blue-600 hover:bg-blue-700 h-14 px-12 font-black text-white uppercase shadow-xl shadow-blue-100 transition-all active:scale-95">{isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Lưu mọi thay đổi'}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
