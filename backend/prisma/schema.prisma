@@ -18,7 +18,9 @@ model User {
 
   avatar            String?
   role              Role     @default(CUSTOMER)
-  isApprovedVendor  Boolean  @default(false)
+  isApprovedVendor      Boolean  @default(false)
+  vendorRequestPending  Boolean  @default(false)
+  pendingRequestType    String?
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
   resetToken        String?   // token reset password
@@ -284,10 +286,20 @@ model Favorite {
 }
 
 model Notification {
-  id        Int      @id @default(autoincrement())
+  id        Int              @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
+  user      User             @relation(fields: [userId], references: [id])
+  type      NotificationType @default(SYSTEM)
   content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  link      String?          // URL để điều hướng khi click
+  metadata  Json?            // Chứa các ID liên quan (orderId, auctionId...)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+enum NotificationType {
+  ORDER
+  AUCTION
+  SYSTEM
+  PROMOTION
 }
