@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import http from "@/lib/http";
+import { VendorChatButton } from "@/components/chat/VendorChatButton";
 
 export default function VehicleDetailsPage() {
   const params = useParams();
@@ -194,7 +195,7 @@ export default function VehicleDetailsPage() {
                             <p className="text-[10px] text-on-surface-variant font-medium">98% Đánh giá Tích cực</p>
                          </div>
                       </div>
-                      <button className="text-[10px] font-bold uppercase tracking-widest border-b border-primary">Nhắn tin</button>
+                      <VendorChatButton vendorId={product.vendorId} productId={product.id} />
                    </div>
                 </div>
              </div>

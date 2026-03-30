@@ -1,14 +1,15 @@
 import { io, Socket } from 'socket.io-client';
 
-let socket: Socket | null = null;
-const URL = 'http://127.0.0.1:3000/notifications';
+const BASE_URL = 'http://127.0.0.1:3000';
 
-export const initSocket = (token: string, userId: number | string) => {
-  if (socket) {
-    return socket;
+const sockets: { [key: string]: Socket } = {};
+
+export const initSocket = (namespace: string, token: string, userId: number | string) => {
+  if (sockets[namespace]) {
+    return sockets[namespace];
   }
 
-  socket = io(URL, {
+  const socket = io(`${BASE_URL}/${namespace}`, {
     auth: {
       token,
       userId,
@@ -17,21 +18,29 @@ export const initSocket = (token: string, userId: number | string) => {
   });
 
   socket.on('connect', () => {
-    console.log('Socket connected:', socket?.id, 'User:', userId);
+    console.log(`Socket [${namespace}] connected:`, socket.id, 'User:', userId);
   });
 
   socket.on('disconnect', () => {
-    console.log('Socket disconnected');
+    console.log(`Socket [${namespace}] disconnected`);
   });
 
+  sockets[namespace] = socket;
   return socket;
 };
 
-export const getSocket = () => socket;
+export const getSocket = (namespace: string) => sockets[namespace];
 
-export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
+export const disconnectSocket = (namespace: string) => {
+  if (sockets[namespace]) {
+    sockets[namespace].disconnect();
+    delete sockets[namespace];
   }
+};
+
+export const disconnectAllSockets = () => {
+  Object.keys(sockets).forEach((ns) => {
+    sockets[ns].disconnect();
+    delete sockets[ns];
+  });
 };

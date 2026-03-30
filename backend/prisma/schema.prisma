@@ -37,6 +37,8 @@ model User {
   reviews           Review[]
   notifications     Notification[]
   favorites         Favorite[]      
+  conversations     Conversation[]   @relation("UserConversations")
+  messages          Message[]
 }
 
 enum Role {
@@ -295,6 +297,27 @@ model Notification {
   metadata  Json?            // Chứa các ID liên quan (orderId, auctionId...)
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
+}
+
+// --- NHÓM TRÒ CHUYỆN (CHAT) ---
+model Conversation {
+  id           Int       @id @default(autoincrement())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  participants User[]    @relation("UserConversations")
+  messages     Message[]
+  productId    Int?      // Ngữ cảnh tùy chọn (đang hỏi về sản phẩm nào)
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  content        String
+  senderId       Int
+  sender         User         @relation(fields: [senderId], references: [id])
+  conversationId Int
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  createdAt      DateTime     @default(now())
+  isRead         Boolean      @default(false)
 }
 
 enum NotificationType {

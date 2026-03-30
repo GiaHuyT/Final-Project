@@ -15,6 +15,7 @@ import { RepairsModule } from './modules/repairs/repairs.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/passport/roles.guard';
@@ -37,6 +38,7 @@ import { RolesGuard } from './modules/auth/passport/roles.guard';
     BrandsModule,
     FavoritesModule,
     NotificationsModule,
+    ChatModule,
   ],
   controllers: [],
   providers: [
