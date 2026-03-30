@@ -46,6 +46,7 @@ export default function LoginPage() {
             if (res.status === 200 || res.status === 201) {
                 localStorage.setItem("token", data.accessToken);
                 Cookies.set("token", data.accessToken, { secure: false, sameSite: 'lax' });
+                Cookies.set("user_role", data.user.role, { secure: false, sameSite: 'lax' });
                 localStorage.setItem("user", JSON.stringify(data.user));
                 toast.success("Đăng nhập thành công!");
                 setTimeout(() => {

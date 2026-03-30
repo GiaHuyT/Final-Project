@@ -13,8 +13,7 @@ export default function WishlistPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Using the same endpoint as profile for now, or a specific wishlist one if available
-                const res = await http.get('/products/vendor/me').catch(() => ({ data: [] }));
+                const res = await http.get('/favorites');
                 setProducts(res.data || []);
             } catch (error) {
                 console.error("Error fetching wishlist:", error);
@@ -27,11 +26,16 @@ export default function WishlistPage() {
         fetchData();
     }, []);
 
-    const removeProduct = (id: string, e: React.MouseEvent) => {
+    const removeProduct = async (id: number, e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setProducts(products.filter(p => p.id !== id));
-        toast.success("Đã xóa khỏi danh sách yêu thích");
+        try {
+            await http.post(`/favorites/toggle/${id}`);
+            setProducts(products.filter(p => p.id !== id));
+            toast.success("Đã xóa khỏi danh sách yêu thích");
+        } catch (error) {
+            toast.error("Không thể xóa khỏi danh sách yêu thích");
+        }
     };
 
     if (loading) {

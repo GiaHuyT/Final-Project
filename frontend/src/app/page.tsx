@@ -4,10 +4,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import http from "@/lib/http";
+import WishlistButton from "@/components/ui/wishlist-button";
 
 export default function Home() {
   const [auctions, setAuctions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
 
   const heroImages = [
@@ -22,12 +24,23 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    http.get('/products?type=AUCTION&status=ACTIVE')
-      .then(res => {
-        setAuctions(res.data.slice(0, 3)); // Display top 3 for the home page sections
-      })
-      .catch(err => console.error("Error fetching auctions:", err))
-      .finally(() => setLoading(false));
+    const fetchData = async () => {
+      try {
+        const res = await http.get('/products?type=AUCTION&status=ACTIVE');
+        setAuctions(res.data.slice(0, 3));
+
+        const token = localStorage.getItem('token');
+        if (token) {
+          const favsRes = await http.get('/favorites/ids');
+          setFavoriteIds(favsRes.data);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -184,7 +197,11 @@ export default function Home() {
                     <div className="px-2">
                       <div className="flex justify-between items-start mb-2">
                         <h3 className="font-headline text-xl font-bold truncate pr-4">{product.name}</h3>
-                        <span className="material-symbols-outlined text-outline cursor-pointer hover:text-error transition-colors">favorite</span>
+                        <WishlistButton 
+                          productId={product.id} 
+                          initialIsFavorited={favoriteIds.includes(product.id)}
+                          className="w-10 h-10 shadow-none border-none bg-transparent hover:bg-transparent"
+                        />
                       </div>
                       <div className="flex items-center gap-4 mb-6">
                         <div className="flex items-center gap-1.5 bg-secondary-container px-3 py-1 rounded-md">

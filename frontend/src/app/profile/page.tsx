@@ -3,12 +3,25 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import http from "@/lib/http";
 import { toast } from "react-hot-toast";
-import { Loader2, Car, Gavel, Bell, User, ArrowRight } from "lucide-react";
+import { Loader2, Car, Gavel, Bell, User, ArrowRight, Store, ShieldCheck, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { 
+    Dialog, 
+    DialogContent, 
+    DialogHeader, 
+    DialogTitle, 
+    DialogDescription,
+    DialogFooter
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
     const [user, setUser] = useState<any>(null);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRegModalOpen, setIsRegModalOpen] = useState(false);
+    const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+    const [pendingRole, setPendingRole] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -88,10 +101,148 @@ export default function ProfilePage() {
                                 <span className="font-bold text-sm tracking-wide">Thông báo</span>
                             </button>
                         </nav>
+
+                        {/* Vendor Account Button (as per user image) */}
+                        <div className="mt-6 px-2">
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    
+                                    if (!user) return;
+
+                                    if (user.isApprovedVendor) {
+                                        setPendingRole(user.role === 'VENDOR' ? 'CUSTOMER' : 'VENDOR');
+                                        setIsSwitchModalOpen(true);
+                                    } else if (user.vendorRequestPending) {
+                                        toast.error("Yêu cầu của bạn đang được xử lý.");
+                                    } else {
+                                        setIsRegModalOpen(true);
+                                    }
+                                }}
+                                className={cn(
+                                    "w-full py-4 px-4 rounded-2xl border flex items-center justify-between transition-all font-bold text-[13px] group shadow-sm",
+                                    user?.role === 'VENDOR'
+                                        ? "bg-slate-900 text-white border-slate-900 hover:bg-black"
+                                        : "bg-white border-slate-200 text-slate-700 hover:border-slate-900 active:scale-[0.98]"
+                                )}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className={cn(
+                                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                                        user?.role === 'VENDOR' ? "bg-white/10" : "bg-slate-100 group-hover:bg-slate-900 group-hover:text-white"
+                                    )}>
+                                        <Store className="w-4 h-4" />
+                                    </div>
+                                    <span>
+                                        {user?.isApprovedVendor 
+                                            ? (user?.role === 'VENDOR' ? 'Chế độ Người bán' : 'Tài khoản nhà cung cấp') 
+                                            : (user?.vendorRequestPending ? 'Đang chờ phê duyệt' : 'Tài khoản nhà cung cấp')
+                                        }
+                                    </span>
+                                </div>
+                                <ChevronRight className="w-4 h-4 opacity-40 group-hover:opacity-100 transition-all group-hover:translate-x-0.5" />
+                            </button>
+                        </div>
                     </aside>
 
                     {/* Content Area */}
                     <div className="flex-grow space-y-10">
+                        {/* Registration Modal */}
+                        <Dialog open={isRegModalOpen} onOpenChange={setIsRegModalOpen}>
+                            <DialogContent className="sm:max-w-[460px] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+                                <div className="bg-gradient-to-br from-[#404040] to-[#171717] p-8 text-white relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
+                                    <Store className="w-12 h-12 mb-4 relative z-10 opacity-90" />
+                                    <h2 className="text-2xl font-black mb-2 relative z-10">Đăng ký Nhà cung cấp</h2>
+                                    <p className="text-neutral-400 font-medium relative z-10">Bắt đầu kinh doanh xe chuyên nghiệp trên hệ thống AutoBid ngay hôm nay.</p>
+                                </div>
+                                <div className="p-8 space-y-6 bg-white">
+                                    <div className="space-y-4">
+                                        {[
+                                            { icon: ShieldCheck, text: "Đăng bán xe không giới hạn", sub: "Tiếp cận hàng ngàn khách hàng tiềm năng." },
+                                            { icon: Gavel, text: "Tạo và quản lý phiên đấu giá", sub: "Hệ thống đấu giá thời gian thực minh bạch." },
+                                            { icon: Bell, text: "Hỗ trợ quảng bá sản phẩm", sub: "Nhận thông báo đơn hàng và báo cáo chi tiết." }
+                                        ].map((item, i) => (
+                                            <div key={i} className="flex gap-4 items-start">
+                                                <div className="w-10 h-10 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-900 border border-neutral-100 shrink-0 shadow-sm">
+                                                    <item.icon className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-neutral-800 leading-tight">{item.text}</p>
+                                                    <p className="text-xs text-neutral-500 font-medium mt-0.5">{item.sub}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="pt-4 flex flex-col gap-3">
+                                        <Button 
+                                            onClick={async () => {
+                                                try {
+                                                    await http.post('/users/apply-vendor');
+                                                    toast.success('Gửi yêu cầu thành công!');
+                                                    setIsRegModalOpen(false);
+                                                    setTimeout(() => window.location.reload(), 800);
+                                                } catch (err: any) {
+                                                    toast.error(err.response?.data?.message || 'Lỗi khi gửi yêu cầu');
+                                                }
+                                            }}
+                                            className="w-full bg-[#171717] hover:bg-black text-white h-14 rounded-2xl font-black text-sm uppercase tracking-wider transition-all hover:shadow-xl hover:scale-[1.01]"
+                                        >
+                                            Xác nhận đăng ký ngay
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            onClick={() => setIsRegModalOpen(false)}
+                                            className="w-full h-12 rounded-xl font-bold text-neutral-400 hover:text-neutral-600"
+                                        >
+                                            Để sau
+                                        </Button>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+
+                        {/* Switch Role Modal */}
+                        <Dialog open={isSwitchModalOpen} onOpenChange={setIsSwitchModalOpen}>
+                            <DialogContent className="sm:max-w-[400px] rounded-[2rem] p-8 text-center border-none shadow-2xl">
+                                <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                    <User className="w-10 h-10" />
+                                </div>
+                                <DialogTitle className="text-2xl font-black text-slate-900 mb-2">Chuyển đổi vai trò</DialogTitle>
+                                <DialogDescription className="text-slate-500 font-medium mb-8">
+                                    Bạn có chắc chắn muốn chuyển sang tài khoản **{pendingRole === 'VENDOR' ? 'Nhà cung cấp' : 'Người mua'}** không? 
+                                    Giao diện sẽ được cập nhật tương ứng.
+                                </DialogDescription>
+                                <div className="flex flex-col gap-3">
+                                    <Button 
+                                        onClick={async () => {
+                                            try {
+                                                const { data: updatedUser } = await http.patch('/users/switch-role', { role: pendingRole });
+                                                localStorage.setItem('user', JSON.stringify(updatedUser));
+                                                toast.success('Chuyển đổi thành công!');
+                                                setIsSwitchModalOpen(false);
+                                                setTimeout(() => window.location.reload(), 500);
+                                            } catch (err: any) {
+                                                toast.error(err.response?.data?.message || 'Lỗi khi chuyển đổi');
+                                            }
+                                        }}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white h-14 rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-blue-600/20"
+                                    >
+                                        Xác nhận chuyển đổi
+                                    </Button>
+                                    <Button 
+                                        variant="ghost" 
+                                        onClick={() => setIsSwitchModalOpen(false)}
+                                        className="w-full h-12 rounded-xl font-bold text-slate-400"
+                                    >
+                                        Hủy bỏ
+                                    </Button>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+
                         {/* Personal Info Bento Section */}
                         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {/* Profile Card */}
@@ -125,7 +276,6 @@ export default function ProfilePage() {
                             
                             {/* Membership Status */}
                             <div className="bg-slate-900 text-white rounded-3xl p-8 flex flex-col justify-between shadow-xl shadow-slate-900/10 relative overflow-hidden">
-                                {/* Decorative BG */}
                                 <div className="absolute -right-10 -bottom-10 opacity-10">
                                     <span className="material-symbols-outlined text-9xl">workspace_premium</span>
                                 </div>
@@ -146,7 +296,7 @@ export default function ProfilePage() {
                             </div>
                         </section>
 
-                        {/* Recent Activity / Tracked Assets */}
+                        {/* Recently Viewed / Saved Cars */}
                         <section className="space-y-6">
                             <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 border-b border-slate-200 pb-4">Danh sách yêu thích</h2>
                             {products.length === 0 ? (

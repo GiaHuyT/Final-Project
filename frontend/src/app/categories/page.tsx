@@ -3,14 +3,14 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import http from "@/lib/http";
-import { 
-    Search, 
-    ChevronDown, 
-    Filter, 
-    Car, 
-    ArrowUpDown, 
-    X, 
-    Heart, 
+import {
+    Search,
+    ChevronDown,
+    Filter,
+    Car,
+    ArrowUpDown,
+    X,
+    Heart,
     ShoppingBag,
     Loader2,
     SlidersHorizontal,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
+import WishlistButton from "@/components/ui/wishlist-button";
 
 // Custom Dropdown Component
 interface FilterDropdownProps {
@@ -104,7 +105,7 @@ export default function CarModelsPage() {
     const [vendors, setVendors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filterLoading, setFilterLoading] = useState(false);
-    
+
     // Filter states
     const [selectedBrand, setSelectedBrand] = useState("");
     const [selectedModel, setSelectedModel] = useState("");
@@ -112,6 +113,7 @@ export default function CarModelsPage() {
     const [priceRange, setPriceRange] = useState({ min: "", max: "" });
     const [sortBy, setSortBy] = useState("newest");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
 
     const fetchProducts = useCallback(async () => {
         setFilterLoading(true);
@@ -144,6 +146,13 @@ export default function CarModelsPage() {
                 ]);
                 setBrands(brandsRes.data);
                 setVendors(vendorsRes.data);
+
+                // Fetch favorite IDs if logged in
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const favsRes = await http.get('/favorites/ids');
+                    setFavoriteIds(favsRes.data);
+                }
             } catch (error) {
                 console.error("Error fetching initial data:", error);
             } finally {
@@ -199,9 +208,9 @@ export default function CarModelsPage() {
                         "lg:w-80 space-y-8 lg:block shrink-0 transition-all duration-300",
                         isSidebarOpen ? "block" : "hidden"
                     )}>
-                        <div className="sticky top-28 space-y-10">
+                        <div className="sticky top-28 space-y-10 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar pr-4 pb-8">
                             {/* Brand Dropdown */}
-                            <FilterDropdown 
+                            <FilterDropdown
                                 label="Hãng xe"
                                 icon={<Tag className="w-3 h-3" />}
                                 options={brands.map(b => ({ id: b.name, name: b.name }))}
@@ -213,7 +222,7 @@ export default function CarModelsPage() {
                             {/* Model Dropdown (Only shown if Brand is selected) */}
                             {selectedBrand && (
                                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <FilterDropdown 
+                                    <FilterDropdown
                                         label={`Dòng xe ${selectedBrand}`}
                                         icon={<Car className="w-3 h-3" />}
                                         options={activeModels.map((m: any) => ({ id: m.name, name: m.name }))}
@@ -225,7 +234,7 @@ export default function CarModelsPage() {
                             )}
 
                             {/* Vendor Dropdown */}
-                            <FilterDropdown 
+                            <FilterDropdown
                                 label="Nhà cung cấp"
                                 icon={<Store className="w-3 h-3" />}
                                 options={vendors.map(v => ({ id: v.id, name: v.username }))}
@@ -240,24 +249,24 @@ export default function CarModelsPage() {
                                     <ShoppingBag className="w-3 h-3" /> Khoảng giá (VND)
                                 </label>
                                 <div className="flex flex-col gap-3">
-                                    <input 
-                                        type="number" 
-                                        placeholder="Từ..." 
+                                    <input
+                                        type="number"
+                                        placeholder="Từ..."
                                         value={priceRange.min}
-                                        onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                                        onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
                                         className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-bold text-sm"
                                     />
-                                    <input 
-                                        type="number" 
-                                        placeholder="Đến..." 
+                                    <input
+                                        type="number"
+                                        placeholder="Đến..."
                                         value={priceRange.max}
-                                        onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                                        onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
                                         className="w-full px-5 py-4 rounded-2xl bg-slate-50 border-transparent focus:bg-white focus:border-slate-200 focus:ring-0 transition-all font-bold text-sm"
                                     />
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleClearFilters}
                                 className="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all border border-dashed border-slate-200"
                             >
@@ -271,7 +280,7 @@ export default function CarModelsPage() {
                         {/* Toolbar */}
                         <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-100">
                             <div className="flex items-center gap-4">
-                                <button 
+                                <button
                                     onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                                     className="lg:hidden p-3 rounded-2xl bg-slate-100 text-slate-600"
                                 >
@@ -285,7 +294,7 @@ export default function CarModelsPage() {
 
                             <div className="flex items-center gap-4">
                                 <div className="relative group">
-                                    <select 
+                                    <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
                                         className="appearance-none bg-slate-50 border-none rounded-2xl px-6 py-3 pr-12 font-bold text-sm text-slate-700 cursor-pointer focus:ring-2 focus:ring-slate-200 transition-all"
@@ -307,7 +316,7 @@ export default function CarModelsPage() {
                                 </div>
                                 <h3 className="text-xl font-black text-slate-900 mb-2">Không tìm thấy xe nào</h3>
                                 <p className="text-slate-500 font-medium">Thử thay đổi bộ lọc hoặc xóa các tùy chọn đã chọn.</p>
-                                <button 
+                                <button
                                     onClick={handleClearFilters}
                                     className="mt-8 px-8 py-4 bg-slate-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform"
                                 >
@@ -319,8 +328,8 @@ export default function CarModelsPage() {
                                 {products.map((product) => (
                                     <div key={product.id} className="group flex flex-col bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all duration-500 overflow-hidden relative text-left">
                                         <Link href={`/products/${product.id}`} className="block relative h-64 overflow-hidden bg-slate-100">
-                                            <img 
-                                                src={product.imageUrl || "/images/static/car-placeholder.png"} 
+                                            <img
+                                                src={product.imageUrl || "/images/static/car-placeholder.png"}
                                                 alt={product.name}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                                             />
@@ -329,9 +338,11 @@ export default function CarModelsPage() {
                                                     {product.brand}
                                                 </span>
                                             </div>
-                                            <button className="absolute top-6 right-6 w-12 h-12 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-all shadow-lg border border-white/50">
-                                                <Heart className="w-5 h-5" />
-                                            </button>
+                                            <WishlistButton 
+                                                productId={product.id} 
+                                                initialIsFavorited={favoriteIds.includes(product.id)}
+                                                className="absolute top-6 right-6"
+                                            />
                                             <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                                                 <div className="bg-black text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl">
                                                     Xem chi tiết
@@ -347,7 +358,7 @@ export default function CarModelsPage() {
                                             <h3 className="text-xl font-black text-slate-900 mb-4 tracking-tight leading-tight line-clamp-2 min-h-[3rem]">
                                                 {product.name}
                                             </h3>
-                                            
+
                                             <div className="flex items-baseline gap-1 mb-6">
                                                 <span className="text-3xl font-black text-slate-900">{product.price?.toLocaleString()}</span>
                                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">VND</span>
@@ -355,9 +366,9 @@ export default function CarModelsPage() {
 
                                             <div className="flex flex-col gap-1 mb-6">
                                                 <div className="flex items-center gap-2">
-                                                   <Store className="w-3 h-3 text-slate-400" />
-                                                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cung cấp bởi:</span>
-                                                   <span className="text-[10px] font-black text-slate-900 uppercase underline decoration-blue-500 underline-offset-4">{product.vendor?.username}</span>
+                                                    <Store className="w-3 h-3 text-slate-400" />
+                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cung cấp bởi:</span>
+                                                    <span className="text-[10px] font-black text-slate-900 uppercase underline decoration-blue-500 underline-offset-4">{product.vendor?.username}</span>
                                                 </div>
                                             </div>
 
