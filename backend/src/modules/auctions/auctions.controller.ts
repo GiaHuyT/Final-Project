@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { Public } from '../../core/decorators/public.decorator';
 
 import { AuctionsService } from './auctions.service';
@@ -14,9 +14,8 @@ export class AuctionsController {
     @Public()
     @Get()
     @ApiOperation({ summary: 'Lấy tất cả đấu giá' })
-
-    findAll() {
-        return this.auctionsService.findAll();
+    findAll(@Query('status') status?: string) {
+        return this.auctionsService.findAll(status);
     }
 
     @Public()

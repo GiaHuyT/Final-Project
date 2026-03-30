@@ -5,8 +5,12 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class AuctionsService {
     constructor(private prisma: PrismaService) { }
 
-    async findAll() {
+    async findAll(status?: string) {
+        const where: any = {};
+        if (status) where.status = status;
+
         return this.prisma.auction.findMany({
+            where,
             include: {
                 vendor: {
                     select: { username: true, email: true }
