@@ -21,6 +21,7 @@ export class ProductsController {
             vendorId: query.vendorId ? parseInt(query.vendorId) : undefined,
             minPrice: query.minPrice ? parseFloat(query.minPrice) : undefined,
             maxPrice: query.maxPrice ? parseFloat(query.maxPrice) : undefined,
+            status: query.status !== undefined ? query.status === 'true' : undefined,
             sortBy: query.sortBy,
         });
     }

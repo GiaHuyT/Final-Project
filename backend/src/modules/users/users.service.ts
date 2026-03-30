@@ -1,11 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import type { Prisma } from '@prisma/client';
+import type { Prisma, NotificationType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) { }
 
   async create(userData: any) {
     if (userData.password) {
@@ -26,16 +30,77 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async findAll() {
+  async findAll(vendorRequestPending?: boolean) {
+    const where: Prisma.UserWhereInput = {};
+    if (vendorRequestPending !== undefined) {
+      where.vendorRequestPending = vendorRequestPending;
+    }
+
     return this.prisma.user.findMany({
+      where,
       orderBy: { createdAt: 'desc' }
     });
   }
 
   async updateStatus(id: number, isApprovedVendor: boolean) {
-    return this.prisma.user.update({
+    const user = await (this.prisma.user as any).update({
       where: { id },
-      data: { isApprovedVendor }
+      data: { 
+        isApprovedVendor,
+        vendorRequestPending: false,
+        pendingRequestType: null
+      }
+    });
+
+    await this.notifications.create(id, {
+      type: 'SYSTEM' as any,
+      content: isApprovedVendor 
+        ? 'Chúc mừng! Tài khoản Vendor của bạn đã được phê duyệt.'
+        : 'Rất tiếc, yêu cầu đăng ký làm Nhà cung cấp (Vendor) của bạn đã bị từ chối.',
+      link: '/profile',
+    });
+
+    return user;
+  }
+
+  async applyVendor(userId: number) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('Người dùng không tồn tại');
+    if (user.isApprovedVendor) throw new BadRequestException('Bạn đã là Nhà cung cấp');
+    if (user.vendorRequestPending) throw new BadRequestException('Yêu cầu của bạn đang chờ xử lý');
+
+    await (this.prisma.user as any).update({
+      where: { id: userId },
+      data: { 
+        vendorRequestPending: true,
+        pendingRequestType: 'VENDOR_REGISTRATION'
+      }
+    });
+
+    // Thông báo cho Admin
+    const admins = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
+    for (const admin of admins) {
+      await this.notifications.create(admin.id, {
+        type: 'SYSTEM' as any,
+        content: `Người dùng ${user.username} đã gửi yêu cầu đăng ký làm Nhà cung cấp (Vendor).`,
+        link: '/admin/users', // Giả định có trang quản lý user
+      });
+    }
+
+    return { message: 'Đã gửi yêu cầu đăng ký thành công' };
+  }
+
+  async switchRole(userId: number, role: 'CUSTOMER' | 'VENDOR') {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('Người dùng không tồn tại');
+    
+    if (role === 'VENDOR' && !user.isApprovedVendor) {
+      throw new BadRequestException('Tài khoản chưa được phê duyệt quyền Vendor');
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role }
     });
   }
 
@@ -108,13 +173,18 @@ export class UsersService {
   }
 
   async getProfile(userId: number) {
-    return this.prisma.user.findUnique({
+    return (this.prisma.user as any).findUnique({
       where: { id: userId },
       select: {
         username: true,
         email: true,
         phonenumber: true,
         avatar: true,
+        role: true,
+        isApprovedVendor: true,
+        vendorRequestPending: true,
+        pendingRequestType: true,
+        createdAt: true,
       }
     });
   }

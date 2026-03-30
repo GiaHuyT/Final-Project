@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, Req, UseGuards, Post, UseInterceptors, UploadedFile, BadRequestException, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Req, UseGuards, Post, UseInterceptors, UploadedFile, BadRequestException, Param, Delete, Query } from '@nestjs/common';
 import { IsString, IsOptional, IsEmail, MinLength, Allow } from 'class-validator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -92,6 +92,20 @@ export class UsersController {
     return this.usersService.update(req.user.id, updateProfileDto);
   }
 
+  @Post('apply-vendor')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Gửi yêu cầu đăng ký làm Nhà cung cấp (Vendor)' })
+  applyVendor(@Req() req) {
+    return this.usersService.applyVendor(req.user.id);
+  }
+
+  @Patch('switch-role')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Chuyển đổi vai trò giữa Customer và Vendor' })
+  switchRole(@Req() req, @Body('role') role: 'CUSTOMER' | 'VENDOR') {
+    return this.usersService.switchRole(req.user.id, role);
+  }
+
   @Post('avatar')
   @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('file', {
@@ -138,8 +152,10 @@ export class UsersController {
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy tất cả người dùng (Admin)' })
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query() query: any) {
+    const { vendorRequestPending } = query;
+    const isPending = vendorRequestPending === 'true';
+    return this.usersService.findAll(vendorRequestPending !== undefined ? isPending : undefined);
   }
 
   @Post()
@@ -161,6 +177,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Cập nhật vai trò người dùng (Admin)' })
   updateUserRole(@Param('id') id: string, @Body('role') role: string) {
     return this.usersService.updateRole(+id, role);
+  }
+
+  @Patch(':id/approve-vendor')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Phê duyệt quyền Vendor cho người dùng (Admin)' })
+  approveVendor(@Param('id') id: string, @Body('isApproved') isApproved: boolean) {
+    return this.usersService.updateStatus(+id, isApproved);
   }
 
   @Patch(':id/toggle-active')

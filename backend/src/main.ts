@@ -19,7 +19,7 @@ async function bootstrap() {
 
   // ✅ BẬT CORS (QUAN TRỌNG)
   app.enableCors({
-    origin: 'http://localhost:3001', // frontend
+    origin: ['http://localhost:3001', 'http://127.0.0.1:3001'], // frontend
     credentials: true,
   });
 

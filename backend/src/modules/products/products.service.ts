@@ -11,6 +11,7 @@ export class ProductsService {
         vendorId?: number;
         minPrice?: number;
         maxPrice?: number;
+        status?: boolean;
         sortBy?: string;
     }) {
         console.log('[ProductsService] findAll options:', options);
@@ -18,6 +19,7 @@ export class ProductsService {
         if (options?.brand) where.brand = options.brand;
         if (options?.modelName) where.modelName = options.modelName;
         if (options?.vendorId) where.vendorId = options.vendorId;
+        if (options?.status !== undefined) where.status = options.status;
         if (options?.minPrice !== undefined || options?.maxPrice !== undefined) {
             where.price = {};
             if (options.minPrice !== undefined) where.price.gte = options.minPrice;

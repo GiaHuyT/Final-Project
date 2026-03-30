@@ -6,6 +6,7 @@ import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
 import { randomBytes } from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private notifications: NotificationsService,
   ) { }
 
   // JWT TOKENS
@@ -75,6 +77,17 @@ export class AuthService {
       phonenumber: userDTO.phonenumber,
       password: userDTO.password, // Pass plain password, UserService will hash it
     });
+
+    // Notify Admins
+    const admins = await this.usersService.findAll(); // Should filter for ADMIN in a real scenario
+    const adminList = admins.filter(u => u.role === 'ADMIN');
+    for (const admin of adminList) {
+      await this.notifications.create(admin.id, {
+        type: 'SYSTEM' as any,
+        content: `Người dùng mới đăng ký: ${user.username} (${user.email || user.phonenumber})`,
+        link: `/admin/users/${user.id}`,
+      });
+    }
 
     return {
       id: user.id,
