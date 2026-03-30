@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const http = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://127.0.0.1:3000',
     withCredentials: true, // Crucial for sending/receiving cookies
 });
 
@@ -33,7 +33,7 @@ http.interceptors.response.use(
 
             try {
                 // Call refresh token API
-                const res = await axios.post('http://localhost:3000/auth/refresh-token', {}, {
+                const res = await axios.post('http://127.0.0.1:3000/auth/refresh-token', {}, {
                     withCredentials: true
                 });
 
