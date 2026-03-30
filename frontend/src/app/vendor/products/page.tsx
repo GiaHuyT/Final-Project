@@ -202,28 +202,37 @@ export default function VendorProductsPage() {
         const selectedModelObj = availableModels.find((m: any) => m.name === formData.modelName);
         const availableVariants = selectedModelObj ? selectedModelObj.variants || [] : [];
         const steps = [
-            { num: 1, title: 'Thông tin chung', desc: 'Cơ bản & Giá bán' },
-            { num: 2, title: 'Thông tin thiết yếu', desc: 'Hãng, dòng & tình trạng' },
-            { num: 3, title: 'Thông số & Động cơ', desc: 'Hiệu suất & Truyền động' },
-            { num: 4, title: 'Kích thước', desc: 'Trọng lượng & Chiều dài' },
-            { num: 5, title: 'Nhiên liệu', desc: 'Dung tích & Tiêu thụ' },
-            { num: 6, title: 'Tiện nghi', desc: 'Nội thất & Công nghệ' },
-            { num: 7, title: 'An toàn', desc: 'Tính năng an toàn' },
-            { num: 8, title: 'Biến thể màu', desc: 'Hình ảnh chi tiết' },
+            { num: 1, title: 'Thông tin chung', desc: 'Bản & Giá bán', id: 'section-1' },
+            { num: 2, title: 'Thông tin thiết yếu', desc: 'Hãng, dòng & tình trạng', id: 'section-2' },
+            { num: 3, title: 'Thông số & Động cơ', desc: 'Hiệu suất & Truyền động', id: 'section-3' },
+            { num: 4, title: 'Kích thước', desc: 'Trọng lượng & Chiều dài', id: 'section-4' },
+            { num: 5, title: 'Nhiên liệu', desc: 'Dung tích & Tiêu thụ', id: 'section-5' },
+            { num: 6, title: 'Tiện nghi', desc: 'Nội thất & Công nghệ', id: 'section-6' },
+            { num: 7, title: 'An toàn', desc: 'Tính năng an toàn', id: 'section-7' },
+            { num: 8, title: 'Biến thể màu', desc: 'Hình ảnh chi tiết', id: 'section-8' },
         ];
 
+        const scrollToSection = (id: string) => {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        };
+
         return (
-            <div className="flex bg-slate-50 w-full h-full text-slate-900 font-sans">
+            <div className="flex bg-slate-50 w-full h-full text-slate-900 font-sans overflow-hidden">
                 {/* Sidebar Progress Navigation */}
-                <div className="hidden md:flex flex-col w-80 p-8 border-r border-slate-200 overflow-y-auto shrink-0 bg-white">
+                <div className="hidden md:flex flex-col w-72 p-8 border-r border-slate-200 overflow-y-auto custom-scrollbar shrink-0 bg-white">
                     <div className="mb-8">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600">{mode === 'add' ? 'New Entry' : 'Edit Entry'}</span>
-                        <h3 className="text-2xl font-extrabold tracking-tight mt-1">{mode === 'add' ? 'Thêm xe mới' : 'Hiệu chỉnh xe'}</h3>
+                        <h3 className="text-2xl font-extrabold tracking-tight mt-1">{mode === 'add' ? 'Thêm xe mới' : 'Hiệu chỉnh'}</h3>
                     </div>
                     <nav className="flex-1 space-y-4">
                         {steps.map((step) => (
-                            <div key={step.num} className="flex items-start gap-4 py-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
-                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold shrink-0">{step.num}</div>
+                            <div 
+                                key={step.num} 
+                                onClick={() => scrollToSection(step.id)}
+                                className="flex items-start gap-4 py-3 opacity-60 hover:opacity-100 hover:bg-slate-50 p-2 rounded-xl transition-all cursor-pointer group"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">{step.num}</div>
                                 <div>
                                     <span className="block text-sm font-bold text-slate-900 leading-tight">{step.title}</span>
                                     <span className="block text-[11px] text-slate-500 mt-0.5">{step.desc}</span>
@@ -234,211 +243,171 @@ export default function VendorProductsPage() {
                 </div>
 
                 {/* Main Form Area */}
-                <div className="flex-1 flex flex-col relative overflow-hidden bg-slate-50">
-                    <button onClick={() => mode === 'add' ? setIsAddOpen(false) : setIsEditOpen(false)} className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-slate-100 z-[60] transition-colors">
-                        <span className="material-symbols-outlined text-slate-500">close</span>
-                    </button>
-                    
-                    <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar">
-                        <div className="max-w-4xl mx-auto space-y-16 pb-24">
+                <div className="flex-1 flex flex-col relative bg-slate-50 min-h-0">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8 md:p-12 min-h-0">
+                        <div className="max-w-4xl mx-auto space-y-16 pb-24 min-h-0">
                             
-                            {/* Section 1 & 2: Basic & Identifiers */}
-                            <section>
+                            <section id="section-1" className="scroll-mt-12">
                                 <header className="mb-8">
-                                    <h2 className="text-3xl font-extrabold tracking-tight text-slate-900">1. & 2. Thông tin chung & Thiết yếu</h2>
-                                    <p className="text-slate-500 mt-2 text-sm">Nhập các thông tin định danh và giá trị cốt lõi của phương tiện.</p>
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">1. Thông tin chung</h2>
+                                    <p className="text-slate-500 mt-2 text-sm">Nhập thông báo cơ bản và giá bán niêm yết.</p>
                                 </header>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Tên xe</Label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 w-[3px] bg-blue-600 rounded-full h-1/3 self-center top-1/2 -translate-y-1/2 transition-all"></div>
-                                            <Input name="name" value={formData.name} onChange={handleChange} className={cn("w-full bg-white border border-slate-200 rounded-lg py-3.5 px-5 h-12 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-900 shadow-sm", formErrors.name && "border-red-500")} placeholder="VD: Porsche 911 GT3 RS" />
-                                        </div>
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Tên xe niêm yết</Label>
+                                        <Input name="name" value={formData.name} onChange={handleChange} className={cn("w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm transition-all focus:border-blue-300", formErrors.name && "border-red-500")} placeholder="VD: Porsche 911 GT3 RS" />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Hãng xe</Label>
-                                        <select name="brand" value={formData.brand} onChange={(e) => setFormData(p => ({ ...p, brand: e.target.value, modelName: '', variant: '' }))} className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 h-12 focus:ring-2 focus:ring-blue-100 transition-all shadow-sm">
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Giá bán (VNĐ)</Label>
+                                        <Input name="price" type="number" value={formData.price} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-blue-600/70 shadow-sm" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Kho hàng (Stock)</Label>
+                                        <Input name="stock" type="number" value={formData.stock} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 font-bold shadow-sm" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Mô tả ngắn</Label>
+                                        <Input name="description" value={formData.description} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 shadow-sm" placeholder="Tóm tắt ngắn gọn đặc trưng xe..." />
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section id="section-2" className="scroll-mt-12">
+                                <header className="mb-8">
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">2. Thông tin thiết yếu</h2>
+                                </header>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                    <div className="space-y-2">
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Hãng xe</Label>
+                                        <select name="brand" value={formData.brand} onChange={(e) => setFormData(p => ({ ...p, brand: e.target.value, modelName: '', variant: '' }))} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 font-bold shadow-sm">
                                             <option value="">-- Chọn hãng --</option>
                                             {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Dòng xe</Label>
-                                        <select name="modelName" value={formData.modelName} onChange={(e) => setFormData(p => ({ ...p, modelName: e.target.value, variant: '' }))} disabled={!formData.brand} className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 h-12 shadow-sm disabled:bg-slate-50">
-                                            <option value="">-- Chọn dòng xe --</option>
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Dòng xe</Label>
+                                        <select name="modelName" value={formData.modelName} onChange={(e) => setFormData(p => ({ ...p, modelName: e.target.value, variant: '' }))} disabled={!formData.brand} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 font-bold shadow-sm">
+                                            <option value="">-- Chọn dòng --</option>
                                             {availableModels.map((m: any) => <option key={m.id} value={m.name}>{m.name}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Phiên bản</Label>
-                                        <select name="variant" value={formData.variant} onChange={handleChange} disabled={!formData.modelName} className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 h-12 shadow-sm disabled:bg-slate-50">
-                                            <option value="">-- Chọn phiên bản --</option>
-                                            {availableVariants.map((v: any) => <option key={v.id} value={v.name}>{v.name}</option>)}
-                                        </select>
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Năm sản xuất</Label>
+                                        <Input name="year" type="number" value={formData.year} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 font-bold shadow-sm" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Năm sản xuất</Label>
-                                        <Input name="year" type="number" value={formData.year} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Giá bán (VNĐ)</Label>
-                                        <Input name="price" type="number" value={formData.price} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm font-bold text-blue-600" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Số lượng tồn (Stock)</Label>
-                                        <Input name="stock" type="number" value={formData.stock} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Tình trạng</Label>
-                                        <select name="condition" value={formData.condition} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm px-4">
-                                            <option value="Xe mới">Xe mới 100%</option>
-                                            <option value="Xe cũ">Xe đã qua sử dụng</option>
-                                        </select>
-                                    </div>
-                                    {formData.condition === 'Xe cũ' && (
-                                        <>
-                                            <div className="space-y-2">
-                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Biển số</Label>
-                                                <Input name="licensePlate" value={formData.licensePlate} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">ODO (km)</Label>
-                                                <Input name="mileage" type="number" value={formData.mileage} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" />
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                                <div className="mt-8 space-y-2">
-                                    <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Mô tả chi tiết bài đăng</Label>
-                                    <textarea name="description" value={formData.description} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg p-5 h-32 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-900 shadow-sm resize-none" placeholder="Cung cấp thông tin chi tiết về xe..."></textarea>
                                 </div>
                             </section>
 
-                            <hr className="border-slate-200" />
-
-                            {/* Section 3: Engine */}
-                            <section>
+                            <section id="section-3" className="scroll-mt-12">
                                 <header className="mb-8">
-                                    <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">3. Thông số & Động cơ</h2>
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">3. Thông số & Động cơ</h2>
                                 </header>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Nhiên liệu</Label>
-                                        <select name="fuelType" value={formData.fuelType} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 h-12 shadow-sm">
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Nhiên liệu</Label>
+                                        <select name="fuelType" value={formData.fuelType} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 text-slate-600 shadow-sm">
                                             <option value="">-- Chọn --</option><option value="Xăng">Xăng</option><option value="Diesel">Dầu (Diesel)</option><option value="Điện">Điện</option><option value="Hybrid">Hybrid</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Dung tích</Label>
-                                        <Input name="engineCapacity" value={formData.engineCapacity} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Hộp số</Label>
-                                        <select name="transmission" value={formData.transmission} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 h-12 shadow-sm">
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Hộp số</Label>
+                                        <select name="transmission" value={formData.transmission} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 text-slate-600 shadow-sm">
                                             <option value="">-- Chọn --</option><option value="Số sàn">Số sàn</option><option value="Tự động">Số tự động</option><option value="CVT">Vô cấp (CVT)</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Dẫn động</Label>
-                                        <select name="driveType" value={formData.driveType} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg py-3 px-4 h-12 shadow-sm">
-                                            <option value="">-- Chọn --</option><option value="FWD">Cầu trước (FWD)</option><option value="RWD">Cầu sau (RWD)</option><option value="AWD">4 bánh (AWD)</option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Công suất</Label><Input name="maxPower" value={formData.maxPower} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Mô-men xoắn</Label><Input name="maxTorque" value={formData.maxTorque} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                </div>
-                            </section>
-
-                            <hr className="border-slate-200" />
-
-                            {/* Section 4 & 5: Dimensions & Fuel */}
-                            <section>
-                                <header className="mb-8"><h2 className="text-2xl font-extrabold tracking-tight text-slate-900">4. & 5. Kích thước & Tiêu thụ</h2></header>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Dài (mm)</Label><Input type="number" name="length" value={formData.length} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Rộng (mm)</Label><Input type="number" name="width" value={formData.width} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Cao (mm)</Label><Input type="number" name="height" value={formData.height} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Cơ sở (mm)</Label><Input type="number" name="wheelbase" value={formData.wheelbase} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Gầm (mm)</Label><Input type="number" name="groundClearance" value={formData.groundClearance} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Nặng (kg)</Label><Input type="number" name="curbWeight" value={formData.curbWeight} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Bình xăng (L)</Label><Input type="number" name="fuelTankCapacity" value={formData.fuelTankCapacity} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Tiêu thụ (L/km)</Label><Input type="number" name="avgFuelConsumption" value={formData.avgFuelConsumption} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-lg h-12 shadow-sm" /></div>
-                                </div>
-                            </section>
-
-                            <hr className="border-slate-200" />
-
-                            {/* Section 6 & 7: Amenities & Safety */}
-                            <section>
-                                <header className="mb-8"><h2 className="text-2xl font-extrabold tracking-tight text-slate-900">6. & 7. Tiện nghi & An toàn</h2></header>
-                                <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-sm mb-6">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                        {[
-                                            { id: 'autoConditioning', label: 'Điều hòa tự động' },
-                                            { id: 'infotainment', label: 'Màn hình giải trí' },
-                                            { id: 'appleCarplay', label: 'Apple CarPlay' },
-                                            { id: 'electricSeats', label: 'Ghế chỉnh điện' },
-                                            { id: 'camera360', label: 'Camera 360' },
-                                            { id: 'abs', label: 'Phanh ABS' },
-                                            { id: 'esp', label: 'Cân bằng ESP' },
-                                            { id: 'rearSensor', label: 'Cảm biến lùi' },
-                                        ].map(item => (
-                                            <div key={item.id} className="flex items-center gap-3">
-                                                <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-blue-600 border-slate-300 focus:ring-blue-500" />
-                                                <Label htmlFor={item.id} className="text-sm font-bold text-slate-700">{item.label}</Label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="mt-6 pt-6 border-t border-slate-100 flex items-center gap-4">
-                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1">Số lượng túi khí</Label>
-                                        <Input type="number" name="airbags" value={formData.airbags} onChange={handleChange} className="w-24 bg-slate-50 border border-slate-200 rounded-lg text-center font-bold h-12" />
+                                        <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Công suất (hp)</Label>
+                                        <Input name="maxPower" value={formData.maxPower} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" />
                                     </div>
                                 </div>
                             </section>
 
-                            <hr className="border-slate-200" />
-
-                            {/* Section 8: Images and Colors */}
-                            <section>
+                            <section id="section-4" className="scroll-mt-12">
                                 <header className="mb-8">
-                                    <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">8. Hình ảnh & Phiên bản màu</h2>
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">4. Kích thước</h2>
                                 </header>
-                                <div className="space-y-6">
+                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Dài (mm)</Label><Input type="number" name="length" value={formData.length} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" /></div>
+                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Rộng (mm)</Label><Input type="number" name="width" value={formData.width} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" /></div>
+                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Cao (mm)</Label><Input type="number" name="height" value={formData.height} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" /></div>
+                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Nặng (kg)</Label><Input type="number" name="curbWeight" value={formData.curbWeight} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" /></div>
+                                </div>
+                            </section>
+
+                            <section id="section-5" className="scroll-mt-12">
+                                <header className="mb-8"><h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">5. Nhiên liệu & Tiêu thụ</h2></header>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Bình xăng (L)</Label><Input type="number" name="fuelTankCapacity" value={formData.fuelTankCapacity} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" /></div>
+                                    <div className="space-y-2"><Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Trung bình (L/100km)</Label><Input type="number" name="avgFuelConsumption" value={formData.avgFuelConsumption} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm" /></div>
+                                </div>
+                            </section>
+
+                            <section id="section-6" className="scroll-mt-12">
+                                <header className="mb-8"><h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">6. Tiện nghi</h2></header>
+                                <div className="p-8 bg-white border border-slate-200 rounded-3xl grid grid-cols-2 gap-6 shadow-sm">
+                                    {[
+                                        { id: 'autoConditioning', label: 'Điều hòa tự động' },
+                                        { id: 'infotainment', label: 'Màn hình giải trí' },
+                                        { id: 'appleCarplay', label: 'Apple CarPlay' },
+                                        { id: 'camera360', label: 'Camera 360' },
+                                    ].map(item => (
+                                        <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
+                                            <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-6 h-6 rounded-lg text-blue-600/70 focus:ring-blue-500/50 border-slate-300" />
+                                            <Label htmlFor={item.id} className="text-sm font-medium text-slate-600">{item.label}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section id="section-7" className="scroll-mt-12">
+                                <header className="mb-8"><h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">7. An toàn</h2></header>
+                                <div className="p-8 bg-white border border-slate-200 rounded-3xl grid grid-cols-2 gap-6 shadow-sm">
+                                    {[
+                                        { id: 'abs', label: 'Phanh ABS' },
+                                        { id: 'esp', label: 'Cân bằng ESP' },
+                                        { id: 'ba', label: 'Hỗ trợ phanh BA' },
+                                        { id: 'rearSensor', label: 'Cảm biến lùi' },
+                                    ].map(item => (
+                                        <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl text-slate-900">
+                                            <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-6 h-6 rounded-lg text-blue-600/70 focus:ring-blue-500/50 border-slate-300" />
+                                            <Label htmlFor={item.id} className="text-sm font-medium text-slate-600">{item.label}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section id="section-8" className="scroll-mt-12">
+                                <header className="mb-8">
+                                    <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">8. Màu sắc & Hình ảnh</h2>
+                                </header>
+                                <div className="space-y-8">
                                     {formData.colorVariants.map((variant, vIdx) => (
-                                        <div key={vIdx} className="p-8 bg-white border border-slate-200 shadow-sm rounded-2xl relative">
-                                            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                                <h4 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Phân loại màu #{vIdx + 1}</h4>
+                                        <div key={vIdx} className="p-8 bg-white border border-slate-200 rounded-3xl shadow-sm relative">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h4 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Biến thể màu #{vIdx + 1}</h4>
                                                 {formData.colorVariants.length > 1 && (
-                                                    <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, colorVariants: p.colorVariants.filter((_, i) => i !== vIdx) }))} className="text-red-500 hover:bg-red-50 hover:text-red-600 h-8 w-8 rounded-full">
-                                                        <X className="w-4 h-4" />
+                                                    <Button variant="ghost" size="icon" onClick={() => setFormData(p => ({ ...p, colorVariants: p.colorVariants.filter((_, i) => i !== vIdx) }))} className="text-red-400 hover:text-red-600 h-8 w-8 rounded-full">
+                                                        <Trash2 className="w-4 h-4" />
                                                     </Button>
                                                 )}
                                             </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div>
-                                                    <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1 block mb-3">Bảng màu ngoại thất</Label>
-                                                    <div className="flex flex-wrap gap-2.5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                                        {CAR_COLORS.map(c => (
-                                                            <button key={c.name} type="button" onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].color = c.name; setFormData(p => ({ ...p, colorVariants: nv })); }} className={cn("w-8 h-8 rounded-full transition-all shadow-sm ring-offset-2", variant.color === c.name ? 'ring-2 ring-blue-600 scale-110' : 'border border-slate-200 hover:scale-110')} style={{ backgroundColor: c.hex }} title={c.name} />
-                                                        ))}
-                                                    </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                                                <div className="flex flex-wrap gap-2.5 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                                    {CAR_COLORS.map(c => (
+                                                        <button key={c.name} type="button" onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].color = c.name; setFormData(p => ({ ...p, colorVariants: nv })); }} className={cn("w-8 h-8 rounded-full ring-offset-2 transition-all", variant.color === c.name ? 'ring-2 ring-blue-600 scale-110' : 'border border-slate-200 opacity-60 hover:opacity-100 hover:scale-110')} style={{ backgroundColor: c.hex }} title={c.name} />
+                                                    ))}
                                                 </div>
-                                                <div>
-                                                    <Label className="text-[11px] font-black uppercase tracking-widest text-slate-500 px-1 block mb-3">Tải ảnh lên</Label>
-                                                    <div className="relative h-24 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer group">
-                                                        <input type="file" multiple onChange={(e) => handleVariantFileChange(vIdx, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                                        <Plus className="w-6 h-6 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                                                        <span className="text-[10px] font-bold text-slate-500 mt-1">Chọn ảnh JPG/PNG</span>
-                                                    </div>
+                                                <div className="relative h-24 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer over:border-blue-300">
+                                                    <input type="file" multiple onChange={(e) => handleVariantFileChange(vIdx, e)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                                    <Plus className="w-6 h-6 text-slate-300" />
                                                 </div>
                                             </div>
                                             {variant.images.length > 0 && (
-                                                <div className="flex flex-wrap gap-4 mt-6">
+                                                <div className="flex flex-wrap gap-4">
                                                     {variant.images.map((img, iIdx) => (
-                                                        <div key={iIdx} className="relative w-24 h-24 rounded-lg overflow-hidden border border-slate-200 shadow-sm group/thumb">
-                                                            <img src={img} className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform" />
-                                                            <button type="button" onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].images.splice(iIdx, 1); setFormData(p => ({ ...p, colorVariants: nv })); }} className="absolute top-1 right-1 bg-white/90 text-red-600 rounded-full p-1 opacity-0 group-hover/thumb:opacity-100 transition-opacity shadow-sm">
+                                                        <div key={iIdx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-100 shadow-sm group">
+                                                            <img src={img} className="w-full h-full object-cover" />
+                                                            <button type="button" onClick={() => { const nv = [...formData.colorVariants]; nv[vIdx].images.splice(iIdx, 1); setFormData(p => ({ ...p, colorVariants: nv })); }} className="absolute top-1 right-1 bg-white/90 text-red-600 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 <X className="w-3 h-3" />
                                                             </button>
                                                         </div>
@@ -447,7 +416,7 @@ export default function VendorProductsPage() {
                                             )}
                                         </div>
                                     ))}
-                                    <Button variant="outline" type="button" onClick={() => setFormData(p => ({ ...p, colorVariants: [...p.colorVariants, { color: '', images: [] }] }))} className="w-full border-dashed border-2 py-8 bg-white hover:bg-blue-50 hover:border-blue-200 text-slate-500 hover:text-blue-600 font-bold uppercase text-xs tracking-widest transition-all rounded-2xl">
+                                    <Button variant="outline" type="button" onClick={() => setFormData(p => ({ ...p, colorVariants: [...p.colorVariants, { color: '', images: [] }] }))} className="w-full py-10 border-2 border-dashed border-slate-200 bg-white hover:bg-blue-50 hover:border-blue-200 rounded-3xl text-slate-400 hover:text-blue-600 font-bold uppercase text-[10px] tracking-[0.2em] transition-all">
                                         <Plus className="mr-2 w-4 h-4" /> Thêm biến thể màu
                                     </Button>
                                 </div>
@@ -457,13 +426,10 @@ export default function VendorProductsPage() {
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="p-6 bg-white border-t border-slate-200 flex items-center justify-between sticky bottom-0 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-                        <Button variant="ghost" type="button" onClick={() => mode === 'add' ? setIsAddOpen(false) : setIsEditOpen(false)} className="rounded-full font-bold uppercase text-xs px-8 text-slate-500 hover:bg-slate-100">
-                            Hủy bỏ
-                        </Button>
-                        <Button type="button" onClick={mode === 'add' ? handleAdd : handleEdit} disabled={isLoading} className="bg-slate-900 hover:bg-black text-white px-10 py-6 rounded-full font-bold text-sm shadow-xl flex items-center gap-2 active:scale-95 transition-all h-12">
-                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Lưu lại'}
-                            <span className="material-symbols-outlined text-sm">check</span>
+                    <div className="p-8 bg-white border-t border-slate-200 flex items-center justify-end sticky bottom-0 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                        <Button type="button" onClick={mode === 'add' ? handleAdd : handleEdit} disabled={isLoading} className="bg-slate-900 hover:bg-black text-white px-12 py-7 rounded-full font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl flex items-center gap-3 transition-all h-14 cursor-pointer">
+                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (mode === 'add' ? 'Tạo xe mới' : 'Lưu thay đổi')}
+                            {!isLoading && <ChevronRight className="w-4 h-4 ml-1" />}
                         </Button>
                     </div>
                 </div>
@@ -478,7 +444,7 @@ export default function VendorProductsPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="max-w-2xl">
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Quản lý Kho hàng</p>
-                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">Danh mục Xe</h1>
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">Quản lý sản phẩm</h1>
                     <p className="mt-4 text-slate-500 max-w-md leading-relaxed">Quản lý kho tài sản xe hơi cao cấp. Theo dõi trạng thái đấu giá, số liệu hiệu suất và lịch sử giao dịch theo thời gian thực.</p>
                 </div>
                 <button onClick={() => { setIsAddOpen(true); setFormData(p => ({ ...p, colorVariants: [{ color: '', images: [] }] })); }} className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:shadow-xl transition-all active:scale-95 shrink-0">

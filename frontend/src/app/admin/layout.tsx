@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AdminSidebar } from './_components/sidebar';
 import { AdminTopbar } from './_components/topbar';
 import { Loader2 } from 'lucide-react';
+import Cookies from 'js-cookie';
 
 export default function AdminLayout({
     children,
@@ -15,10 +16,13 @@ export default function AdminLayout({
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
     useEffect(() => {
+        const token = Cookies.get('token');
         const userStr = localStorage.getItem('user');
-        if (!userStr) {
+
+        if (!token || !userStr || userStr === 'undefined') {
+            console.log("Missing token or user data, redirecting to login");
             setIsAuthorized(false);
-            router.push('/auth/login');
+            window.location.href = '/auth/login';
             return;
         }
 
@@ -30,26 +34,23 @@ export default function AdminLayout({
             } else {
                 console.warn("User is not ADMIN. Role:", user.role);
                 setIsAuthorized(false);
-                router.push('/'); // Redirect to home if not admin
+                window.location.href = '/auth/login';
             }
         }
         catch (error) {
             console.error("Error parsing user from localStorage:", error);
             setIsAuthorized(false);
-            router.push('/auth/login');
+            window.location.href = '/auth/login';
         }
     }, [router]);
 
-    if (isAuthorized === null) {
+    if (isAuthorized === null || isAuthorized === false) {
         return (
             <div className="flex h-screen items-center justify-center bg-background">
                 <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                <span className="ml-3 text-sm text-slate-500 font-medium">Đang chuyển hướng...</span>
             </div>
         );
-    }
-
-    if (isAuthorized === false) {
-        return null; // Or a "Forbidden" message
     }
 
     return (

@@ -54,6 +54,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
+import { cn } from '@/lib/utils';
 
 interface User {
     id: number;
@@ -62,6 +63,7 @@ interface User {
     phonenumber: string | null;
     role: string;
     isApprovedVendor: boolean;
+    vendorRequestPending: boolean;
     avatar: string | null;
     isActive: boolean;
     createdAt: string;
@@ -114,7 +116,7 @@ export default function UserManagementPage() {
 
     const handleToggleVendorStatus = async (userId: number, currentStatus: boolean) => {
         try {
-            await http.patch(`/users/${userId}/status`, { isApprovedVendor: !currentStatus });
+            await http.patch(`/users/${userId}/approve-vendor`, { isApproved: !currentStatus });
             toast.success("Cập nhật trạng thái thành công");
             fetchUsers();
         } catch (error) {
@@ -334,14 +336,16 @@ export default function UserManagementPage() {
                                                         className={`rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-tight shadow-sm border-2 ${
                                                             !user.isActive 
                                                                 ? 'bg-gray-50 text-gray-400 border-gray-200' 
-                                                                : (user.role === 'VENDOR' && !user.isApprovedVendor 
-                                                                    ? 'bg-orange-50 text-orange-600 border-orange-200' 
-                                                                    : 'bg-green-50 text-green-700 border-green-200')
+                                                                : (user.vendorRequestPending 
+                                                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200 animate-pulse'
+                                                                    : (user.isApprovedVendor 
+                                                                        ? 'bg-green-50 text-green-700 border-green-200' 
+                                                                        : 'bg-gray-50 text-gray-500 border-gray-200'))
                                                         }`}
                                                     >
-                                                        {!user.isActive ? 'Đã khóa' : (user.role === 'VENDOR'
-                                                            ? (user.isApprovedVendor ? 'Đã duyệt' : 'Chờ duyệt')
-                                                            : 'Hoạt động')}
+                                                        {!user.isActive ? 'Đã khóa' : (user.vendorRequestPending 
+                                                            ? 'Yêu cầu Vendor' 
+                                                            : (user.isApprovedVendor ? 'Đã duyệt Vendor' : 'Customer'))}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-8 py-5 align-middle">
@@ -376,13 +380,16 @@ export default function UserManagementPage() {
                                                                 <Edit className="h-4 w-4" /> Chỉnh sửa thông tin
                                                             </DropdownMenuItem>
                                                             
-                                                            {user.role === 'VENDOR' && (
+                                                            {(user.vendorRequestPending || user.isApprovedVendor || user.role === 'VENDOR') && (
                                                                 <DropdownMenuItem
-                                                                    className="rounded-xl focus:bg-blue-600 focus:text-white cursor-pointer font-bold text-blue-700 px-4 py-3"
+                                                                    className={cn(
+                                                                        "rounded-xl focus:text-white cursor-pointer font-bold px-4 py-3",
+                                                                        user.vendorRequestPending ? "bg-yellow-50 text-yellow-700 focus:bg-yellow-600" : "text-blue-700 focus:bg-blue-600"
+                                                                    )}
                                                                     onClick={() => handleToggleVendorStatus(user.id, user.isApprovedVendor)}
                                                                 >
                                                                     <ShieldCheck className="h-4 w-4" />
-                                                                    {user.isApprovedVendor ? 'Hủy quyền Vendor' : 'Cấp quyền Vendor'}
+                                                                    {user.isApprovedVendor ? 'Hủy quyền Vendor' : (user.vendorRequestPending ? 'Phê duyệt Vendor ngay' : 'Cấp quyền Vendor')}
                                                                 </DropdownMenuItem>
                                                             )}
                                                             

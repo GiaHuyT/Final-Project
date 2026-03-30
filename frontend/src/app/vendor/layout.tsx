@@ -6,6 +6,7 @@ import { VendorSidebar } from './_components/sidebar';
 import { VendorTopbar } from './_components/topbar';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import Cookies from 'js-cookie';
 
 export default function VendorLayout({
     children,
@@ -16,10 +17,12 @@ export default function VendorLayout({
     const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
     useEffect(() => {
+        const token = Cookies.get('token');
         const userStr = localStorage.getItem('user');
-        if (!userStr) {
+
+        if (!token || !userStr || userStr === 'undefined') {
             setIsAuthorized(false);
-            router.push('/auth/login');
+            window.location.href = '/auth/login';
             return;
         }
 
@@ -31,26 +34,23 @@ export default function VendorLayout({
                 console.warn("User is not VENDOR. Role:", user.role);
                 setIsAuthorized(false);
                 toast.error("Bạn không có quyền truy cập khu vực Nhà cung cấp");
-                router.push('/');
+                window.location.href = '/auth/login';
             }
         }
         catch (error) {
             console.error("Error parsing user from localStorage:", error);
             setIsAuthorized(false);
-            router.push('/auth/login');
+            window.location.href = '/auth/login';
         }
     }, [router]);
 
-    if (isAuthorized === null) {
+    if (isAuthorized === null || isAuthorized === false) {
         return (
             <div className="flex h-screen items-center justify-center bg-gray-50/30">
                 <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
+                <span className="ml-3 text-sm text-slate-500 font-medium">Đang chuyển hướng...</span>
             </div>
         );
-    }
-
-    if (isAuthorized === false) {
-        return null;
     }
 
     return (
