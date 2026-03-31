@@ -368,7 +368,9 @@ export default function CarModelsPage() {
                                                 <div className="flex items-center gap-2">
                                                     <Store className="w-3 h-3 text-slate-400" />
                                                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cung cấp bởi:</span>
-                                                    <span className="text-[10px] font-black text-slate-900 uppercase underline decoration-blue-500 underline-offset-4">{product.vendor?.username}</span>
+                                                    <Link href={`/vendor/${product.vendorId}`} className="text-[10px] font-black text-slate-900 uppercase underline decoration-blue-500 underline-offset-4 hover:text-blue-600 transition-colors">
+                                                        {product.vendor?.username}
+                                                    </Link>
                                                 </div>
                                             </div>
 

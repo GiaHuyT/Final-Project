@@ -247,19 +247,18 @@ export default function VehicleDetailsPage() {
 
                 <div className="mt-8 pt-8 border-t border-outline/10">
                    <p className="text-[10px] font-bold text-center text-on-surface-variant uppercase tracking-widest mb-6">Người bán đã xác minh</p>
-                   <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                         <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
-                            <img alt="Seller" src="/images/static/user-avatar.png" />
-
-                         </div>
-                         <div>
-                            <p className="text-sm font-bold">{product.vendor?.username || "Người bán uy tín"}</p>
-                            <p className="text-[10px] text-on-surface-variant font-medium">98% Đánh giá Tích cực</p>
-                         </div>
-                      </div>
-                      <VendorChatButton vendorId={product.vendorId} productId={product.id} />
-                   </div>
+                    <div className="flex items-center justify-between">
+                       <Link href={`/vendor/${product.vendorId || product.vendor?.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                          <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
+                             <img alt="Seller" src={product.vendor?.avatar || "/images/static/user-avatar.png"} />
+                          </div>
+                          <div>
+                             <p className="text-sm font-bold">{product.vendor?.username || "Người bán uy tín"}</p>
+                             <p className="text-[10px] text-on-surface-variant font-medium">98% Đánh giá Tích cực</p>
+                          </div>
+                       </Link>
+                       <VendorChatButton vendorId={product.vendorId} productId={product.id} />
+                    </div>
                 </div>
              </div>
 
