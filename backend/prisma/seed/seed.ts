@@ -18,6 +18,9 @@ async function main() {
   await prisma.category.deleteMany();
   await prisma.serviceProfile.deleteMany();
   await prisma.address.deleteMany();
+  await prisma.message.deleteMany();
+  await prisma.conversation.deleteMany();
+  await prisma.review.deleteMany();
   await prisma.user.deleteMany();
 
   console.log('Đang tạo dữ liệu mẫu...');
@@ -120,6 +123,43 @@ async function main() {
     }
   }
 
+  // Helper to get realistic specs for the seeded cars
+  const getSpecsForModel = (brand: string, modelName: string) => {
+    const specs = {
+      fuelType: 'Xăng', engineCapacity: '2.0', maxPower: '150', maxTorque: '200', transmission: '6AT', driveType: 'FWD',
+      length: 4500.0, width: 1800.0, height: 1500.0, wheelbase: 2700.0, groundClearance: 150.0, curbWeight: 1300.0, fuelTankCapacity: 50.0, avgFuelConsumption: 7.5,
+      bodyType: 'Sedan', airbags: 6, autoConditioning: true, infotainment: true, appleCarplay: true, electricSeats: false, camera360: false,
+      abs: true, esp: true, ba: true, rearSensor: true
+    };
+    
+    switch(modelName) {
+      case 'Vios': case 'City': case 'Accent': case 'Mazda2':
+        return { ...specs, engineCapacity: '1.5', maxPower: '107', maxTorque: '140', transmission: 'CVT', length: 4425, width: 1730, height: 1475, wheelbase: 2550, groundClearance: 133, curbWeight: 1100, fuelTankCapacity: 42, avgFuelConsumption: 5.8, bodyType: 'Sedan' };
+      case 'Camry': case 'Accord': case 'Mazda6': case 'K5':
+        return { ...specs, engineCapacity: '2.5', maxPower: '207', maxTorque: '250', transmission: '8AT', length: 4885, width: 1840, height: 1445, wheelbase: 2825, groundClearance: 140, curbWeight: 1550, fuelTankCapacity: 60, avgFuelConsumption: 7.1, bodyType: 'Sedan', electricSeats: true, camera360: true, airbags: 7 };
+      case 'Fortuner': case 'Everest': case 'Santa Fe': case 'Sorento':
+        return { ...specs, fuelType: 'Diesel', engineCapacity: '2.4', maxPower: '150', maxTorque: '400', transmission: '6AT', driveType: 'AWD', length: 4795, width: 1855, height: 1835, wheelbase: 2745, groundClearance: 279, curbWeight: 2000, fuelTankCapacity: 80, avgFuelConsumption: 8.5, bodyType: 'SUV', electricSeats: true, airbags: 7 };
+      case 'Ranger': case 'Hilux':
+        return { ...specs, fuelType: 'Diesel', engineCapacity: '2.0', maxPower: '210', maxTorque: '500', transmission: '10AT', driveType: '4WD', length: 5362, width: 1918, height: 1875, wheelbase: 3270, groundClearance: 235, curbWeight: 2200, fuelTankCapacity: 80, avgFuelConsumption: 8.0, bodyType: 'Pickup', airbags: 7 };
+      case 'Model 3': case 'Model Y': case 'VF e34': case 'VF 8':
+        return { ...specs, fuelType: 'Điện', engineCapacity: null, maxPower: '283', maxTorque: '420', transmission: '1AT', driveType: 'AWD', length: 4694, width: 1849, height: 1443, wheelbase: 2875, groundClearance: 140, curbWeight: 1765, fuelTankCapacity: null, avgFuelConsumption: null, bodyType: 'Sedan', electricSeats: true, camera360: true, airbags: 8 };
+      case '911': case 'Mustang':
+        return { ...specs, fuelType: 'Xăng', engineCapacity: '3.0', maxPower: '379', maxTorque: '450', transmission: '8PDK', driveType: 'RWD', length: 4519, width: 1852, height: 1298, wheelbase: 2450, groundClearance: 110, curbWeight: 1500, fuelTankCapacity: 64, avgFuelConsumption: 10.5, bodyType: 'Coupe', electricSeats: true, camera360: true };
+      case 'GLC': case 'X3': case 'Q5': case 'Macan':
+        return { ...specs, engineCapacity: '2.0', maxPower: '258', maxTorque: '400', transmission: '9AT', driveType: 'AWD', length: 4655, width: 1890, height: 1644, wheelbase: 2873, groundClearance: 150, curbWeight: 1800, fuelTankCapacity: 66, avgFuelConsumption: 8.2, bodyType: 'SUV', electricSeats: true, camera360: true };
+      case 'S-Class': case '7 Series': case 'Panamera':
+        return { ...specs, engineCapacity: '3.0', maxPower: '367', maxTorque: '500', transmission: '9AT', driveType: 'AWD', length: 5289, width: 1954, height: 1503, wheelbase: 3216, groundClearance: 130, curbWeight: 2000, fuelTankCapacity: 76, avgFuelConsumption: 9.5, bodyType: 'Sedan', electricSeats: true, camera360: true };
+      case 'CX-5': case 'CR-V': case 'Tucson':
+        return { ...specs, engineCapacity: '2.0', maxPower: '154', maxTorque: '200', transmission: '6AT', driveType: 'FWD', length: 4550, width: 1840, height: 1680, wheelbase: 2700, groundClearance: 200, curbWeight: 1550, fuelTankCapacity: 56, avgFuelConsumption: 7.2, bodyType: 'SUV', electricSeats: true, camera360: true };
+      default:
+        if (brand === 'Toyota' || brand === 'Honda') return { ...specs, engineCapacity: '1.8', maxPower: '138', maxTorque: '172', transmission: 'CVT', length: 4500, bodyType: 'Sedan' };
+        if (brand === 'Ford' || brand === 'Hyundai') return { ...specs, engineCapacity: '2.0', maxPower: '180', maxTorque: '250', bodyType: 'SUV', driveType: 'AWD' };
+        if (brand === 'VinFast' || brand === 'Tesla' || brand === 'BYD') return { ...specs, fuelType: 'Điện', engineCapacity: null, maxPower: '200', maxTorque: '300', bodyType: 'SUV' };
+        if (brand === 'Mercedes-Benz' || brand === 'BMW' || brand === 'Audi' || brand === 'Porsche') return { ...specs, engineCapacity: '3.0', maxPower: '340', maxTorque: '450', transmission: '8AT', bodyType: 'SUV', electricSeats: true, camera360: true };
+        return specs;
+    }
+  };
+
   // 4. Tạo Sản phẩm mẫu cho các Vendor
   console.log('Đang tạo 60+ sản phẩm mẫu...');
   const vendors = [vendor1, vendor2, vendor3];
@@ -178,6 +218,7 @@ async function main() {
         year: year,
         condition: productIndex % 4 === 0 ? 'Xe lướt' : 'Xe mới',
         imageUrl: imageUrl,
+        ...getSpecsForModel(brandName, model.name)
       });
 
       productIndex++;

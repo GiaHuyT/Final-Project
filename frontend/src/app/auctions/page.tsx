@@ -83,7 +83,7 @@ export default function AuctionListingPage() {
 
               return (
                 <div key={product.id} className="group cursor-pointer">
-                  <Link href={`/products/${product.id}`}>
+                  <Link href={`/auctions/${product.id}`}>
                     <div className="relative h-64 rounded-xl overflow-hidden mb-6 bg-surface-container">
                       <img alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={product.imageUrl || "/images/static/car-placeholder.png"} />
 
@@ -125,7 +125,7 @@ export default function AuctionListingPage() {
                         <div className={`h-full ${isEndingSoon ? 'bg-tertiary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : 'bg-primary'} transition-all`} style={{ width: isEndingSoon ? '85%' : '30%' }}></div>
                       </div>
                     </div>
-                    <Link href={`/products/${product.id}`} className="block text-center w-full mt-6 bg-primary text-on-primary py-4 rounded-full font-headline font-bold text-sm tracking-widest hover:opacity-90 active:scale-95 transition-all">
+                    <Link href={`/auctions/${product.id}`} className="block text-center w-full mt-6 bg-primary text-on-primary py-4 rounded-full font-headline font-bold text-sm tracking-widest hover:opacity-90 active:scale-95 transition-all">
                       ĐẶT GIÁ
                     </Link>
                   </div>

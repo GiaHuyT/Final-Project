@@ -11,7 +11,6 @@ export default function VehicleDetailsPage() {
   const params = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [bidValue, setBidValue] = useState("");
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -40,7 +39,7 @@ export default function VehicleDetailsPage() {
     return (
       <div className="flex flex-col justify-center items-center min-h-screen bg-surface p-6">
         <h1 className="text-2xl font-bold mb-4">Vehicle Not Found</h1>
-        <Link href="/auctions" className="text-primary font-bold underline">Return to Auctions</Link>
+        <Link href="/categories" className="text-primary font-bold underline">Trở về các mẫu xe</Link>
       </div>
     );
   }
@@ -54,7 +53,7 @@ export default function VehicleDetailsPage() {
         <div className="flex items-center gap-2 text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-12">
             <Link href="/">Trang chủ</Link>
             <span className="material-symbols-outlined text-xs">chevron_right</span>
-            <Link href="/auctions">Đấu giá</Link>
+            <Link href="/categories">Các mẫu xe</Link>
             <span className="material-symbols-outlined text-xs">chevron_right</span>
             <span className="text-primary italic">{product.name}</span>
         </div>
@@ -115,32 +114,111 @@ export default function VehicleDetailsPage() {
              </div>
 
              {/* Detailed Specs */}
-             <div className="space-y-8">
-                <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-outline/10">Thông số kỹ thuật</h2>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
-                   <div>
-                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Động cơ</p>
-                      <p className="font-headline font-bold text-lg">{product.engineCapacity}L {product.fuelType}</p>
+             <div className="space-y-12">
+                {product.condition === 'Xe cũ' && (
+                <div>
+                   <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-outline/10 mb-8">Tình trạng phương tiện</h2>
+                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Odo (Đã đi)</p>
+                         <p className="font-headline font-bold text-lg">{product.mileage ? `${product.mileage.toLocaleString()} km` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Biển số</p>
+                         <p className="font-headline font-bold text-lg">{product.licensePlate || '—'}</p>
+                      </div>
+                      <div className="col-span-2 lg:col-span-3">
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Mô tả tình trạng</p>
+                         <p className="font-headline font-bold text-lg">{product.conditionDetail || '—'}</p>
+                      </div>
                    </div>
-                   <div>
-                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Công suất</p>
-                      <p className="font-headline font-bold text-lg">{product.maxPower || '—'} hp</p>
+                </div>
+                )}
+
+                <div>
+                   <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-outline/10 mb-8">Thông số Động cơ & Vận hành</h2>
+                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Động cơ & Nhiên liệu</p>
+                         <p className="font-headline font-bold text-lg">{product.engineCapacity ? `${product.engineCapacity}L` : ''} {product.fuelType || '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Công suất tối đa</p>
+                         <p className="font-headline font-bold text-lg">{product.maxPower ? `${product.maxPower} hp` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Mô-men xoắn</p>
+                         <p className="font-headline font-bold text-lg">{product.maxTorque ? `${product.maxTorque} Nm` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Hộp số</p>
+                         <p className="font-headline font-bold text-lg">{product.transmission || '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Hệ dẫn động</p>
+                         <p className="font-headline font-bold text-lg">{product.driveType || '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Tiêu thụ nhiên liệu</p>
+                         <p className="font-headline font-bold text-lg">{product.avgFuelConsumption ? `${product.avgFuelConsumption} L/100km` : '—'}</p>
+                      </div>
                    </div>
-                   <div>
-                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Momen xoắn</p>
-                      <p className="font-headline font-bold text-lg">{product.maxTorque || '—'} Nm</p>
+                </div>
+
+                <div>
+                   <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-outline/10 mb-8">Kích thước & Trọng lượng</h2>
+                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">D x R x C (mm)</p>
+                         <p className="font-headline font-bold text-lg">{product.length || '—'} x {product.width || '—'} x {product.height || '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Chiều dài cơ sở</p>
+                         <p className="font-headline font-bold text-lg">{product.wheelbase ? `${product.wheelbase} mm` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Khoảng sáng gầm</p>
+                         <p className="font-headline font-bold text-lg">{product.groundClearance ? `${product.groundClearance} mm` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Trọng lượng không tải</p>
+                         <p className="font-headline font-bold text-lg">{product.curbWeight ? `${product.curbWeight} kg` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Dung tích bình xăng</p>
+                         <p className="font-headline font-bold text-lg">{product.fuelTankCapacity ? `${product.fuelTankCapacity} L` : '—'}</p>
+                      </div>
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Kiểu dáng (Body Type)</p>
+                         <p className="font-headline font-bold text-lg">{product.bodyType || '—'}</p>
+                      </div>
                    </div>
-                   <div>
-                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Hộp số</p>
-                      <p className="font-headline font-bold text-lg">{product.transmission || '—'}</p>
-                   </div>
-                   <div>
-                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Hệ dẫn động</p>
-                      <p className="font-headline font-bold text-lg">{product.driveType || '—'}</p>
-                   </div>
-                   <div>
-                      <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Màu sắc</p>
-                      <p className="font-headline font-bold text-lg">{product.color || '—'}</p>
+                </div>
+
+                <div>
+                   <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-outline/10 mb-8">Tiện nghi & An toàn</h2>
+                   <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                      <div>
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Số túi khí</p>
+                         <p className="font-headline font-bold text-lg">{product.airbags || '—'}</p>
+                      </div>
+                      <div className="col-span-2 lg:col-span-3">
+                         <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-4">Trang bị nổi bật</p>
+                         <div className="flex flex-wrap gap-2">
+                            {product.autoConditioning && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Điều hòa tự động</span>}
+                            {product.infotainment && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Màn hình giải trí</span>}
+                            {product.appleCarplay && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Apple CarPlay/Android Auto</span>}
+                            {product.electricSeats && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Ghế chỉnh điện</span>}
+                            {product.camera360 && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Camera 360</span>}
+                            {product.abs && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Phanh ABS</span>}
+                            {product.esp && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Cân bằng ESP</span>}
+                            {product.ba && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Hỗ trợ phanh BA</span>}
+                            {product.rearSensor && <span className="px-3 py-1.5 bg-surface-container rounded-full text-xs font-bold border border-outline/10 text-on-surface">Cảm biến lùi</span>}
+                            {(!product.autoConditioning && !product.infotainment && !product.appleCarplay && !product.electricSeats && !product.camera360 && !product.abs && !product.esp && !product.ba && !product.rearSensor) && (
+                                <span className="text-sm font-medium text-on-surface-variant">Không có thông tin trang bị tiêu chuẩn.</span>
+                            )}
+                         </div>
+                      </div>
                    </div>
                 </div>
              </div>
@@ -150,35 +228,20 @@ export default function VehicleDetailsPage() {
           <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
              <div className="bg-surface-container-low rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50">
                 <div className="mb-10 text-center">
-                   <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Giá cao nhất hiện tại</p>
-                   <p className="font-headline text-5xl font-black text-primary">${product.price.toLocaleString()}</p>
+                   <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Giá niêm yết</p>
+                   <p className="font-headline text-5xl font-black text-primary">${product.price?.toLocaleString() || 'Liên hệ'}</p>
                 </div>
                 
                 <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl mb-8">
-                   <div className="flex flex-col">
-                      <span className="text-[9px] font-bold text-on-surface-variant uppercase">Thời gian còn</span>
-                      <span className="font-headline font-bold text-lg text-on-tertiary-container">2ngày 14g 55p</span>
-                   </div>
-                   <div className="h-10 w-px bg-outline/10"></div>
-                   <div className="flex flex-col text-right">
-                      <span className="text-[9px] font-bold text-on-surface-variant uppercase">Lượt ra giá</span>
-                      <span className="font-headline font-bold text-lg">12 Lượt</span>
+                   <div className="flex flex-col text-center w-full">
+                      <span className="text-[9px] font-bold text-on-surface-variant uppercase">Tình trạng</span>
+                      <span className="font-headline font-bold text-lg text-on-tertiary-container">{product.condition === 'NEW' ? 'Xe Mới' : 'Đã qua sử dụng'}</span>
                    </div>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex gap-2 p-2 bg-white rounded-full border border-outline/10 focus-within:ring-2 ring-primary/20 transition-all">
-                     <span className="flex items-center pl-4 font-headline font-bold text-sm">$</span>
-                     <input 
-                      className="w-full bg-transparent border-none focus:ring-0 text-lg font-bold outline-none" 
-                      placeholder={(product.price + 500).toLocaleString()} 
-                      type="number"
-                      value={bidValue}
-                      onChange={(e) => setBidValue(e.target.value)}
-                     />
-                  </div>
                   <button className="w-full bg-primary text-on-primary py-5 rounded-full font-headline font-black text-sm tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-slate-200">
-                    ĐẶT GIÁ CỦA BẠN
+                    LIÊN HỆ VỚI NGƯỜI BÁN
                   </button>
                 </div>
 
