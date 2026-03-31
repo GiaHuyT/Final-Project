@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminSidebar } from './_components/sidebar';
-import { AdminTopbar } from './_components/topbar';
+import { AdminSidebar } from '@/components/admin/sidebar';
+import { AdminTopbar } from '@/components/admin/topbar';
 import { Loader2 } from 'lucide-react';
 import Cookies from 'js-cookie';
 

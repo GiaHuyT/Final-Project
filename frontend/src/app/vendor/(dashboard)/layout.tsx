@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { VendorSidebar } from './_components/sidebar';
-import { VendorTopbar } from './_components/topbar';
+import { VendorSidebar } from '@/components/vendor/sidebar';
+import { VendorTopbar } from '@/components/vendor/topbar';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Cookies from 'js-cookie';

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import http from "@/lib/http";
 import { Loader2, MessageCircle, Calendar, Package, BadgeCheck, ArrowLeft, Star } from "lucide-react";
+import ReviewSection from "@/components/vendor/ReviewSection";
 
 export default function VendorPublicProfilePage() {
     const params = useParams();
@@ -87,9 +88,14 @@ export default function VendorPublicProfilePage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="flex">
-                                        {[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />)}
+                                        {[1,2,3,4,5].map(i => (
+                                            <Star 
+                                                key={i} 
+                                                className={`w-3.5 h-3.5 ${i <= Math.round(vendor.averageRating || 5) ? "text-yellow-500 fill-yellow-500" : "text-slate-200"}`} 
+                                            />
+                                        ))}
                                     </div>
-                                    <span className="text-sm text-slate-900 font-bold">5.0 (98 đánh giá)</span>
+                                    <span className="text-sm text-slate-900 font-bold">{vendor.averageRating?.toFixed(1) || "5.0"} ({vendor.totalRatings || 0} đánh giá)</span>
                                 </div>
                             </div>
                         </div>
@@ -169,6 +175,9 @@ export default function VendorPublicProfilePage() {
                                 </div>
                             )}
                         </section>
+
+                        {/* Review Section */}
+                        <ReviewSection vendorId={Number(params.id)} />
                     </div>
 
                     {/* Sidebar Info */}

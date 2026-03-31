@@ -240,6 +240,21 @@ export class UsersService {
       throw new BadRequestException('Không tìm thấy nhà cung cấp hoặc tài khoản chưa được xác minh.');
     }
 
-    return vendor;
+    // Lấy thông tin review bổ sung
+    const allReviews = await this.prisma.review.findMany({
+      where: { targetId: Number(id) }
+    });
+
+    const ratingRecords = allReviews.filter(r => r.rating > 0);
+    const totalRatings = ratingRecords.length;
+    const averageRating = totalRatings > 0 
+      ? Number((ratingRecords.reduce((acc, curr) => acc + curr.rating, 0) / totalRatings).toFixed(1))
+      : 5.0; // Default to 5.0 if no ratings yet or as per design
+
+    return {
+      ...vendor,
+      averageRating,
+      totalRatings
+    };
   }
 }
