@@ -71,6 +71,20 @@ class CreateUserDto {
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  @Public()
+  @Get('vendor/:id')
+  @ApiOperation({ summary: 'Lấy thông tin hồ sơ công khai của nhà cung cấp' })
+  findVendorById(@Param('id') id: string) {
+    return this.usersService.findVendorPublicProfile(+id);
+  }
+
+  @Public()
+  @Get('vendors')
+  @ApiOperation({ summary: 'Lấy tất cả nhà cung cấp (Public)' })
+  findVendors() {
+    return this.usersService.findVendors();
+  }
+
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
@@ -136,12 +150,6 @@ export class UsersController {
     return { avatarUrl };
   }
 
-  @Public()
-  @Get('vendors')
-  @ApiOperation({ summary: 'Lấy tất cả nhà cung cấp (Public)' })
-  findVendors() {
-    return this.usersService.findVendors();
-  }
 
   @Public()
   @Get('check-route')

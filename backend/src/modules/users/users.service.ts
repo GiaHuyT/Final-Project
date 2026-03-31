@@ -205,4 +205,41 @@ export class UsersService {
       orderBy: { username: 'asc' }
     });
   }
+
+  async findVendorPublicProfile(id: number) {
+    const vendor = await (this.prisma.user as any).findFirst({
+      where: { 
+        id: Number(id),
+        isApprovedVendor: true 
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        createdAt: true,
+        role: true,
+        products: {
+          where: { status: true },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            imageUrl: true,
+            brand: true,
+            year: true,
+            mileage: true,
+            condition: true,
+          }
+        },
+      },
+    });
+
+    if (!vendor) {
+      throw new BadRequestException('Không tìm thấy nhà cung cấp hoặc tài khoản chưa được xác minh.');
+    }
+
+    return vendor;
+  }
 }
