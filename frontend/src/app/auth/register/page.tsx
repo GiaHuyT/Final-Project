@@ -167,7 +167,7 @@ export default function RegisterPage() {
                                 <div className="relative flex items-center">
                                     <div className="absolute left-0 h-full w-1 bg-primary scale-y-0 group-focus-within:scale-y-100 transition-transform duration-300 z-10"></div>
                                     <input 
-                                        className={`w-full bg-surface-container-low border-none focus:ring-0 focus:bg-surface-container-highest px-6 pr-12 py-4 rounded-lg text-on-surface placeholder:text-outline transition-colors font-body ${errors.password ? 'outline outline-1 outline-error' : ''}`}
+                                        className={`w-full bg-surface-container-low border-none focus:ring-0 focus:bg-surface-container-highest px-6 pr-12 py-4 rounded-lg text-on-surface placeholder:text-outline transition-colors font-body [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.password ? 'outline outline-1 outline-error' : ''}`}
                                         placeholder="••••••••" 
                                         type={showPassword ? "text" : "password"}
                                         value={formData.password}
@@ -189,7 +189,7 @@ export default function RegisterPage() {
                                 <div className="relative flex items-center">
                                     <div className="absolute left-0 h-full w-1 bg-primary scale-y-0 group-focus-within:scale-y-100 transition-transform duration-300 z-10"></div>
                                     <input 
-                                        className={`w-full bg-surface-container-low border-none focus:ring-0 focus:bg-surface-container-highest px-6 pr-12 py-4 rounded-lg text-on-surface placeholder:text-outline transition-colors font-body ${errors.confirmpassword ? 'outline outline-1 outline-error' : ''}`}
+                                        className={`w-full bg-surface-container-low border-none focus:ring-0 focus:bg-surface-container-highest px-6 pr-12 py-4 rounded-lg text-on-surface placeholder:text-outline transition-colors font-body [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.confirmpassword ? 'outline outline-1 outline-error' : ''}`}
                                         placeholder="••••••••" 
                                         type={showConfirmPassword ? "text" : "password"}
                                         value={formData.confirmpassword}

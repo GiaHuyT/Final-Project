@@ -102,7 +102,7 @@ function ResetPasswordForm() {
                                     placeholder="••••••••"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="h-11 transition-all focus-visible:ring-blue-500 border-gray-200 pr-10"
+                                    className="h-11 transition-all focus-visible:ring-blue-500 border-gray-200 pr-10 [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden"
                                 />
                                 <button
                                     type="button"
@@ -129,7 +129,7 @@ function ResetPasswordForm() {
                                     placeholder="••••••••"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="h-11 transition-all focus-visible:ring-blue-500 border-gray-200 pr-10"
+                                    className="h-11 transition-all focus-visible:ring-blue-500 border-gray-200 pr-10 [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden"
                                 />
                                 <button
                                     type="button"

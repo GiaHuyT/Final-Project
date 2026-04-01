@@ -171,7 +171,7 @@ export default function LoginPage() {
                                     <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">lock</span>
                                 </div>
                                 <input 
-                                    className={`w-full pl-12 pr-12 py-4 bg-slate-50 border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none ${errors.password ? "border-red-500 focus:border-red-500" : "border-transparent focus:border-blue-600"}`}
+                                    className={`w-full pl-12 pr-12 py-4 bg-slate-50 border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.password ? "border-red-500 focus:border-red-500" : "border-transparent focus:border-blue-600"}`}
                                     placeholder="••••••••" 
                                     type={showPassword ? "text" : "password"}
                                     value={password}

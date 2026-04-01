@@ -249,7 +249,7 @@ export class UsersService {
     const totalRatings = ratingRecords.length;
     const averageRating = totalRatings > 0 
       ? Number((ratingRecords.reduce((acc, curr) => acc + curr.rating, 0) / totalRatings).toFixed(1))
-      : 5.0; // Default to 5.0 if no ratings yet or as per design
+      : 0.0; // Default to 0.0 if no ratings yet
 
     return {
       ...vendor,
