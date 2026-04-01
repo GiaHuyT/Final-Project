@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async createConversation(participantIds: number[], productId?: number) {
     // Check if conversation already exists for these participants (simplified for 2 people)
@@ -101,11 +106,28 @@ export class ChatService {
       },
     });
 
-    // Update conversation updatedAt
-    await this.prisma.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() },
-    });
+    // Notify the other participant
+    try {
+      const conversation = await this.prisma.conversation.findUnique({
+        where: { id: conversationId },
+        include: { participants: { select: { id: true } } },
+      });
+
+      if (conversation) {
+        const otherParticipant = conversation.participants.find((p) => p.id !== senderId);
+        if (otherParticipant) {
+          const preview = content.length > 50 ? `${content.substring(0, 50)}...` : content;
+          await this.notifications.create(otherParticipant.id, {
+            type: NotificationType.CHAT,
+            content: `${message.sender.username} đã gửi cho bạn một tin nhắn: ${preview}`,
+            link: '/messages', // Assuming this is the message center route
+            metadata: { conversationId, senderId },
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to send chat notification:', err);
+    }
 
     return message;
   }
