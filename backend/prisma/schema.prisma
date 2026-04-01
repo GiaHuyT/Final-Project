@@ -39,6 +39,7 @@ model User {
   favorites         Favorite[]      
   conversations     Conversation[]   @relation("UserConversations")
   messages          Message[]
+  cart              Cart?
 }
 
 enum Role {
@@ -161,6 +162,7 @@ model Product {
   colorVariants     ProductColorVariant[]
   orderItems        OrderItem[]
   favorites         Favorite[]
+  cartItems         CartItem[]
 }
 
 model ProductImage {
@@ -325,4 +327,30 @@ enum NotificationType {
   AUCTION
   SYSTEM
   PROMOTION
+  REVIEW
+  CHAT
 }
+
+// --- GIỎ HÀNG (CART) ---
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  cartId    Int
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Đảm bảo mỗi sản phẩm chỉ xuất hiện 1 dòng trong 1 giỏ hàng: nếu thêm trùng thì cộng dồn quantity
+  @@unique([cartId, productId])
+}
