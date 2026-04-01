@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import {
     DropdownMenu,
@@ -13,10 +13,11 @@ import {
     DropdownMenuTrigger,
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Heart } from "lucide-react";
+import { Bell, Heart, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import http from "@/lib/http";
+import { useCart } from "@/hooks/use-cart";
 import { initSocket, disconnectSocket } from "@/lib/socket";
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
@@ -42,15 +43,28 @@ function NotificationBell({
     onMarkAsRead: (id: number) => void,
     onMarkAllAsRead: () => void
 }) {
+    const router = useRouter();
+    const [seenUnreadCount, setSeenUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (unreadCount < seenUnreadCount) {
+             setSeenUnreadCount(unreadCount);
+        }
+    }, [unreadCount, seenUnreadCount]);
+    
     const sortedNotifications = [...notifications].sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
+    const showDot = unreadCount > seenUnreadCount;
+
     return (
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={(open) => {
+            if (open) setSeenUnreadCount(unreadCount);
+        }}>
             <DropdownMenuTrigger className="relative h-8 w-8 rounded-full outline-none flex items-center justify-center text-slate-600 hover:text-primary transition-colors hover:bg-slate-100 cursor-pointer">
                 <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
+                {showDot && (
                     <span className="absolute top-1 right-1.5 flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
@@ -58,16 +72,8 @@ function NotificationBell({
                 )}
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-80 rounded-2xl shadow-xl border-gray-100 p-0 bg-white" align="end" sideOffset={10}>
-                <div className="bg-slate-50 px-4 py-3 border-b flex justify-between items-center rounded-t-2xl">
+                <div className="bg-white px-4 py-3 border-b flex justify-between items-center rounded-t-2xl">
                     <DropdownMenuLabel className="font-bold text-slate-900 p-0 font-body text-sm">Thông báo</DropdownMenuLabel>
-                    {unreadCount > 0 && (
-                        <span 
-                            onClick={(e) => { e.preventDefault(); onMarkAllAsRead(); }}
-                            className="text-[10px] text-primary font-bold cursor-pointer hover:underline uppercase tracking-tight"
-                        >
-                            Đánh dấu đã đọc
-                        </span>
-                    )}
                 </div>
                 <DropdownMenuGroup className="max-h-[350px] overflow-y-auto w-full">
                     {sortedNotifications.length === 0 ? (
@@ -78,38 +84,52 @@ function NotificationBell({
                         sortedNotifications.map((notif) => (
                             <div 
                                 key={notif.id} 
-                                onClick={() => !notif.isRead && onMarkAsRead(notif.id)}
+                                onClick={() => {
+                                    if (!notif.isRead) onMarkAsRead(notif.id);
+                                    if (notif.link) {
+                                        if (notif.link.startsWith('http')) {
+                                            window.location.href = notif.link;
+                                        } else {
+                                            router.push(notif.link);
+                                        }
+                                    }
+                                }}
                                 className={cn(
-                                    "flex flex-col items-start gap-1 p-3 border-b border-slate-50 last:border-0 cursor-pointer transition-colors w-full outline-none",
-                                    !notif.isRead ? "bg-white hover:bg-slate-50" : "bg-slate-50/50 opacity-75 hover:opacity-100"
+                                    "flex flex-col items-start gap-1 p-4 border-b border-slate-50 last:border-0 cursor-pointer transition-all duration-300 w-full outline-none text-left",
+                                    !notif.isRead ? "bg-slate-50 hover:bg-slate-100" : "bg-white hover:bg-slate-50"
                                 )}
                             >
-                                <div className="flex justify-between items-start w-full gap-2 font-body">
-                                    <span className={cn("text-sm font-bold", !notif.isRead ? "text-slate-900" : "text-slate-600")}>
+                                <div className="flex justify-between items-start w-full gap-2 font-body text-left">
+                                    <span className={cn(
+                                        "text-sm tracking-tight", 
+                                        !notif.isRead ? "text-slate-900 font-extrabold" : "text-slate-500 font-medium"
+                                    )}>
                                         {notif.title}
                                     </span>
-                                    <span className="text-[9px] font-semibold text-slate-400 shrink-0 uppercase">
+                                    <span className={cn(
+                                        "text-[9px] shrink-0 uppercase tracking-wider",
+                                        !notif.isRead ? "font-bold text-slate-500" : "font-semibold text-slate-300"
+                                    )}>
                                         {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: vi })}
                                     </span>
                                 </div>
-                                <span className="text-xs text-slate-600 leading-relaxed font-body w-full whitespace-normal text-left line-clamp-2">
+                                <span className={cn(
+                                    "text-xs leading-relaxed font-body w-full whitespace-normal text-left line-clamp-2",
+                                    !notif.isRead ? "text-slate-700 font-bold" : "text-slate-400 font-normal"
+                                )}>
                                     {notif.content}
                                 </span>
-                                {notif.link && (
-                                    <Link 
-                                        href={notif.link} 
-                                        className="text-[10px] text-blue-600 font-bold hover:underline mt-1"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        Xem chi tiết →
-                                    </Link>
-                                )}
                             </div>
                         ))
                     )}
                 </DropdownMenuGroup>
                 <div className="p-2 bg-white rounded-b-2xl border-t">
-                    <button className="w-full text-xs font-bold text-primary hover:text-primary/80 py-1.5 text-center transition-colors">Xem tất cả</button>
+                    <button 
+                        onClick={() => router.push('/notifications')}
+                        className="w-full text-xs font-bold text-primary hover:text-primary/80 py-1.5 text-center transition-colors"
+                    >
+                        Xem tất cả
+                    </button>
                 </div>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -118,12 +138,14 @@ function NotificationBell({
 
 
 export function Navbar() {
+    const { fetchCart, getTotalItems, items } = useCart();
     const [user, setUser] = useState<any>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const pathname = usePathname();
+    const router = useRouter();
 
     const fetchNotifications = async () => {
         try {
@@ -167,9 +189,10 @@ export function Navbar() {
 
                 // Initial fetch
                 fetchNotifications();
+                fetchCart();
 
                 // Setup Socket
-                const socket = initSocket(token, userData.id);
+                const socket = initSocket('notifications', token, userData.id);
                 socket.on('notification', (newNotif: Notification) => {
                     console.log("New real-time notification:", newNotif);
                     setNotifications(prev => [newNotif, ...prev]);
@@ -180,7 +203,8 @@ export function Navbar() {
                 setUser(null);
                 setNotifications([]);
                 setUnreadCount(0);
-                disconnectSocket();
+                useCart.setState({ items: [] });
+                disconnectSocket('notifications');
             }
         };
 
@@ -189,7 +213,7 @@ export function Navbar() {
         window.addEventListener('user-updated', syncUser);
         return () => {
             window.removeEventListener('user-updated', syncUser);
-            disconnectSocket();
+            disconnectSocket('notifications');
         };
     }, []);
 
@@ -198,7 +222,7 @@ export function Navbar() {
         Cookies.remove("user_role");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        disconnectSocket();
+        disconnectSocket('notifications');
         window.location.reload();
     };
 
@@ -223,6 +247,20 @@ export function Navbar() {
                             title="Yêu thích"
                         >
                             <Heart className="h-5 w-5" />
+                        </Link>
+                    )}
+                    {isLoggedIn && (
+                        <Link 
+                            href="/cart" 
+                            className="relative h-8 w-8 rounded-full outline-none flex items-center justify-center text-slate-600 hover:text-primary transition-colors hover:bg-slate-100 cursor-pointer"
+                            title="Giỏ hàng"
+                        >
+                            <ShoppingCart className="h-5 w-5" />
+                            {getTotalItems() > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-sm ring-2 ring-white">
+                                    {getTotalItems()}
+                                </span>
+                            )}
                         </Link>
                     )}
                     {isLoggedIn && (

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import http from "@/lib/http";
 import { VendorChatButton } from "@/components/chat/VendorChatButton";
+import WishlistButton from "@/components/ui/wishlist-button";
+import CartButton from "@/components/ui/cart-button";
 
 export default function VehicleDetailsPage() {
   const params = useParams();
@@ -240,7 +242,11 @@ export default function VehicleDetailsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <button className="w-full bg-primary text-on-primary py-5 rounded-full font-headline font-black text-sm tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-slate-200">
+                  <CartButton productId={product.id} className="w-full bg-slate-900 border-2 border-slate-900 text-white" showText={true} />
+                  <button className="w-full bg-white text-slate-900 border-2 border-slate-900 py-5 rounded-full font-headline font-black text-sm tracking-widest hover:bg-slate-50 transition-all shadow-sm">
+                    MUA NGAY
+                  </button>
+                  <button className="w-full bg-slate-100 text-slate-600 py-5 rounded-full font-headline font-black text-sm tracking-widest hover:bg-slate-200 transition-all">
                     LIÊN HỆ VỚI NGƯỜI BÁN
                   </button>
                 </div>

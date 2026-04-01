@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
 import WishlistButton from "@/components/ui/wishlist-button";
+import CartButton from "@/components/ui/cart-button";
 
 // Custom Dropdown Component
 interface FilterDropdownProps {
@@ -342,6 +343,10 @@ export default function CarModelsPage() {
                                                 productId={product.id} 
                                                 initialIsFavorited={favoriteIds.includes(product.id)}
                                                 className="absolute top-6 right-6"
+                                            />
+                                            <CartButton
+                                                productId={product.id}
+                                                className="absolute top-20 right-6"
                                             />
                                             <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                                                 <div className="bg-black text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl">
