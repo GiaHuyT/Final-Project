@@ -91,17 +91,30 @@ export default function VendorPublicProfilePage() {
                                         {[1,2,3,4,5].map(i => (
                                             <Star 
                                                 key={i} 
-                                                className={`w-3.5 h-3.5 ${i <= Math.round(vendor.averageRating || 5) ? "text-yellow-500 fill-yellow-500" : "text-slate-200"}`} 
+                                                className={`w-3.5 h-3.5 ${i <= Math.round(vendor.averageRating || 0) && (vendor.totalRatings || 0) > 0 ? "text-yellow-500 fill-yellow-500" : "text-slate-200"}`} 
                                             />
                                         ))}
                                     </div>
-                                    <span className="text-sm text-slate-900 font-bold">{vendor.averageRating?.toFixed(1) || "5.0"} ({vendor.totalRatings || 0} đánh giá)</span>
+                                    <span className="text-sm text-slate-900 font-bold">
+                                        {vendor.totalRatings > 0 ? vendor.averageRating?.toFixed(1) : "0.0"} 
+                                        <span className="text-slate-400 font-normal ml-1">
+                                            ({vendor.totalRatings || 0} đánh giá)
+                                        </span>
+                                    </span>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex gap-3 w-full md:w-auto">
-                            <button className="flex-1 md:flex-none px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm tracking-wide hover:bg-black transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2">
+                            <button 
+                                onClick={() => {
+                                    const event = new CustomEvent('open-chat', { 
+                                        detail: { vendorId: vendor.id, vendorName: vendor.username } 
+                                    });
+                                    window.dispatchEvent(event);
+                                }}
+                                className="flex-1 md:flex-none px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-sm tracking-wide hover:bg-black transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2"
+                            >
                                 <MessageCircle className="w-4 h-4" /> Nhắn tin trực tiếp
                             </button>
                         </div>

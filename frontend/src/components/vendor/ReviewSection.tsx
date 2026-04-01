@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Star, Send, Loader2, User } from "lucide-react";
+import { Star, ArrowUp, Loader2, User, Trash2 } from "lucide-react";
 import http from "@/lib/http";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,16 +35,34 @@ export default function ReviewSection({ vendorId }: ReviewSectionProps) {
     const [hoverRating, setHoverRating] = useState(0);
     const [comment, setComment] = useState("");
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
+        const storedUser = localStorage.getItem("user");
         setIsLoggedIn(!!token);
+        if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+        }
         
         fetchReviews();
         if (token) {
             fetchUserRating();
         }
     }, [vendorId]);
+
+    const handleDeleteReview = async (id: number) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa nhận xét này?")) return;
+
+        try {
+            await http.delete(`/reviews/${id}`);
+            toast.success("Đã xóa nhận xét thành công");
+            fetchReviews();
+        } catch (error: any) {
+            console.error("Error deleting review:", error);
+            toast.error(error.response?.data?.message || "Không thể xóa nhận xét");
+        }
+    };
 
     const fetchReviews = async () => {
         try {
@@ -121,12 +139,14 @@ export default function ReviewSection({ vendorId }: ReviewSectionProps) {
                 
                 <div className="flex items-center gap-6 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
                     <div className="text-center">
-                        <div className="text-4xl font-black text-slate-900 leading-none mb-1">{avgRating.toFixed(1)}</div>
+                        <div className="text-4xl font-black text-slate-900 leading-none mb-1">
+                            {totalRatings > 0 ? avgRating.toFixed(1) : "0.0"}
+                        </div>
                         <div className="flex justify-center mb-1">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <Star 
                                     key={star} 
-                                    className={`w-4 h-4 ${star <= Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200"}`} 
+                                    className={`w-4 h-4 ${totalRatings > 0 && star <= Math.round(avgRating) ? "text-yellow-400 fill-yellow-400" : "text-slate-200"}`} 
                                 />
                             ))}
                         </div>
@@ -191,7 +211,7 @@ export default function ReviewSection({ vendorId }: ReviewSectionProps) {
                                         disabled={!isLoggedIn || submitting || !comment.trim()}
                                         className="bg-slate-900 hover:bg-black text-white px-8 py-6 rounded-2xl font-bold flex items-center gap-3 transition-all hover:translate-x-1"
                                     >
-                                        {submitting ? <Loader2 className="animate-spin w-4 h-4" /> : <Send className="w-4 h-4" />}
+                                        {submitting ? <Loader2 className="animate-spin w-4 h-4" /> : <ArrowUp className="w-4 h-4" />}
                                         Gửi bình luận
                                     </Button>
                                 </div>
@@ -226,9 +246,26 @@ export default function ReviewSection({ vendorId }: ReviewSectionProps) {
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between mb-2">
                                                 <h4 className="font-bold text-slate-900">{review.user.username}</h4>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                    {new Date(review.createdAt).toLocaleDateString('vi-VN')}
-                                                </span>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                        {new Date(review.createdAt).toLocaleString('vi-VN', {
+                                                            day: '2-digit',
+                                                            month: '2-digit',
+                                                            year: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </span>
+                                                    {currentUser?.id === review.user.id && (
+                                                        <button 
+                                                            onClick={() => handleDeleteReview(review.id)}
+                                                            className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-md hover:bg-red-50"
+                                                            title="Xóa nhận xét"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                             <p className="text-slate-600 text-sm leading-relaxed underline-offset-4 decoration-slate-200 italic">
                                                 "{review.content}"

@@ -1,9 +1,14 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '@prisma/client';
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async create(userId: number, data: { targetId: number; rating?: number; content?: string }) {
     const { targetId, rating, content } = data;
@@ -59,8 +64,22 @@ export class ReviewsService {
       results.push({ type: 'comment', data: created });
     }
 
-    if (results.length === 0) {
-      throw new BadRequestException('Rating or Content must be provided');
+    // Notify the vendor
+    try {
+      const reviewer = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { username: true },
+      });
+
+      const messageType = content ? 'bình luận' : 'đánh giá';
+      await this.notifications.create(targetId, {
+        type: NotificationType.REVIEW,
+        content: `Bạn nhận được một ${messageType} mới từ ${reviewer?.username || 'khách hàng'}`,
+        link: `/vendor/${targetId}`,
+        metadata: { reviewerId: userId },
+      });
+    } catch (err) {
+      console.error('Failed to send review notification:', err);
     }
 
     return { message: 'Đánh giá thành công', results };
@@ -108,5 +127,23 @@ export class ReviewsService {
       select: { rating: true },
     });
     return ratingRecord ? ratingRecord.rating : 0;
+  }
+
+  async delete(userId: number, id: number) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+    });
+
+    if (!review) {
+      throw new BadRequestException('Review not found');
+    }
+
+    if (review.userId !== userId) {
+      throw new BadRequestException('You can only delete your own reviews');
+    }
+
+    return this.prisma.review.delete({
+      where: { id },
+    });
   }
 }

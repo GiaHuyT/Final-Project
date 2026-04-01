@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { Public } from '../../core/decorators/public.decorator';
 
@@ -22,5 +22,11 @@ export class ReviewsController {
   async getUserRatingForVendor(@Req() req: any, @Param('vendorId') vendorId: string) {
     const userId = req.user.id;
     return this.reviewsService.getUserRatingForVendor(userId, Number(vendorId));
+  }
+
+  @Delete(':id')
+  async delete(@Req() req: any, @Param('id') id: string) {
+    const userId = req.user.id;
+    return this.reviewsService.delete(userId, Number(id));
   }
 }
