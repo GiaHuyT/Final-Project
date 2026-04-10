@@ -45,7 +45,7 @@ export class UsersService {
   async updateStatus(id: number, isApprovedVendor: boolean) {
     const user = await (this.prisma.user as any).update({
       where: { id },
-      data: { 
+      data: {
         isApprovedVendor,
         vendorRequestPending: false,
         pendingRequestType: null
@@ -54,7 +54,7 @@ export class UsersService {
 
     await this.notifications.create(id, {
       type: 'SYSTEM' as any,
-      content: isApprovedVendor 
+      content: isApprovedVendor
         ? 'Chúc mừng! Tài khoản Vendor của bạn đã được phê duyệt.'
         : 'Rất tiếc, yêu cầu đăng ký làm Nhà cung cấp (Vendor) của bạn đã bị từ chối.',
       link: '/profile',
@@ -71,7 +71,7 @@ export class UsersService {
 
     await (this.prisma.user as any).update({
       where: { id: userId },
-      data: { 
+      data: {
         vendorRequestPending: true,
         pendingRequestType: 'VENDOR_REGISTRATION'
       }
@@ -93,7 +93,7 @@ export class UsersService {
   async switchRole(userId: number, role: 'CUSTOMER' | 'VENDOR') {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('Người dùng không tồn tại');
-    
+
     if (role === 'VENDOR' && !user.isApprovedVendor) {
       throw new BadRequestException('Tài khoản chưa được phê duyệt quyền Vendor');
     }
@@ -137,12 +137,12 @@ export class UsersService {
 
     try {
       const updateData: any = {};
-      
+
       // Chỉ lấy các trường hợp lệ để tránh lỗi Prisma
       if (data.username !== undefined) updateData.username = data.username;
       if (data.email !== undefined) updateData.email = data.email;
       if (data.avatar !== undefined) updateData.avatar = data.avatar;
-      
+
       if (data.phonenumber !== undefined) {
         updateData.phonenumber = data.phonenumber === "" ? null : data.phonenumber;
       }
@@ -208,9 +208,9 @@ export class UsersService {
 
   async findVendorPublicProfile(id: number) {
     const vendor = await (this.prisma.user as any).findFirst({
-      where: { 
+      where: {
         id: Number(id),
-        isApprovedVendor: true 
+        isApprovedVendor: true
       },
       select: {
         id: true,
@@ -247,7 +247,7 @@ export class UsersService {
 
     const ratingRecords = allReviews.filter(r => r.rating > 0);
     const totalRatings = ratingRecords.length;
-    const averageRating = totalRatings > 0 
+    const averageRating = totalRatings > 0
       ? Number((ratingRecords.reduce((acc, curr) => acc + curr.rating, 0) / totalRatings).toFixed(1))
       : 0.0; // Default to 0.0 if no ratings yet
 
