@@ -5,12 +5,14 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import http from "@/lib/http";
 import WishlistButton from "@/components/ui/wishlist-button";
+import { VendorRegistrationModal } from "@/components/VendorRegistrationModal";
 
 export default function Home() {
   const [auctions, setAuctions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [favoriteIds, setFavoriteIds] = useState<number[]>([]);
   const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+  const [isRegModalOpen, setIsRegModalOpen] = useState(false);
 
   const heroImages = [
     "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=2070", // Porsche 911 grey
@@ -240,27 +242,30 @@ export default function Home() {
         {/* Selling CTA Section */}
         <section className="py-24">
           <div className="max-w-7xl mx-auto px-6 lg:px-12">
-            <div className="relative bg-on-background rounded-[2rem] overflow-hidden p-12 md:p-24 flex flex-col md:flex-row items-center gap-12">
+            <div className="relative bg-white shadow-xl rounded-[2rem] overflow-hidden p-12 md:p-24 flex flex-col md:flex-row items-center gap-12">
               <div className="relative z-10 flex-1">
                 <span className="text-tertiary-fixed-dim font-label text-xs uppercase tracking-[0.2em] font-bold mb-4 block">Dịch vụ cho người bán</span>
-                <h2 className="font-headline text-4xl md:text-6xl font-extrabold text-white tracking-tighter mb-8 leading-tight">
+                <h2 className="font-headline text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tighter mb-8 leading-tight">
                   ĐĂNG BÁN XE TRÊN HỆ THỐNG.
                 </h2>
                 <ul className="space-y-4 mb-10">
-                  <li className="flex items-center gap-3 text-surface-variant">
-                    <span className="material-symbols-outlined text-primary-fixed">check_circle</span>
+                  <li className="flex items-center gap-3 text-slate-600">
+                    <span className="material-symbols-outlined text-primary">check_circle</span>
                     Hỗ trợ chụp ảnh studio chuyên nghiệp
                   </li>
-                  <li className="flex items-center gap-3 text-surface-variant">
-                    <span className="material-symbols-outlined text-primary-fixed">check_circle</span>
+                  <li className="flex items-center gap-3 text-slate-600">
+                    <span className="material-symbols-outlined text-primary">check_circle</span>
                     Tiếp cận hơn 1.2M người tham gia đấu giá
                   </li>
-                  <li className="flex items-center gap-3 text-surface-variant">
-                    <span className="material-symbols-outlined text-primary-fixed">check_circle</span>
+                  <li className="flex items-center gap-3 text-slate-600">
+                    <span className="material-symbols-outlined text-primary">check_circle</span>
                     Đội ngũ chuyên viên đấu giá tận tâm
                   </li>
                 </ul>
-                <button className="bg-white text-on-background px-10 py-5 rounded-full font-headline font-black text-sm tracking-widest active:scale-95 transition-transform">
+                <button 
+                  onClick={() => setIsRegModalOpen(true)}
+                  className="bg-slate-900 text-white hover:bg-slate-800 px-10 py-5 rounded-full font-headline font-black text-sm tracking-widest active:scale-95 transition-all"
+                >
                   BẮT ĐẦU BÁN
                 </button>
               </div>
@@ -272,6 +277,8 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      <VendorRegistrationModal isOpen={isRegModalOpen} onClose={() => setIsRegModalOpen(false)} />
 
       {/* Footer */}
       <footer className="w-full py-12 border-t border-slate-200 bg-slate-50">
