@@ -21,6 +21,7 @@ import { useCart } from "@/hooks/use-cart";
 import { initSocket, disconnectSocket } from "@/lib/socket";
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface Notification {
     id: number;
@@ -32,13 +33,13 @@ interface Notification {
     createdAt: string;
 }
 
-function NotificationBell({ 
-    notifications, 
-    unreadCount, 
-    onMarkAsRead, 
-    onMarkAllAsRead 
-}: { 
-    notifications: Notification[], 
+function NotificationBell({
+    notifications,
+    unreadCount,
+    onMarkAsRead,
+    onMarkAllAsRead
+}: {
+    notifications: Notification[],
     unreadCount: number,
     onMarkAsRead: (id: number) => void,
     onMarkAllAsRead: () => void
@@ -48,11 +49,11 @@ function NotificationBell({
 
     useEffect(() => {
         if (unreadCount < seenUnreadCount) {
-             setSeenUnreadCount(unreadCount);
+            setSeenUnreadCount(unreadCount);
         }
     }, [unreadCount, seenUnreadCount]);
-    
-    const sortedNotifications = [...notifications].sort((a, b) => 
+
+    const sortedNotifications = [...notifications].sort((a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
 
@@ -82,8 +83,8 @@ function NotificationBell({
                         </div>
                     ) : (
                         sortedNotifications.map((notif) => (
-                            <div 
-                                key={notif.id} 
+                            <div
+                                key={notif.id}
                                 onClick={() => {
                                     if (!notif.isRead) onMarkAsRead(notif.id);
                                     if (notif.link) {
@@ -101,7 +102,7 @@ function NotificationBell({
                             >
                                 <div className="flex justify-between items-start w-full gap-2 font-body text-left">
                                     <span className={cn(
-                                        "text-sm tracking-tight", 
+                                        "text-sm tracking-tight",
                                         !notif.isRead ? "text-slate-900 font-extrabold" : "text-slate-500 font-medium"
                                     )}>
                                         {notif.title}
@@ -124,7 +125,7 @@ function NotificationBell({
                     )}
                 </DropdownMenuGroup>
                 <div className="p-2 bg-white rounded-b-2xl border-t">
-                    <button 
+                    <button
                         onClick={() => router.push('/notifications')}
                         className="w-full text-xs font-bold text-primary hover:text-primary/80 py-1.5 text-center transition-colors"
                     >
@@ -240,9 +241,10 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center space-x-4">
+                    <LanguageSwitcher />
                     {isLoggedIn && (
-                        <Link 
-                            href="/wishlist" 
+                        <Link
+                            href="/wishlist"
                             className="relative h-8 w-8 rounded-full outline-none flex items-center justify-center text-slate-600 hover:text-primary transition-colors hover:bg-slate-100 cursor-pointer"
                             title="Yêu thích"
                         >
@@ -250,8 +252,8 @@ export function Navbar() {
                         </Link>
                     )}
                     {isLoggedIn && (
-                        <Link 
-                            href="/cart" 
+                        <Link
+                            href="/cart"
                             className="relative h-8 w-8 rounded-full outline-none flex items-center justify-center text-slate-600 hover:text-primary transition-colors hover:bg-slate-100 cursor-pointer"
                             title="Giỏ hàng"
                         >
@@ -264,9 +266,9 @@ export function Navbar() {
                         </Link>
                     )}
                     {isLoggedIn && (
-                        <NotificationBell 
-                            notifications={notifications} 
-                            unreadCount={unreadCount} 
+                        <NotificationBell
+                            notifications={notifications}
+                            unreadCount={unreadCount}
                             onMarkAsRead={handleMarkAsRead}
                             onMarkAllAsRead={handleMarkAllAsRead}
                         />
