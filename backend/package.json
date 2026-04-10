@@ -30,6 +30,7 @@
     "@nestjs/schedule": "^6.1.1",
     "@nestjs/swagger": "^11.2.4",
     "@nestjs/websockets": "^11.1.17",
+    "@payos/node": "^2.0.5",
     "@prisma/client": "^5.22.0",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",

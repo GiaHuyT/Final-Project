@@ -26,6 +26,7 @@ interface CartState {
   updateQuantity: (itemId: number, quantity: number) => Promise<boolean>;
   removeItem: (itemId: number) => Promise<boolean>;
   clearCart: () => Promise<boolean>;
+  checkout: () => Promise<string | null>;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -103,6 +104,19 @@ export const useCart = create<CartState>((set, get) => ({
     }
   },
 
+  checkout: async () => {
+    try {
+      const res = await http.post('/cart/checkout');
+      // res.data should contain the transaction info and checkoutUrl
+      set({ items: [] }); // clear the local state
+      return res.data.checkoutUrl; // Return the payment link
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Có lỗi xảy ra khi thanh toán';
+      toast.error(msg);
+      return null;
+    }
+  },
+
   getTotalItems: () => {
     return get().items.reduce((total, item) => total + item.quantity, 0);
   },
@@ -111,3 +125,4 @@ export const useCart = create<CartState>((set, get) => ({
     return get().items.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   }
 }));
+

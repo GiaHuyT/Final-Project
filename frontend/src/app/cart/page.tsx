@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingCart } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingCart, Scale, CheckCircle2, CircleDashed } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useCart } from "@/hooks/use-cart";
 
 export default function CartPage() {
-    const { items, isLoading, updateQuantity, removeItem, getTotalPrice, fetchCart } = useCart();
+    const { items, isLoading, updateQuantity, removeItem, getTotalPrice, fetchCart, checkout } = useCart();
     const router = useRouter();
+    const [selectedForCompareId, setSelectedForCompareId] = useState<number | null>(null);
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+
 
     useEffect(() => {
         fetchCart();
@@ -62,9 +66,37 @@ export default function CartPage() {
                                 {/* Chi tiết */}
                                 <div className="flex-1 w-full text-left">
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full w-fit">
-                                            {item.product.brand}
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full w-fit">
+                                                {item.product.brand}
+                                            </span>
+                                            {selectedForCompareId === item.product.id ? (
+                                                <button
+                                                    onClick={() => setSelectedForCompareId(null)}
+                                                    className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full hover:bg-orange-100 transition-colors"
+                                                >
+                                                    <CheckCircle2 className="w-3 h-3" />
+                                                    Đang chọn gốc
+                                                </button>
+                                            ) : selectedForCompareId !== null ? (
+                                                <button
+                                                    onClick={() => router.push(`/compare?id1=${selectedForCompareId}&id2=${item.product.id}`)}
+                                                    className="flex items-center gap-1 text-[10px] font-black text-white bg-slate-900 px-3 py-1 rounded-full hover:bg-blue-600 transition-colors shadow-md animate-in zoom-in"
+                                                    title="So sánh với xe gốc"
+                                                >
+                                                    <Scale className="w-3 h-3" />
+                                                    VS
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setSelectedForCompareId(item.product.id)}
+                                                    className="flex items-center gap-1 text-[10px] font-bold text-slate-500 border border-slate-200 px-2 py-1 rounded-full hover:text-slate-900 hover:border-slate-400 transition-colors"
+                                                >
+                                                    <CircleDashed className="w-3 h-3" />
+                                                    Chọn so sánh
+                                                </button>
+                                            )}
+                                        </div>
                                         <button 
                                             onClick={() => removeItem(item.id)}
                                             className="text-slate-400 hover:text-red-500 transition-colors p-2 bg-slate-50 hover:bg-red-50 rounded-full shrink-0"
@@ -88,7 +120,7 @@ export default function CartPage() {
                                     
                                     <div className="flex flex-wrap justify-between items-end mt-4 gap-4">
                                         <div className="text-2xl font-black text-slate-900">
-                                            {item.product.price?.toLocaleString()} <span className="text-xs font-bold text-slate-400">VND</span>
+                                            {(item.product.price * item.quantity).toLocaleString()} <span className="text-xs font-bold text-slate-400">VND</span>
                                         </div>
                                         
                                         {/* Nút cộng trừ */}
@@ -102,9 +134,15 @@ export default function CartPage() {
                                             </button>
                                             <span className="font-bold text-slate-900 w-4 text-center">{item.quantity}</span>
                                             <button 
-                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm text-slate-600 hover:text-slate-900 transition-colors disabled:opacity-50"
-                                                disabled={item.quantity >= item.product.stock || isLoading}
+                                                onClick={() => {
+                                                    if (item.quantity >= item.product.stock) {
+                                                        toast.error("Đã đạt tới giới hạn xe có sẵn trong kho");
+                                                    } else {
+                                                        updateQuantity(item.id, item.quantity + 1);
+                                                    }
+                                                }}
+                                                className={`w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm transition-colors ${item.quantity >= item.product.stock ? 'text-slate-400 hover:text-red-500 hover:bg-red-50 cursor-pointer' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'}`}
+                                                disabled={isLoading}
                                             >
                                                 <Plus className="w-4 h-4 p-[1px]" />
                                             </button>
@@ -146,12 +184,22 @@ export default function CartPage() {
                             </div>
 
                             <button 
-                                onClick={() => router.push('/checkout')} // Placeholder for checkout
-                                className="group w-full bg-white text-slate-900 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl"
+                                onClick={async () => {
+                                    setIsCheckingOut(true);
+                                    const url = await checkout();
+                                    if (url) {
+                                        window.location.href = url;
+                                    } else {
+                                        setIsCheckingOut(false);
+                                    }
+                                }}
+                                disabled={isCheckingOut}
+                                className="group w-full bg-white text-slate-900 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl disabled:opacity-70 disabled:hover:scale-100"
                             >
-                                ĐĂNG KÝ THANH TOÁN
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                {isCheckingOut ? 'ĐANG CHUYỂN HƯỚNG...' : 'ĐĂNG KÝ THANH TOÁN'}
+                                {!isCheckingOut && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                             </button>
+
 
                             <p className="text-[10px] text-slate-400 font-medium text-center mt-6 leading-relaxed">
                                 Bạn sẽ không bị trừ tiền ngay bây giờ. Bộ phận Sale của AutoBid sẽ liên hệ xác nhận và làm Hợp đồng.

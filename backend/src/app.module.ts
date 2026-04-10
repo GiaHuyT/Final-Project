@@ -18,9 +18,12 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { ChatModule } from './modules/chat/chat.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { CartModule } from './modules/cart/cart.module';
+import { PayosModule } from './modules/payos/payos.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/passport/roles.guard';
+
+import { TransactionsModule } from './modules/transactions/transactions.module';
 
 @Module({
   imports: [
@@ -43,6 +46,8 @@ import { RolesGuard } from './modules/auth/passport/roles.guard';
     ChatModule,
     ReviewsModule,
     CartModule,
+    PayosModule,
+    TransactionsModule,
   ],
   controllers: [],
   providers: [

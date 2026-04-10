@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards, Query, Post, Req } from '@nestjs/common';
 import { Public } from '../../core/decorators/public.decorator';
 
 import { AuctionsService } from './auctions.service';
@@ -31,4 +31,11 @@ export class AuctionsController {
     updateStatus(@Param('id') id: string, @Body('status') status: string) {
         return this.auctionsService.updateStatus(+id, status);
     }
+
+    @Post(':id/pay')
+    @ApiOperation({ summary: 'Thanh toán đấu giá cho người thắng' })
+    payForAuction(@Param('id') id: string, @Req() req: any) {
+        return this.auctionsService.payForAuction(+id, req.user.id);
+    }
 }
+

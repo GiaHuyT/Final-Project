@@ -1,9 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
+import { TransactionsService } from '../transactions/transactions.service';
 
 @Injectable()
 export class CartService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private transactionsService: TransactionsService
+  ) {}
 
   async getCart(userId: number) {
     let cart = await this.prisma.cart.findUnique({
@@ -120,4 +124,45 @@ export class CartService {
     });
     return this.getCart(userId);
   }
+
+  async checkout(userId: number) {
+    const cart = await this.getCart(userId);
+    if (!cart.items || cart.items.length === 0) {
+      throw new BadRequestException('Giỏ hàng trống');
+    }
+
+    let totalPrice = 0;
+    const orderItemsData = cart.items.map(item => {
+      const itemPrice = item.product.price * item.quantity;
+      totalPrice += itemPrice;
+      return {
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: item.product.price,
+      };
+    });
+
+    // Create Order
+    const order = await this.prisma.order.create({
+      data: {
+        customerId: userId,
+        totalPrice,
+        status: 'PENDING',
+        items: {
+          create: orderItemsData,
+        },
+      },
+    });
+
+    // Clear cart
+    await this.clearCart(userId);
+
+    // Create Transaction for Payment
+    return this.transactionsService.createTransactionForOrder(
+      order.id,
+      totalPrice,
+      `Thanh toan don hang ${order.id}`
+    );
+  }
 }
+

@@ -36,4 +36,11 @@ export class CartController {
   clearCart(@Req() req: any) {
     return this.cartService.clearCart(req.user.id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('checkout')
+  checkout(@Req() req: any) {
+    return this.cartService.checkout(req.user.id);
+  }
 }
+

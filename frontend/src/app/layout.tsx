@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Manrope, Inter } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import { ChatButton } from "@/components/chat/ChatButton";
+import { Toaster } from "react-hot-toast";
 
 import "./globals.css";
 
@@ -40,6 +41,7 @@ export default function RootLayout({
         <Navbar />
         {children}
         <ChatButton />
+        <Toaster position="bottom-right" />
       </body>
 
     </html>

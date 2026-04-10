@@ -203,6 +203,7 @@ model Auction {
   vendorId       Int
   vendor         User     @relation(fields: [vendorId], references: [id])
   bids           AuctionBid[]
+  transactions   Transaction[]
 }
 
 model AuctionBid {
@@ -259,6 +260,7 @@ model Order {
   status      String   @default("PENDING")
   createdAt   DateTime @default(now())
   items       OrderItem[]
+  transactions Transaction[]
 }
 
 model OrderItem {
@@ -353,4 +355,18 @@ model CartItem {
   
   // Đảm bảo mỗi sản phẩm chỉ xuất hiện 1 dòng trong 1 giỏ hàng: nếu thêm trùng thì cộng dồn quantity
   @@unique([cartId, productId])
-}
+}
+
+// --- GIAO DỊCH THANH TOÁN (TRANSACTION) ---
+model Transaction {
+  id            Int      @id @default(autoincrement()) // This will be the orderCode for PayOS
+  orderId       Int?
+  order         Order?   @relation(fields: [orderId], references: [id])
+  auctionId     Int?
+  auction       Auction? @relation(fields: [auctionId], references: [id])
+  amount        Float
+  status        String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
