@@ -1,41 +1,29 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, Query, Post, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, UseGuards, Request, Query } from '@nestjs/common';
+import { AuctionsService } from './auctions.service';
+import { CreateAuctionDto } from './dto/create-auction.dto';
+import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
+import { RolesGuard } from '../auth/passport/roles.guard';
 import { Public } from '../../core/decorators/public.decorator';
 
-import { AuctionsService } from './auctions.service';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
-
-@ApiTags('Auctions')
 @Controller('auctions')
-@UseGuards(JwtAuthGuard)
 export class AuctionsController {
-    constructor(private readonly auctionsService: AuctionsService) { }
+  constructor(private readonly auctionsService: AuctionsService) {}
 
-    @Public()
-    @Get()
-    @ApiOperation({ summary: 'Lấy tất cả đấu giá' })
-    findAll(@Query('status') status?: string) {
-        return this.auctionsService.findAll(status);
-    }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post()
+  async create(@Request() req, @Body() createAuctionDto: CreateAuctionDto) {
+    return this.auctionsService.create(req.user.id, createAuctionDto);
+  }
 
-    @Public()
-    @Get(':id')
-    @ApiOperation({ summary: 'Lấy chi tiết đấu giá' })
+  @Public()
+  @Get()
+  async findAll(@Query('status') status?: string) {
+    return this.auctionsService.findAll(status);
+  }
 
-    findOne(@Param('id') id: string) {
-        return this.auctionsService.findOne(+id);
-    }
-
-    @Patch(':id/status')
-    @ApiOperation({ summary: 'Cập nhật trạng thái đấu giá' })
-    updateStatus(@Param('id') id: string, @Body('status') status: string) {
-        return this.auctionsService.updateStatus(+id, status);
-    }
-
-    @Post(':id/pay')
-    @ApiOperation({ summary: 'Thanh toán đấu giá cho người thắng' })
-    payForAuction(@Param('id') id: string, @Req() req: any) {
-        return this.auctionsService.payForAuction(+id, req.user.id);
-    }
+  @Public()
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.auctionsService.findOne(+id);
+  }
 }
-

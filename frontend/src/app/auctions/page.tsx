@@ -1,20 +1,30 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
-
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { format } from "date-fns";
 import http from "@/lib/http";
 
 export default function AuctionListingPage() {
   const [auctions, setAuctions] = useState<any[]>([]);
+  const [filteredAuctions, setFilteredAuctions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
+
+  // Filter States
+  const [statusFilter, setStatusFilter] = useState("all"); // all, PENDING, ACTIVE, COMPLETED
+  const [typeFilter, setTypeFilter] = useState("all"); // all, OFFLINE, LIVESTREAM
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
     const fetchAuctions = async () => {
       try {
-        const { data } = await http.get('/products?type=AUCTION');
-        setAuctions(data || []);
+        const res = await http.get('/auctions');
+        const data = res.data;
+        if (Array.isArray(data)) {
+          setAuctions(data);
+          setFilteredAuctions(data);
+        }
       } catch (error) {
         console.error("Error fetching auctions:", error);
       } finally {
@@ -31,7 +41,49 @@ export default function AuctionListingPage() {
     return () => clearInterval(interval);
   }, []);
 
+  const handleApplyFilters = () => {
+    let result = [...auctions];
+
+    // Status filter
+    if (statusFilter !== "all") {
+        if (statusFilter === 'PENDING') {
+            result = result.filter(a => a.status === 'PENDING');
+        } else if (statusFilter === 'ACTIVE') {
+            result = result.filter(a => a.status === 'ACTIVE' || a.status === 'WAITING_PAYMENT');
+        } else if (statusFilter === 'COMPLETED') {
+            result = result.filter(a => a.status === 'COMPLETED' || a.status === 'CANCELLED');
+        }
+    }
+
+    // Type filter
+    if (typeFilter !== "all") {
+      result = result.filter(a => a.type === typeFilter);
+    }
+
+    // Date filter
+    if (fromDate) {
+      result = result.filter(a => new Date(a.startTime).getTime() >= new Date(fromDate).getTime());
+    }
+    if (toDate) {
+       // end of day for toDate
+       const endToDate = new Date(toDate);
+       endToDate.setHours(23, 59, 59, 999);
+      result = result.filter(a => new Date(a.endTime).getTime() <= endToDate.getTime());
+    }
+
+    setFilteredAuctions(result);
+  };
+
+  const handleClearFilters = () => {
+    setStatusFilter("all");
+    setTypeFilter("all");
+    setFromDate("");
+    setToDate("");
+    setFilteredAuctions(auctions);
+  };
+
   const getTimeLeft = (endTime: string) => {
+    if (!endTime) return "ĐÃ KẾT THÚC";
     const distance = new Date(endTime).getTime() - now;
     if (distance < 0) return "ĐÃ KẾT THÚC";
 
@@ -44,98 +96,171 @@ export default function AuctionListingPage() {
     return `${hours.toString().padStart(2, '0')}g ${minutes.toString().padStart(2, '0')}p ${seconds.toString().padStart(2, '0')}giây`;
   };
 
+  const activeRadioClasses = "bg-[#6c4826] text-white";
+  const inactiveRadioClasses = "bg-white border-slate-300";
+
   return (
-    <div className="bg-surface text-on-surface font-body selection:bg-surface-container-highest min-h-screen">
+    <div className="bg-surface text-on-surface font-body selection:bg-surface-container-highest min-h-screen pb-20">
+      <main className="max-w-7xl mx-auto px-6 lg:px-12 pt-24">
+        <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight text-on-background italic mb-8">Sàn giao dịch Đấu Giá</h1>
 
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* CỘT BỘ LỌC (Sidebar Filter) */}
+          <aside className="w-full lg:w-72 shrink-0">
+            <div className="bg-surface-container-low rounded-xl p-6 shadow-sm sticky top-24 border border-outline/10">
+              
+              {/* Trạng thái */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-on-surface mb-4">Trạng thái</h3>
+                <div className="space-y-3">
+                  {[
+                    { id: 'all', label: 'Tất cả' },
+                    { id: 'PENDING', label: 'Sắp diễn ra' },
+                    { id: 'ACTIVE', label: 'Đang diễn ra' },
+                    { id: 'COMPLETED', label: 'Đã kết thúc' }
+                  ].map(option => (
+                      <label key={option.id} className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${statusFilter === option.id ? 'border-primary' : 'border-outline group-hover:border-primary'}`}>
+                            {statusFilter === option.id && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
+                        </div>
+                        <input type="radio" className="hidden" name="status" value={option.id} checked={statusFilter === option.id} onChange={(e) => setStatusFilter(e.target.value)} />
+                        <span className="text-sm font-medium text-on-surface-variant">{option.label}</span>
+                      </label>
+                  ))}
+                </div>
+              </div>
 
-      <main className="pt-24 pb-20 max-w-7xl mx-auto px-6 lg:px-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <span className="text-on-tertiary-container font-label text-xs uppercase tracking-[0.2em] font-bold mb-2 block">Sàn giao dịch</span>
-            <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight text-on-background italic">Đang đấu giá</h1>
-          </div>
-          <div className="flex items-center gap-4">
-             <div className="glass-panel px-4 py-2 rounded-full border border-outline/10 text-xs font-bold flex items-center gap-2 cursor-pointer hover:bg-surface-container transition-colors">
-                <span className="material-symbols-outlined text-sm">filter_list</span>
-                Lọc
-             </div>
-             <div className="glass-panel px-4 py-2 rounded-full border border-outline/10 text-xs font-bold flex items-center gap-2 cursor-pointer hover:bg-surface-container transition-colors">
-                <span className="material-symbols-outlined text-sm">sort</span>
-                Sắp xếp: Mới nhất
-             </div>
+              {/* Hình thức */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold text-on-surface mb-4">Hình thức</h3>
+                <div className="space-y-3">
+                  {[
+                    { id: 'all', label: 'Tất cả' },
+                    { id: 'OFFLINE', label: 'Trả giá ngoài' },
+                    { id: 'LIVESTREAM', label: 'Phiên Livestream' }
+                  ].map(option => (
+                      <label key={option.id} className="flex items-center gap-3 cursor-pointer group">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${typeFilter === option.id ? 'border-primary' : 'border-outline group-hover:border-primary'}`}>
+                            {typeFilter === option.id && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
+                        </div>
+                        <input type="radio" className="hidden" name="type" value={option.id} checked={typeFilter === option.id} onChange={(e) => setTypeFilter(e.target.value)} />
+                        <span className="text-sm font-medium text-on-surface-variant">{option.label}</span>
+                      </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Từ ngày */}
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-on-surface mb-2">Từ ngày</h3>
+                <input 
+                    type="date" 
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="w-full bg-surface border border-outline rounded-lg p-2.5 text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              {/* Đến ngày */}
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-on-surface mb-2">Đến ngày</h3>
+                <input 
+                    type="date" 
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="w-full bg-surface border border-outline rounded-lg p-2.5 text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div className="space-y-3">
+                <button 
+                  onClick={handleApplyFilters}
+                  className="w-full bg-primary hover:opacity-90 text-on-primary font-bold py-3 px-4 rounded-full transition-all"
+                >
+                  Áp dụng
+                </button>
+                <button 
+                  onClick={handleClearFilters}
+                  className="w-full text-on-surface-variant hover:text-on-surface font-medium py-2 px-4 rounded-full transition-colors"
+                >
+                  Xoá bộ lọc
+                </button>
+              </div>
+
+            </div>
+          </aside>
+
+          {/* CỘT MAIN (Danh sách đấu giá) */}
+          <div className="flex-1 w-full">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-primary"></div>
+              </div>
+            ) : filteredAuctions.length === 0 ? (
+              <div className="text-center py-20 bg-surface-container-low border border-outline/10 rounded-2xl">
+                <p className="text-on-surface-variant font-bold text-lg">Không tìm thấy phiên đấu giá nào phù hợp.</p>
+                <button onClick={handleClearFilters} className="text-primary underline text-sm mt-2">Xoá lọc và xem tất cả</button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                {filteredAuctions.map((auction) => {
+                  const timeLeft = getTimeLeft(auction.endTime);
+                  const isEnded = timeLeft === "ĐÃ KẾT THÚC";
+                  const coverImage = auction.items?.[0]?.product?.images?.[0]?.url || "/images/static/car-placeholder.png";
+
+                  return (
+                    <div key={auction.id} className="group bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
+                      <Link href={`/auctions/${auction.id}`} className="block relative h-64 overflow-hidden">
+                        <img alt={auction.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={coverImage} />
+                        
+                        <div className="absolute top-4 left-4 flex gap-2">
+                          <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md
+                            ${auction.status === 'ACTIVE' ? 'bg-primary text-on-primary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : 'bg-black/80 text-white'}
+                          `}>
+                            {auction.type === 'LIVESTREAM' ? '🔴 Live' : 'Offline'}
+                          </span>
+                        </div>
+                      </Link>
+                      
+                      <div className="p-5 flex-1 flex flex-col">
+                        <h3 className="font-headline text-xl font-bold text-on-surface line-clamp-2 mb-3 h-14" title={auction.title}>{auction.title}</h3>
+                        
+                        <div className="mt-auto space-y-4">
+                            <div className="bg-surface-container-low p-4 rounded-xl flex justify-between items-center border border-outline/5 border-b-[2px] border-b-primary">
+                                <div>
+                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Giá hiện tại</p>
+                                <p className="text-2xl font-black text-primary">
+                                    {(auction.currentPrice || auction.startPrice).toLocaleString()} đ
+                                </p>
+                                </div>
+                                <div className="text-right">
+                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Bắt đầu lúc</p>
+                                <p className="text-sm font-semibold text-on-surface">{format(new Date(auction.startTime), "dd/MM HH:mm")}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2 px-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-outline text-sm">schedule</span>
+                                  <p className={`text-sm font-bold ${isEnded ? 'text-error' : 'text-on-tertiary-container'}`}>
+                                      {isEnded ? "Đã kết thúc" : timeLeft}
+                                  </p>
+                                </div>
+                            </div>
+
+                            <Link href={`/auctions/${auction.id}`} className={`block w-full text-center py-4 mt-2 rounded-full font-headline font-bold text-sm tracking-widest transition-all ${isEnded ? 'bg-surface-variant text-on-surface-variant hover:opacity-90' : 'bg-primary text-on-primary hover:opacity-90 active:scale-95'}`}>
+                            {isEnded ? "XEM KẾT QUẢ" : "THAM GIA NGAY"}
+                            </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
-          </div>
-        ) : auctions.length === 0 ? (
-          <div className="text-center py-20 bg-surface-container-low rounded-3xl">
-            <p className="text-on-surface-variant font-bold text-lg">Không tìm thấy xe nào.</p>
-            <p className="text-sm text-outline mt-2">Vui lòng quay lại sau để xem các mẫu xe mới.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {auctions.map((product) => {
-              const timeLeft = getTimeLeft(product.auction?.endTime || "");
-              const isEndingSoon = timeLeft !== "ĐÃ KẾT THÚC" && !timeLeft.includes('ngày');
-
-              return (
-                <div key={product.id} className="group cursor-pointer">
-                  <Link href={`/auctions/${product.id}`}>
-                    <div className="relative h-64 rounded-xl overflow-hidden mb-6 bg-surface-container">
-                      <img alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={product.imageUrl || "/images/static/car-placeholder.png"} />
-
-                      <div className="absolute top-4 left-4 flex gap-2">
-                        <span className="bg-black/80 text-white text-[10px] font-bold px-3 py-1 rounded-full backdrop-blur-md uppercase tracking-widest">Đang đấu giá</span>
-                        {isEndingSoon && (
-                          <span className="bg-tertiary-container/80 text-on-tertiary-container text-[10px] font-bold px-3 py-1 rounded-full backdrop-blur-md uppercase tracking-widest">Sắp kết thúc</span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="px-2">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-headline text-xl font-bold line-clamp-1">{product.name}</h3>
-                      <span className="material-symbols-outlined text-outline cursor-pointer hover:text-error transition-colors">favorite</span>
-                    </div>
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="flex items-center gap-1.5 bg-secondary-container px-3 py-1 rounded-md">
-                        <span className="material-symbols-outlined text-sm">speed</span>
-                        <span className="text-xs font-bold text-on-secondary-container">{product.mileage || '0'} dặm</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 bg-secondary-container px-3 py-1 rounded-md">
-                        <span className="material-symbols-outlined text-sm">location_on</span>
-                        <span className="text-xs font-bold text-on-secondary-container">USA</span>
-                      </div>
-                    </div>
-                    <div className="bg-surface-container-low p-4 rounded-xl">
-                      <div className="flex justify-between items-end">
-                        <div>
-                          <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Giá hiện tại</p>
-                          <p className="font-headline text-2xl font-extrabold text-primary">${product.price.toLocaleString()}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Thời gian còn</p>
-                          <p className={`font-headline text-lg font-bold ${isEndingSoon ? 'text-on-tertiary-container' : 'text-on-background'}`}>{timeLeft}</p>
-                        </div>
-                      </div>
-                      <div className="w-full h-1 bg-surface-variant rounded-full mt-4 overflow-hidden">
-                        <div className={`h-full ${isEndingSoon ? 'bg-tertiary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : 'bg-primary'} transition-all`} style={{ width: isEndingSoon ? '85%' : '30%' }}></div>
-                      </div>
-                    </div>
-                    <Link href={`/auctions/${product.id}`} className="block text-center w-full mt-6 bg-primary text-on-primary py-4 rounded-full font-headline font-bold text-sm tracking-widest hover:opacity-90 active:scale-95 transition-all">
-                      ĐẶT GIÁ
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </main>
     </div>
   );
 }
-
