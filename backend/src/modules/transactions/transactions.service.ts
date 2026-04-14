@@ -76,7 +76,7 @@ export class TransactionsService {
       if (transaction.auctionId) {
         await this.prisma.auction.update({
           where: { id: transaction.auctionId },
-          data: { status: 'PAID' },
+          data: { status: 'COMPLETED' },
         });
       }
     }

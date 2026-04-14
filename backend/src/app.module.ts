@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from './modules/auth/auth.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { PrismaModule } from 'prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -48,6 +49,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     CartModule,
     PayosModule,
     TransactionsModule,
+    ReportsModule,
   ],
   controllers: [],
   providers: [
