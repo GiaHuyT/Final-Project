@@ -151,7 +151,7 @@ export default function VendorProfilePage() {
                 <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
                         <AvatarImage src={previewAvatarUrl || undefined} alt={watchedUsername || userNameDisplay} />
-                        <AvatarFallback className="text-2xl bg-orange-50 text-orange-600">
+                        <AvatarFallback className="text-2xl bg-primary text-on-primary font-bold">
                             {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
                         </AvatarFallback>
                         {isSaving && avatarFile instanceof File && (

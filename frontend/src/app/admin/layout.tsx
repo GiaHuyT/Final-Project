@@ -34,7 +34,7 @@ export default function AdminLayout({
             } else {
                 console.warn("User is not ADMIN. Role:", user.role);
                 setIsAuthorized(false);
-                window.location.href = '/auth/login';
+                window.location.href = '/';
             }
         }
         catch (error) {

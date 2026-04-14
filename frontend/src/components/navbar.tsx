@@ -14,6 +14,7 @@ import {
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { Bell, Heart, ShoppingCart } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 import http from "@/lib/http";
@@ -275,8 +276,13 @@ export function Navbar() {
                     )}
                     {isLoggedIn ? (
                         <DropdownMenu>
-                            <DropdownMenuTrigger className="relative h-8 w-8 rounded-full outline-none ring-2 ring-primary/20 flex items-center justify-center bg-primary text-on-primary font-bold text-sm cursor-pointer hover:scale-105 transition-transform select-none">
-                                {user?.username?.[0]?.toUpperCase() || "U"}
+                            <DropdownMenuTrigger className="relative h-8 w-8 rounded-full outline-none ring-2 ring-primary/20 flex items-center justify-center bg-primary text-on-primary font-bold text-sm cursor-pointer hover:scale-105 transition-transform select-none overflow-hidden">
+                                <Avatar className="h-full w-full">
+                                    <AvatarImage src={user?.avatar || ""} alt={`@${user?.username || 'user'}`} />
+                                    <AvatarFallback className="bg-primary text-on-primary font-bold text-sm">
+                                        {user?.username?.[0]?.toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-56 bg-white shadow-xl border border-gray-100" align="end" forceMount>
                                 <DropdownMenuLabel className="font-normal font-body">
@@ -288,12 +294,14 @@ export function Navbar() {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem asChild>
-                                    <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body">Hồ sơ</Link>
-                                </DropdownMenuItem>
+                                {user?.role !== 'VENDOR' && (
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body">Hồ sơ</Link>
+                                    </DropdownMenuItem>
+                                )}
                                 {user?.role === 'VENDOR' && (
                                     <DropdownMenuItem asChild>
-                                        <Link href="/vendor/products" className="cursor-pointer font-semibold text-sm font-body">Cửa hàng</Link>
+                                        <Link href="/vendor/profile" className="cursor-pointer font-semibold text-sm font-body">Tài khoản của tôi</Link>
                                     </DropdownMenuItem>
                                 )}
                                 {user?.role === 'ADMIN' && (

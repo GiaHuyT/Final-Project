@@ -69,8 +69,8 @@ export function VendorTopbar() {
                         <Button variant="ghost" className="relative h-9 w-9 rounded-full border border-gray-100 p-0 overflow-hidden">
                             <Avatar className="h-9 w-9">
                                 <AvatarImage src={user?.avatar || ""} alt={`@${user?.username || 'vendor'}`} />
-                                <AvatarFallback className="bg-orange-100 text-orange-600 font-medium">
-                                    {user?.username?.[0]?.toUpperCase() || 'V'}
+                                <AvatarFallback className="bg-primary text-on-primary font-bold text-sm">
+                                    {user?.username?.[0]?.toUpperCase() || "U"}
                                 </AvatarFallback>
                             </Avatar>
                         </Button>

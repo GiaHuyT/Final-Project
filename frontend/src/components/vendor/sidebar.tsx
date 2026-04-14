@@ -14,7 +14,8 @@ import {
     LogOut,
     ChevronLeft,
     Menu,
-    User
+    User,
+    Gavel
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,12 +24,13 @@ import { useRouter } from 'next/navigation';
 
 const menuItems = [
     { icon: Store, label: 'Hồ sơ nhà cung cấp', href: '/vendor/profile' },
-    { icon: Box, label: 'Quản lý sản phẩm', href: '/vendor/products' },
+    { icon: TrendingUp, label: 'Doanh số', href: '/vendor/revenue' },
+    { icon: Box, label: 'Quản lý xe', href: '/vendor/products' },
+    { icon: Gavel, label: 'Quản lý đấu giá', href: '/vendor/auctions' },
     { icon: Clock, label: 'Quản lý đơn hàng', href: '/vendor/orders' },
     { icon: Truck, label: 'Xe thuê', href: '/vendor/rental-cars' },
     { icon: Wrench, label: 'Sửa chữa', href: '/vendor/repairs' },
     { icon: Bell, label: 'Thông báo', href: '/vendor/notifications' },
-    { icon: TrendingUp, label: 'Doanh thu', href: '/vendor/revenue' },
 ];
 
 export function VendorSidebar() {

@@ -34,7 +34,7 @@ export default function VendorLayout({
                 console.warn("User is not VENDOR. Role:", user.role);
                 setIsAuthorized(false);
                 toast.error("Bạn không có quyền truy cập khu vực Nhà cung cấp");
-                window.location.href = '/auth/login';
+                window.location.href = '/';
             }
         }
         catch (error) {

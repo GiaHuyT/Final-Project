@@ -69,7 +69,9 @@ export function AdminTopbar() {
                         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                             <Avatar className="h-9 w-9">
                                 <AvatarImage src={user?.avatar || ""} alt={`@${user?.username || 'admin'}`} />
-                                <AvatarFallback>{user?.username?.[0]?.toUpperCase() || 'AD'}</AvatarFallback>
+                                <AvatarFallback className="bg-primary text-on-primary font-bold text-sm">
+                                    {user?.username?.[0]?.toUpperCase() || "U"}
+                                </AvatarFallback>
                             </Avatar>
                         </Button>
                     </DropdownMenuTrigger>
