@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronRight, Loader2, Gauge, Maximize2, Fuel, ShieldCheck, Gamepad2, Zap, ArrowDown, ArrowUp } from "lucide-react";
 import http from "@/lib/http";
 import { cn } from "@/lib/utils";
 
-export default function ComparePage() {
+function CompareContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const id1 = searchParams.get('id1');
@@ -239,5 +239,20 @@ export default function ComparePage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function ComparePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 pt-24 pb-20 flex justify-center items-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="animate-spin w-12 h-12 text-slate-900" />
+                    <span className="text-sm font-bold uppercase tracking-widest text-slate-500">Đang tải cấu hình so sánh...</span>
+                </div>
+            </div>
+        }>
+            <CompareContent />
+        </Suspense>
     );
 }

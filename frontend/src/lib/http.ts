@@ -1,8 +1,10 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
+
 const http = axios.create({
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: API_URL,
     withCredentials: true, // Crucial for sending/receiving cookies
 });
 
@@ -33,7 +35,7 @@ http.interceptors.response.use(
 
             try {
                 // Call refresh token API
-                const res = await axios.post('http://127.0.0.1:3000/auth/refresh-token', {}, {
+                const res = await axios.post(`${API_URL}/auth/refresh-token`, {}, {
                     withCredentials: true
                 });
 
