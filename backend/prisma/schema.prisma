@@ -31,7 +31,8 @@ model User {
   addresses         Address[]
   products          Product[]
   orders            Order[]
-  auctions          Auction[]       
+  auctions          Auction[]       @relation("VendorAuctions")
+  wonAuctions       Auction[]       @relation("WinnerAuctions")
   bids              AuctionBid[]    
   serviceProfiles   ServiceProfile? 
   reviews           Review[]
@@ -163,6 +164,7 @@ model Product {
   orderItems        OrderItem[]
   favorites         Favorite[]
   cartItems         CartItem[]
+  auctionItems      AuctionItem[]
 }
 
 model ProductImage {
@@ -191,19 +193,47 @@ model ProductVariantImage {
 
 
 // --- NHÓM ĐẤU GIÁ ---
+enum AuctionType {
+  OFFLINE
+  LIVESTREAM
+}
+
 model Auction {
   id             Int      @id @default(autoincrement())
   title          String
   description    String?
   startPrice     Float
   currentPrice   Float?
+  bidStep        Float    @default(0) // Bước nhảy giá
+  type           AuctionType @default(OFFLINE)
+  
+  // Thông số Livestream
+  streamUrl      String? // Nếu nhúng YT/FB
+  streamKey      String? // Nếu tự Live qua WebRTC
+  
   startTime      DateTime
   endTime        DateTime
-  status         String   @default("PENDING")
+  
+  // Trạng thái: PENDING, ACTIVE, WAITING_PAYMENT (chờ cọc), COMPLETED, CANCELLED
+  status         String   @default("PENDING") 
+  
   vendorId       Int
-  vendor         User     @relation(fields: [vendorId], references: [id])
+  vendor         User     @relation("VendorAuctions", fields: [vendorId], references: [id])
+  winnerId       Int?     
+  winner         User?    @relation("WinnerAuctions", fields: [winnerId], references: [id])
+  
   bids           AuctionBid[]
   transactions   Transaction[]
+  items          AuctionItem[]
+}
+
+model AuctionItem {
+  id          Int      @id @default(autoincrement())
+  auctionId   Int
+  auction     Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  productId   Int
+  product     Product  @relation(fields: [productId], references: [id])
+  orderIndex  Int      @default(0) // Thứ tự xuất hiện trong livestream
 }
 
 model AuctionBid {
