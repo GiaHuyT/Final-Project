@@ -224,7 +224,7 @@ export default function VendorRentalCarsPage() {
                                             </td>
                                             <td className="px-10 py-6 align-middle font-black text-gray-600 tracking-tighter uppercase">{rental.plate}</td>
                                             <td className="px-10 py-6 align-middle text-center">
-                                                <div className="font-black text-blue-600">{(rental.price || 0).toLocaleString()} <span className="text-[10px] opacity-60">đ/ngày</span></div>
+                                                <div className="font-black text-blue-600">{(rental.price || 0).toLocaleString('vi-VN')} <span className="text-[10px] opacity-60">đ/ngày</span></div>
                                             </td>
                                             <td className="px-10 py-6 align-middle text-center">
                                                 <Badge className={`rounded-full px-4 py-1 uppercase text-[9px] font-black shadow-sm border-2 ${

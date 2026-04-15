@@ -8,6 +8,41 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import http from '@/lib/http';
 
+function AuctionCountdown({ startTime, status }: { startTime: string; status: string }) {
+    const [timeLeft, setTimeLeft] = useState<string>('');
+
+    useEffect(() => {
+        if (status !== 'PENDING') return;
+
+        const tick = () => {
+            const now = new Date().getTime();
+            const startMs = new Date(startTime).getTime();
+            const distance = startMs - now;
+
+            if (distance <= 0) {
+                setTimeLeft('Đang mở...');
+            } else {
+                const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((distance % (1000 * 60)) / 1000);
+                setTimeLeft(`Mở sau: ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+            }
+        };
+
+        tick();
+        const timer = setInterval(tick, 1000);
+        return () => clearInterval(timer);
+    }, [startTime, status]);
+
+    if (status !== 'PENDING' || !timeLeft) return null;
+
+    return (
+        <span className="font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md ml-auto">
+            {timeLeft}
+        </span>
+    );
+}
+
 export default function VendorAuctionsPage() {
     const [auctions, setAuctions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -109,11 +144,11 @@ export default function VendorAuctionsPage() {
                                 <div className="text-sm border-b pb-3">
                                     <div className="flex justify-between items-center text-slate-500 mb-1">
                                         <span>Khởi điểm:</span>
-                                        <span className="font-semibold text-slate-800">{auction.startPrice.toLocaleString()} VNĐ</span>
+                                        <span className="font-semibold text-slate-800">{auction.startPrice.toLocaleString('vi-VN')} VNĐ</span>
                                     </div>
                                     <div className="flex justify-between items-center text-slate-500">
                                         <span>Giá hiện tại:</span>
-                                        <span className="font-bold text-orange-600 text-base">{auction.currentPrice?.toLocaleString() || auction.startPrice.toLocaleString()} VNĐ</span>
+                                        <span className="font-bold text-orange-600 text-base">{auction.currentPrice?.toLocaleString('vi-VN') || auction.startPrice.toLocaleString('vi-VN')} VNĐ</span>
                                     </div>
                                 </div>
                                 
@@ -121,6 +156,7 @@ export default function VendorAuctionsPage() {
                                     <div className="flex items-center gap-2">
                                         <Calendar className="w-3.5 h-3.5" />
                                         <span>Bắt đầu: {new Date(auction.startTime).toLocaleString('vi-VN')}</span>
+                                        <AuctionCountdown startTime={auction.startTime} status={auction.status} />
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-3.5 h-3.5" />

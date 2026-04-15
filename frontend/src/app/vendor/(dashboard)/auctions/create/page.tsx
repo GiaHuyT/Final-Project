@@ -23,7 +23,9 @@ export default function CreateAuctionPage() {
     const [loading, setLoading] = useState(false);
     const [isLivestream, setIsLivestream] = useState(false);
 
-    const { register, handleSubmit, control, watch, setValue } = useForm({
+    const { register, handleSubmit, control, watch, setValue, formState: { errors }, trigger } = useForm({
+        mode: 'all',
+        criteriaMode: 'all',
         defaultValues: {
             title: '',
             description: '',
@@ -46,7 +48,12 @@ export default function CreateAuctionPage() {
 
     useEffect(() => {
         setIsLivestream(selectedType === 'LIVESTREAM');
-    }, [selectedType]);
+        if (selectedType === 'LIVESTREAM') {
+            trigger('streamUrl');
+        } else {
+            trigger('streamUrl');
+        }
+    }, [selectedType, trigger]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -70,13 +77,19 @@ export default function CreateAuctionPage() {
     }, []);
 
     const onSubmit = async (data: any) => {
+        const isValid = await trigger();
+        if (!isValid) {
+            toast.error('Vui lòng kiểm tra lại các trường bị lỗi');
+            return;
+        }
+
         try {
             setLoading(true);
             const token = Cookies.get('token');
             const payload = {
                 ...data,
-                startPrice: Number(data.startPrice),
-                bidStep: Number(data.bidStep),
+                startPrice: Number(data.startPrice.toString().replace(/\./g, '')),
+                bidStep: Number(data.bidStep.toString().replace(/\./g, '')),
                 startTime: new Date(data.startTime).toISOString(),
                 endTime: new Date(data.endTime).toISOString(),
                 items: data.items.map((item: any, index: number) => ({
@@ -122,7 +135,8 @@ export default function CreateAuctionPage() {
                     <CardContent className="p-6 space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="title" className="font-semibold text-slate-700">Tên phiên đấu giá <span className="text-red-500">*</span></Label>
-                            <Input id="title" placeholder="VD: Đấu giá Siêu xe Mercedes-Benz S450 dọn kho đón Tết..." {...register('title', { required: true })} className="h-11 border-slate-200 focus-visible:ring-orange-500" />
+                            <Input id="title" placeholder="VD: Đấu giá Siêu xe Mercedes-Benz S450 dọn kho đón Tết..." {...register('title', { required: 'Vui lòng nhập tên phiên đấu giá' })} className="h-11 border-slate-200 focus-visible:ring-orange-500 placeholder:text-slate-400/60" />
+                            {errors.title && <span className="text-red-500 text-xs font-medium">{errors.title.message as string}</span>}
                         </div>
                         
                         <div className="space-y-2">
@@ -160,14 +174,20 @@ export default function CreateAuctionPage() {
                                 <Label className="font-bold text-amber-900 flex items-center gap-2">
                                     <Video className="w-5 h-5" /> Nguồn Livestream
                                 </Label>
-                                <p className="text-sm text-amber-700">Bạn có thể dán link Youtube/Facebook vào đây. Nếu bỏ trống, hệ thống sẽ mở tính năng WebRTC tự bật Camera trên trình duyệt lúc bắt đầu phiên.</p>
-                                <Input placeholder="https://youtube.com/watch?v=..." {...register('streamUrl')} className="bg-white border-amber-300 focus-visible:ring-amber-500" />
+                                <p className="text-sm text-amber-700">Dán link Youtube/Facebook vào đây để phát trực tiếp buổi đấu giá.</p>
+                                <Input placeholder="https://youtube.com/watch?v=..." {...register('streamUrl', {
+                                    validate: (val) => {
+                                        if (isLivestream && !val) return 'Vui lòng nhập link livestream';
+                                        return true;
+                                    }
+                                })} className="bg-white border-amber-300 focus-visible:ring-amber-500 placeholder:text-slate-400/60" />
+                                {errors.streamUrl && <span className="text-red-500 text-xs font-medium">{errors.streamUrl.message as string}</span>}
                             </div>
                         )}
                         
                         <div className="space-y-2">
                             <Label htmlFor="description" className="font-semibold text-slate-700">Mô tả/Thể lệ luật chơi</Label>
-                            <Textarea id="description" placeholder="Nhập thêm mô tả về tình trạng, nội quy trả giá..." {...register('description')} className="min-h-[100px] border-slate-200 focus-visible:ring-orange-500" />
+                            <Textarea id="description" placeholder="Nhập thêm mô tả về tình trạng, nội quy trả giá..." {...register('description')} className="min-h-[100px] border-slate-200 focus-visible:ring-orange-500 placeholder:text-slate-400/60" />
                         </div>
                     </CardContent>
                 </Card>
@@ -201,20 +221,23 @@ export default function CreateAuctionPage() {
                                             <Controller
                                                 name={`items.${index}.productId`}
                                                 control={control}
-                                                rules={{ required: true }}
+                                                rules={{ required: 'Vui lòng chọn xe' }}
                                                 render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger className="bg-white">
-                                                            <SelectValue placeholder="-- Chọn một chiếc xe của bạn --" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {products.map(p => (
-                                                                <SelectItem key={p.id} value={p.id.toString()}>
-                                                                    {p.name} - (Giá gốc: {p.price.toLocaleString()}đ)
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
+                                                    <div className="space-y-1">
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <SelectTrigger className="bg-white">
+                                                                <SelectValue placeholder="-- Chọn một chiếc xe của bạn --" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {products.map(p => (
+                                                                    <SelectItem key={p.id} value={p.id.toString()}>
+                                                                        {p.name} - (Giá gốc: {p.price.toLocaleString('vi-VN')}đ)
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        {errors?.items?.[index]?.productId && <span className="text-red-500 text-xs font-medium">{errors.items[index].productId?.message as string}</span>}
+                                                    </div>
                                                 )}
                                             />
                                         </div>
@@ -234,11 +257,53 @@ export default function CreateAuctionPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
                             <div className="space-y-2">
                                 <Label htmlFor="startPrice" className="font-semibold text-slate-700">Giá khởi điểm (VNĐ) <span className="text-red-500">*</span></Label>
-                                <Input id="startPrice" type="number" placeholder="VD: 500000000" {...register('startPrice', { required: true, min: 0 })} className="font-mono text-lg" />
+                                <Controller
+                                    name="startPrice"
+                                    control={control}
+                                    rules={{ required: 'Vui lòng nhập giá khởi điểm' }}
+                                    render={({ field: { onChange, value } }) => (
+                                        <div className="space-y-1">
+                                            <Input 
+                                                id="startPrice" 
+                                                type="text" 
+                                                value={value}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    const formatted = rawValue ? Number(rawValue).toLocaleString('vi-VN') : '';
+                                                    onChange(formatted);
+                                                }}
+                                                placeholder="VD: 500.000.000" 
+                                                className="font-mono text-lg placeholder:text-slate-400/60 placeholder:font-sans" 
+                                            />
+                                            {errors.startPrice && <span className="text-red-500 text-xs font-medium">{errors.startPrice.message as string}</span>}
+                                        </div>
+                                    )}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="bidStep" className="font-semibold text-slate-700">Bước nhảy giá tối thiểu (VNĐ) <span className="text-red-500">*</span></Label>
-                                <Input id="bidStep" type="number" placeholder="VD: 5000000" {...register('bidStep', { required: true, min: 0 })} className="font-mono text-lg" />
+                                <Controller
+                                    name="bidStep"
+                                    control={control}
+                                    rules={{ required: 'Vui lòng nhập bước nhảy giá' }}
+                                    render={({ field: { onChange, value } }) => (
+                                        <div className="space-y-1">
+                                            <Input 
+                                                id="bidStep" 
+                                                type="text" 
+                                                value={value}
+                                                onChange={(e) => {
+                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                    const formatted = rawValue ? Number(rawValue).toLocaleString('vi-VN') : '';
+                                                    onChange(formatted);
+                                                }}
+                                                placeholder="VD: 5.000.000" 
+                                                className="font-mono text-lg placeholder:text-slate-400/60 placeholder:font-sans" 
+                                            />
+                                            {errors.bidStep && <span className="text-red-500 text-xs font-medium">{errors.bidStep.message as string}</span>}
+                                        </div>
+                                    )}
+                                />
                                 <p className="text-xs text-slate-500">Mỗi lần khách trả giá phải cao hơn giá hiện tại ít nhất bằng mức này.</p>
                             </div>
                         </div>
@@ -253,11 +318,37 @@ export default function CreateAuctionPage() {
                     <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="startTime" className="font-semibold text-slate-700">Thời gian Bắt đầu <span className="text-red-500">*</span></Label>
-                            <Input id="startTime" type="datetime-local" {...register('startTime', { required: true })} />
+                            <Input id="startTime" type="datetime-local" {...register('startTime', { 
+                                required: 'Vui lòng chọn thời gian bắt đầu',
+                                validate: {
+                                    minTime: (value) => {
+                                        const start = new Date(value).getTime();
+                                        const now = new Date().getTime();
+                                        return start >= now + 5 * 60 * 1000 || 'Thời gian bắt đầu phải cách hiện tại tối thiểu 5 phút';
+                                    },
+                                    maxTime: (value) => {
+                                        const start = new Date(value).getTime();
+                                        const now = new Date().getTime();
+                                        return start <= now + 2 * 60 * 60 * 1000 || 'Thời gian bắt đầu tối đa chỉ được cách hiện tại 2 tiếng';
+                                    }
+                                }
+                            })} />
+                            {errors.startTime && <span className="text-red-500 text-xs font-medium">{errors.startTime.message as string}</span>}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="endTime" className="font-semibold text-slate-700">Thời gian Kết thúc dự kiến <span className="text-red-500">*</span></Label>
-                            <Input id="endTime" type="datetime-local" {...register('endTime', { required: true })} />
+                            <Input id="endTime" type="datetime-local" {...register('endTime', { 
+                                required: 'Vui lòng chọn thời gian kết thúc',
+                                validate: {
+                                    minDuration: (value, formValues) => {
+                                        if(!formValues.startTime) return true;
+                                        const start = new Date(formValues.startTime).getTime();
+                                        const end = new Date(value).getTime();
+                                        return end >= start + 10 * 60 * 1000 || 'Thời gian đấu giá tối thiểu phải là 10 phút';
+                                    }
+                                }
+                            })} />
+                            {errors.endTime && <span className="text-red-500 text-xs font-medium">{errors.endTime.message as string}</span>}
                             <p className="text-xs text-amber-600">Lưu ý: Thời gian kết thúc có thể tự động kéo dài thêm 5 phút nếu có người đấu giá vào phút chót (Sniper Protection).</p>
                         </div>
                     </CardContent>

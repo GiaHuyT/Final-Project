@@ -197,7 +197,7 @@ export default function VendorRepairsPage() {
                                     <p className="text-sm font-medium text-gray-400 mb-6 line-clamp-2 min-h-[40px] leading-relaxed">{repair.description || 'Chưa cung cấp mô tả chi tiết cho dịch vụ này.'}</p>
                                     <div className="flex justify-between items-center pt-6 border-t border-gray-50">
                                         <div className="flex items-center gap-1 text-orange-400"><Star className="w-4 h-4 fill-current" /><span className="text-xs font-black text-gray-900">5.0</span></div>
-                                        <div className="font-black text-emerald-600 text-2xl">{(repair.price || 0).toLocaleString()} <span className="text-[10px] opacity-60 ml-1">VNĐ</span></div>
+                                        <div className="font-black text-emerald-600 text-2xl">{(repair.price || 0).toLocaleString('vi-VN')} <span className="text-[10px] opacity-60 ml-1">VNĐ</span></div>
                                     </div>
                                 </div>
                             </div>

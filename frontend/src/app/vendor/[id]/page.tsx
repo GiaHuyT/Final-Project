@@ -169,13 +169,13 @@ export default function VendorPublicProfilePage() {
                                                 <div className="flex items-center gap-4 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6">
                                                     <span>{product.year || "——"}</span>
                                                     <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                                    <span>{product.mileage ? `${product.mileage.toLocaleString()} km` : "Mới 100%"}</span>
+                                                    <span>{product.mileage ? `${product.mileage.toLocaleString('vi-VN')} km` : "Mới 100%"}</span>
                                                 </div>
                                                 <div className="flex items-end justify-between border-t border-slate-50 pt-6">
                                                     <div>
                                                         <p className="text-[9px] text-slate-400 font-black uppercase tracking-[0.15em] mb-1">Giá yêu cầu</p>
                                                         <p className="text-2xl font-black text-slate-900 tracking-tight">
-                                                            {product.price.toLocaleString()} <span className="text-sm font-normal text-slate-500 tracking-normal">đ</span>
+                                                            {product.price.toLocaleString('vi-VN')} <span className="text-sm font-normal text-slate-500 tracking-normal">đ</span>
                                                         </p>
                                                     </div>
                                                     <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">

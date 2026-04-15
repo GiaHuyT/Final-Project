@@ -134,7 +134,7 @@ export default function VendorDashboard() {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-sm font-bold text-slate-900">{order.totalPrice.toLocaleString()} ₫</div>
+                                        <div className="text-sm font-bold text-slate-900">{order.totalPrice.toLocaleString('vi-VN')} ₫</div>
                                         <div className="text-[10px] text-slate-400">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
                                         <div className={`text-[10px] items-center justify-center px-2 py-0.5 rounded-full inline-flex font-bold mt-1 uppercase ${order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : order.status === 'SHIPPING' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                             {order.status}

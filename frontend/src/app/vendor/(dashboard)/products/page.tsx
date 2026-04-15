@@ -523,7 +523,7 @@ export default function VendorProductsPage() {
                                 <div className="flex gap-4 mb-6">
                                     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                                         <span className="material-symbols-outlined text-base">speed</span>
-                                        <span>{product.mileage ? `${product.mileage.toLocaleString()} km` : 'Hàng mới'}</span>
+                                        <span>{product.mileage ? `${product.mileage.toLocaleString('vi-VN')} km` : 'Hàng mới'}</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                                         <span className="material-symbols-outlined text-base">local_gas_station</span>
@@ -532,7 +532,7 @@ export default function VendorProductsPage() {
                                 </div>
 
                                 <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
-                                    <span className="text-slate-900 font-bold text-lg">{product.price.toLocaleString()} <span className="text-[10px] text-slate-400 align-top ml-0.5">VNĐ</span></span>
+                                    <span className="text-slate-900 font-bold text-lg">{product.price.toLocaleString('vi-VN')} <span className="text-[10px] text-slate-400 align-top ml-0.5">VNĐ</span></span>
                                     <div className="flex gap-2">
                                         <button onClick={() => { setSelectedProduct(product); setFormData({ ...product, price: product.price.toString(), stock: product.stock.toString(), year: product.year?.toString() || '', colorVariants: product.colorVariants?.map((cv: any) => ({ color: cv.color, images: cv.images?.map((im: any) => im.url) || [] })) || [{ color: '', images: [] }] }); setIsEditOpen(true); }} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-8 h-8 rounded flex items-center justify-center transition-colors">
                                             <span className="material-symbols-outlined text-[20px]">edit</span>
