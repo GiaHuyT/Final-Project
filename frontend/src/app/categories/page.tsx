@@ -365,7 +365,7 @@ export default function CarModelsPage() {
                                             </h3>
 
                                             <div className="flex items-baseline gap-1 mb-6">
-                                                <span className="text-3xl font-black text-slate-900">{product.price?.toLocaleString()}</span>
+                                                <span className="text-3xl font-black text-slate-900">{product.price?.toLocaleString('vi-VN')}</span>
                                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">VND</span>
                                             </div>
 

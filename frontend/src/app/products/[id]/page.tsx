@@ -67,7 +67,7 @@ export default function VehicleDetailsPage() {
                 {product.name}
              </h1>
              <p className="text-on-surface-variant font-medium text-lg mb-8">
-               {product.engineCapacity || '—'}L {product.fuelType || '—'}, {product.transmission || '—'}, {product.mileage?.toLocaleString() || '0'} Miles
+               {product.engineCapacity || '—'}L {product.fuelType || '—'}, {product.transmission || '—'}, {product.mileage?.toLocaleString('vi-VN') || '0'} Miles
              </p>
 
              {/* Gallery */}
@@ -123,7 +123,7 @@ export default function VehicleDetailsPage() {
                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
                       <div>
                          <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Odo (Đã đi)</p>
-                         <p className="font-headline font-bold text-lg">{product.mileage ? `${product.mileage.toLocaleString()} km` : '—'}</p>
+                         <p className="font-headline font-bold text-lg">{product.mileage ? `${product.mileage.toLocaleString('vi-VN')} km` : '—'}</p>
                       </div>
                       <div>
                          <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Biển số</p>
@@ -231,7 +231,7 @@ export default function VehicleDetailsPage() {
              <div className="bg-surface-container-low rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50">
                 <div className="mb-10 text-center">
                    <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Giá niêm yết</p>
-                   <p className="font-headline text-5xl font-black text-primary">${product.price?.toLocaleString() || 'Liên hệ'}</p>
+                   <p className="font-headline text-5xl font-black text-primary">${product.price?.toLocaleString('vi-VN') || 'Liên hệ'}</p>
                 </div>
                 
                 <div className="flex justify-between items-center bg-white px-6 py-4 rounded-2xl mb-8">

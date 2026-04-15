@@ -82,7 +82,21 @@ export default function AuctionListingPage() {
     setFilteredAuctions(auctions);
   };
 
-  const getTimeLeft = (endTime: string) => {
+  const getTimeLeft = (startTime: string, endTime: string, status: string) => {
+    if (status === 'COMPLETED' || status === 'CANCELLED') return "ĐÃ KẾT THÚC";
+
+    const startMs = new Date(startTime).getTime();
+    if (now < startMs) {
+      const distance = startMs - now;
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+      
+      if (days > 0) return `Bắt đầu sau ${days}ngày ${hours}g`;
+      return `Bắt đầu sau: ${hours.toString().padStart(2, '0')}g ${minutes.toString().padStart(2, '0')}p ${seconds.toString().padStart(2, '0')}giây`;
+    }
+
     if (!endTime) return "ĐÃ KẾT THÚC";
     const distance = new Date(endTime).getTime() - now;
     if (distance < 0) return "ĐÃ KẾT THÚC";
@@ -92,8 +106,8 @@ export default function AuctionListingPage() {
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    if (days > 0) return `${days}ngày ${hours}g ${minutes}p`;
-    return `${hours.toString().padStart(2, '0')}g ${minutes.toString().padStart(2, '0')}p ${seconds.toString().padStart(2, '0')}giây`;
+    if (days > 0) return `Còn lại: ${days}ngày ${hours}g ${minutes}p`;
+    return `Còn lại: ${hours.toString().padStart(2, '0')}g ${minutes.toString().padStart(2, '0')}p ${seconds.toString().padStart(2, '0')}giây`;
   };
 
   const activeRadioClasses = "bg-[#6c4826] text-white";
@@ -204,8 +218,9 @@ export default function AuctionListingPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                 {filteredAuctions.map((auction) => {
-                  const timeLeft = getTimeLeft(auction.endTime);
+                  const timeLeft = getTimeLeft(auction.startTime, auction.endTime, auction.status);
                   const isEnded = timeLeft === "ĐÃ KẾT THÚC";
+                  const isPending = timeLeft.startsWith("Bắt đầu");
                   const coverImage = auction.items?.[0]?.product?.images?.[0]?.url || "/images/static/car-placeholder.png";
 
                   return (
@@ -230,7 +245,7 @@ export default function AuctionListingPage() {
                                 <div>
                                 <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Giá hiện tại</p>
                                 <p className="text-2xl font-black text-primary">
-                                    {(auction.currentPrice || auction.startPrice).toLocaleString()} đ
+                                    {(auction.currentPrice || auction.startPrice).toLocaleString('vi-VN')} đ
                                 </p>
                                 </div>
                                 <div className="text-right">
@@ -242,7 +257,7 @@ export default function AuctionListingPage() {
                             <div className="flex items-center justify-between gap-2 px-1">
                                 <div className="flex items-center gap-1.5">
                                   <span className="material-symbols-outlined text-outline text-sm">schedule</span>
-                                  <p className={`text-sm font-bold ${isEnded ? 'text-error' : 'text-on-tertiary-container'}`}>
+                                  <p className={`text-sm font-bold ${isEnded ? 'text-error' : (isPending ? 'text-orange-500' : 'text-on-tertiary-container')}`}>
                                       {isEnded ? "Đã kết thúc" : timeLeft}
                                   </p>
                                 </div>

@@ -23,7 +23,7 @@ export default function AuctionDetailPage() {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [bidAmount, setBidAmount] = useState<string>('');
     const [currentUser, setCurrentUser] = useState<any>(null);
-    
+
     // Nộp cọc state
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     const [isGeneratingPayment, setIsGeneratingPayment] = useState(false);
@@ -33,9 +33,9 @@ export default function AuctionDetailPage() {
         if (userStr) {
             setCurrentUser(JSON.parse(userStr));
         }
-        
+
         fetchAuctionDetail();
-        
+
         // Setup Socket.IO connection
         const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000');
         setSocket(newSocket);
@@ -65,7 +65,7 @@ export default function AuctionDetailPage() {
         try {
             const res = await http.get(`/auctions/${params.id}`);
             const data = res.data;
-            
+
             if (data) {
                 setAuction(data);
                 setCurrentPrice(data.currentPrice || data.startPrice);
@@ -80,38 +80,73 @@ export default function AuctionDetailPage() {
 
     // Calculate time remaining every second
     useEffect(() => {
-        if (!endTime) return;
+        if (!auction) return;
 
         const timer = setInterval(() => {
             const now = new Date().getTime();
-            const distance = endTime.getTime() - now;
+            const startStr = auction.startTime ? new Date(auction.startTime).getTime() : 0;
+            const endStr = auction.endTime ? new Date(auction.endTime).getTime() : (endTime ? endTime.getTime() : 0);
+
+            let targetTime = endStr;
+            let hasStarted = true;
+
+            if (now < startStr) {
+                targetTime = startStr;
+                hasStarted = false;
+            }
+
+            const distance = targetTime - now;
 
             if (distance < 0) {
-                clearInterval(timer);
-                setRemainingTime("Đã hết giờ");
-                setIsEnded(true);
-                
-                // Nếu trạng thái vừa đổi qua WAITING_PAYMENT hoặc mình là winner, tạo nút cọc
-                if (auction?.status === 'WAITING_PAYMENT' || auction?.status === 'COMPLETED') {
-                    // Do nothing here, wait for manual refresh or rely on socket events if we had status events
+                if (!hasStarted) {
+                    setRemainingTime("Đang mở phiên...");
+                } else {
+                    clearInterval(timer);
+                    setRemainingTime("Đã hết giờ");
+                    setIsEnded(true);
                 }
             } else {
                 const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                 const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                 const s = Math.floor((distance % (1000 * 60)) / 1000);
-                
-                setRemainingTime(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
-                setIsEnded(false);
+
+                setRemainingTime(`${!hasStarted ? 'Sắp bắt đầu: ' : ''}${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+                setIsEnded(!hasStarted ? true : false); // Disable bid if not started
             }
         }, 1000);
 
         return () => clearInterval(timer);
     }, [endTime, auction]);
 
+    // Polling for transition from ACTIVE -> WAITING_PAYMENT
+    useEffect(() => {
+        let pollTimer: any;
+        if (isEnded && auction?.status === 'ACTIVE') {
+            // After time ends locally, the cron job might take a few seconds to update DB
+            pollTimer = setInterval(fetchAuctionDetail, 3000);
+        }
+        return () => clearInterval(pollTimer);
+    }, [isEnded, auction?.status]);
+
+    const hasTriggeredPayment = useRef(false);
+    const isWinner = currentUser && auction?.winnerId === currentUser.id;
+
+    useEffect(() => {
+        if (auction?.status === 'WAITING_PAYMENT' && isWinner && !hasTriggeredPayment.current) {
+            hasTriggeredPayment.current = true;
+            handleGeneratePayment();
+        }
+    }, [auction?.status, isWinner]);
+
     const handlePlaceBid = async () => {
         if (!currentUser) {
             toast.error("Bạn cần đăng nhập để đặt giá!");
             router.push('/auth/login');
+            return;
+        }
+
+        if (auction.status === 'PENDING') {
+            toast.error("Phiên đấu giá chưa bắt đầu!");
             return;
         }
 
@@ -124,7 +159,7 @@ export default function AuctionDetailPage() {
         const requiredBid = currentPrice + auction.bidStep;
 
         if (amount < requiredBid) {
-            toast.error(`Bạn phải đặt tối thiểu ${requiredBid.toLocaleString()} VNĐ`);
+            toast.error(`Bạn phải đặt tối thiểu ${requiredBid.toLocaleString('vi-VN')} VNĐ`);
             return;
         }
 
@@ -148,13 +183,13 @@ export default function AuctionDetailPage() {
         try {
             setIsGeneratingPayment(true);
             const res = await http.post(`/transactions/auction/${auction.id}`, {
-                amount: currentPrice * 0.1, // Cọc 10%
+                amount: currentPrice * 0.05, // Cọc 5%
                 description: `Coc xe dau gia ${auction.id}`
             });
             const data = res.data;
             if (data.checkoutUrl) {
-                // Chuyển hướng người dùng sang trang thanh toán PayOS
-                window.location.href = data.checkoutUrl;
+                // Hiển thị iframe trực tiếp thay vì chuyển hướng
+                setPaymentUrl(data.checkoutUrl);
             } else {
                 toast.error("Không thể tạo link thanh toán");
             }
@@ -165,8 +200,6 @@ export default function AuctionDetailPage() {
         }
     };
 
-    const isWinner = currentUser && auction?.winnerId === currentUser.id;
-
     if (!auction) {
         return <div className="h-screen flex items-center justify-center">Đang tải...</div>;
     }
@@ -175,15 +208,15 @@ export default function AuctionDetailPage() {
         <div className="bg-slate-50 min-h-screen py-12 px-4 sm:px-6">
             <div className="max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    
+
                     {/* Phần Video/Hình ảnh xe */}
                     <div className="lg:col-span-2 space-y-6">
                         <Card className="overflow-hidden border-none shadow-xl bg-black">
                             {auction.type === 'LIVESTREAM' ? (
                                 <div className="aspect-video relative w-full bg-slate-900 flex items-center justify-center">
                                     {auction.streamUrl ? (
-                                        <iframe 
-                                            src={auction.streamUrl.replace("watch?v=", "embed/")} 
+                                        <iframe
+                                            src={auction.streamUrl.replace("watch?v=", "embed/")}
                                             className="w-full h-full absolute inset-0"
                                             allowFullScreen
                                         />
@@ -201,8 +234,8 @@ export default function AuctionDetailPage() {
                                 </div>
                             ) : (
                                 <div className="aspect-video bg-slate-200 relative items-center justify-center flex">
-                                    <img 
-                                        src={auction.items?.[0]?.product?.images?.[0]?.url || 'https://images.unsplash.com/photo-1550524458-9a9b08f8aeeb?q=80&w=1200'} 
+                                    <img
+                                        src={auction.items?.[0]?.product?.images?.[0]?.url || 'https://images.unsplash.com/photo-1550524458-9a9b08f8aeeb?q=80&w=1200'}
                                         alt="Car Image"
                                         className="object-cover w-full h-full"
                                     />
@@ -225,7 +258,7 @@ export default function AuctionDetailPage() {
                                 </div>
                             </div>
                             <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{auction.description}</p>
-                            
+
                             {auction.items?.length > 0 && (
                                 <div className="pt-4 border-t">
                                     <h3 className="font-semibold text-slate-800 mb-3">Xe đấu giá trong phiên này:</h3>
@@ -248,8 +281,8 @@ export default function AuctionDetailPage() {
                         <Card className="shadow-xl border-orange-200 border-2 overflow-hidden sticky top-6">
                             <div className="bg-gradient-to-r from-orange-600 to-rose-600 p-6 text-center text-white">
                                 <p className="text-orange-100 font-medium text-sm mb-1">GIÁ HIỆN TẠI</p>
-                                <h2 className="text-4xl font-black tracking-tight">{currentPrice.toLocaleString()}đ</h2>
-                                
+                                <h2 className="text-4xl font-black tracking-tight">{currentPrice.toLocaleString('vi-VN')}đ</h2>
+
                                 <div className="flex justify-center items-center gap-2 mt-4 bg-black/20 rounded-xl py-2 px-4 w-max mx-auto">
                                     <Clock className="w-5 h-5" />
                                     <span className="font-mono font-bold text-xl">{remainingTime}</span>
@@ -262,16 +295,22 @@ export default function AuctionDetailPage() {
                                     <div className="bg-amber-50 border-amber-200 border rounded-xl p-5 text-center">
                                         <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
                                         <h3 className="font-bold text-amber-900 text-lg mb-1">ĐÃ CHỐT ĐẤU GIÁ</h3>
-                                        <p className="text-sm text-amber-700 mb-4">Đang đợi người có mức cược cao nhất nộp tiền đặt cọc 10% (Trong vòng 10 phút).</p>
-                                        
+                                        <p className="text-sm text-amber-700 mb-4">Đang đợi người có mức cược cao nhất nộp tiền đặt cọc 5% (Trong vòng 5 phút).</p>
+
                                         {isWinner ? (
-                                            <Button 
-                                                onClick={handleGeneratePayment}
-                                                disabled={isGeneratingPayment}
-                                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold h-12 shadow-lg"
-                                            >
-                                                {isGeneratingPayment ? 'Đang tạo link PayOS...' : `THANH TOÁN CỌC ${(currentPrice * 0.1).toLocaleString()}đ NGAY!`}
-                                            </Button>
+                                            paymentUrl ? (
+                                                <div className="mt-4 border border-amber-200 rounded-xl overflow-hidden shadow-lg h-[500px] w-full bg-white">
+                                                    <iframe src={paymentUrl} className="w-full h-full border-none" />
+                                                </div>
+                                            ) : (
+                                                <Button
+                                                    onClick={handleGeneratePayment}
+                                                    disabled={isGeneratingPayment}
+                                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold h-12 shadow-lg"
+                                                >
+                                                    {isGeneratingPayment ? 'Đang tạo mã QR PayOS...' : `THANH TOÁN CỌC ${(currentPrice * 0.05).toLocaleString('vi-VN')}đ NGAY!`}
+                                                </Button>
+                                            )
                                         ) : (
                                             <p className="text-xs bg-white py-2 rounded-lg text-slate-600">Bạn đứng hạng dưới. Vui lòng chờ xem Top 1 có bùng kèo không để tiếp tục đọ sức!</p>
                                         )}
@@ -288,18 +327,18 @@ export default function AuctionDetailPage() {
                                         <div className="space-y-3">
                                             <p className="text-sm font-semibold text-slate-700 mb-2">Đưa ra mức giá của bạn:</p>
                                             <div className="flex gap-2">
-                                                <input 
-                                                    type="number" 
+                                                <input
+                                                    type="number"
                                                     min={currentPrice + auction.bidStep}
                                                     step={auction.bidStep}
                                                     value={bidAmount}
                                                     onChange={e => setBidAmount(e.target.value)}
-                                                    className="flex-1 w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500" 
+                                                    className="flex-1 w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
                                                 />
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-1">Bước giá tối thiểu: + {auction.bidStep.toLocaleString()}đ</p>
-                                            
-                                            <Button 
+                                            <p className="text-xs text-slate-500 mt-1">Bước giá tối thiểu: + {auction.bidStep.toLocaleString('vi-VN')}đ</p>
+
+                                            <Button
                                                 onClick={handlePlaceBid}
                                                 disabled={isEnded || auction.status !== 'ACTIVE'}
                                                 className="w-full bg-slate-900 hover:bg-black text-white h-12 font-bold text-lg gap-2 mt-4"
@@ -317,7 +356,7 @@ export default function AuctionDetailPage() {
                                         <span>Lịch sử trả giá (Leaderboard)</span>
                                         <Badge variant="secondary" className="bg-slate-100 text-slate-600">{bids.length} lượt</Badge>
                                     </h3>
-                                    
+
                                     <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
                                         {bids.length === 0 ? (
                                             <p className="text-center text-slate-400 text-sm py-4 italic">Chưa có ai đặt giá.</p>
@@ -336,7 +375,7 @@ export default function AuctionDetailPage() {
                                                         </div>
                                                     </div>
                                                     <span className={`font-mono font-bold ${i === 0 ? 'text-orange-600' : 'text-slate-600'}`}>
-                                                        {bid.bidAmount.toLocaleString()}đ
+                                                        {bid.bidAmount.toLocaleString('vi-VN')}đ
                                                     </span>
                                                 </div>
                                             ))

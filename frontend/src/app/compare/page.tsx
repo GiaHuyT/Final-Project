@@ -99,8 +99,8 @@ function CompareContent() {
         }
 
         return {
-            val1Node: <span className={c1Color}>{v1 === 0 ? "---" : `${v1.toLocaleString()} ${format}`}{icon1}</span>,
-            val2Node: <span className={c2Color}>{v2 === 0 ? "---" : `${v2.toLocaleString()} ${format}`}{icon2}</span>,
+            val1Node: <span className={c1Color}>{v1 === 0 ? "---" : `${v1.toLocaleString('vi-VN')} ${format}`}{icon1}</span>,
+            val2Node: <span className={c2Color}>{v2 === 0 ? "---" : `${v2.toLocaleString('vi-VN')} ${format}`}{icon2}</span>,
         };
     };
 
@@ -161,7 +161,7 @@ function CompareContent() {
                         <span className="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full font-black uppercase tracking-widest mb-3 z-10">{car1.brand}</span>
                         <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-tight mb-2 z-10">{car1.name}</h2>
                         <span className="text-slate-500 text-sm font-medium z-10 mb-4">{car1.year} • {car1.condition}</span>
-                        <div className="text-xl md:text-3xl font-black text-slate-900 z-10">{car1.price?.toLocaleString()} <span className="text-sm font-bold text-slate-400">VND</span></div>
+                        <div className="text-xl md:text-3xl font-black text-slate-900 z-10">{car1.price?.toLocaleString('vi-VN')} <span className="text-sm font-bold text-slate-400">VND</span></div>
                     </div>
 
                     {/* Car 2 */}
@@ -173,7 +173,7 @@ function CompareContent() {
                         <span className="text-[10px] bg-orange-50 text-orange-600 px-3 py-1 rounded-full font-black uppercase tracking-widest mb-3 z-10">{car2.brand}</span>
                         <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-tight mb-2 z-10">{car2.name}</h2>
                         <span className="text-slate-500 text-sm font-medium z-10 mb-4">{car2.year} • {car2.condition}</span>
-                        <div className="text-xl md:text-3xl font-black text-slate-900 z-10">{car2.price?.toLocaleString()} <span className="text-sm font-bold text-slate-400">VND</span></div>
+                        <div className="text-xl md:text-3xl font-black text-slate-900 z-10">{car2.price?.toLocaleString('vi-VN')} <span className="text-sm font-bold text-slate-400">VND</span></div>
                     </div>
                 </div>
 

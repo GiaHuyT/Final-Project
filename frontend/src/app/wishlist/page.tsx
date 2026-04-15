@@ -117,7 +117,7 @@ export default function WishlistPage() {
                                             <h3 className="font-black text-xl text-slate-900 line-clamp-2 leading-tight group-hover:text-primary transition-colors">{product.name}</h3>
                                         </div>
                                         <div className="flex items-baseline gap-1 mb-6">
-                                            <span className="text-3xl font-black text-slate-900">{product.price.toLocaleString()}</span>
+                                            <span className="text-3xl font-black text-slate-900">{product.price.toLocaleString('vi-VN')}</span>
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">VND</span>
                                         </div>
                                         

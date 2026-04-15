@@ -120,7 +120,7 @@ export default function CartPage() {
                                     
                                     <div className="flex flex-wrap justify-between items-end mt-4 gap-4">
                                         <div className="text-2xl font-black text-slate-900">
-                                            {(item.product.price * item.quantity).toLocaleString()} <span className="text-xs font-bold text-slate-400">VND</span>
+                                            {(item.product.price * item.quantity).toLocaleString('vi-VN')} <span className="text-xs font-bold text-slate-400">VND</span>
                                         </div>
                                         
                                         {/* Nút cộng trừ */}
@@ -163,7 +163,7 @@ export default function CartPage() {
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between items-center text-slate-300 font-medium">
                                     <span>Tạm tính ({items.length} xe)</span>
-                                    <span className="font-bold">{getTotalPrice().toLocaleString()} ₫</span>
+                                    <span className="font-bold">{getTotalPrice().toLocaleString('vi-VN')} ₫</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-300 font-medium">
                                     <span>Thuế & Phí dự kiến</span>
@@ -176,7 +176,7 @@ export default function CartPage() {
                                     <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tổng cộng</span>
                                     <div className="text-right">
                                         <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-                                            {getTotalPrice().toLocaleString()}
+                                            {getTotalPrice().toLocaleString('vi-VN')}
                                         </div>
                                         <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">VND</div>
                                     </div>

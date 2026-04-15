@@ -325,7 +325,7 @@ export default function ProfilePage() {
                                                     <div className="flex justify-between items-start gap-4 mb-3">
                                                         <h3 className="font-extrabold text-lg text-slate-900 line-clamp-2 leading-tight">{product.name}</h3>
                                                     </div>
-                                                    <p className="text-2xl font-black text-blue-600 mb-4">{product.price.toLocaleString()} <span className="text-[12px] align-top text-blue-400">đ</span></p>
+                                                    <p className="text-2xl font-black text-blue-600 mb-4">{product.price.toLocaleString('vi-VN')} <span className="text-[12px] align-top text-blue-400">đ</span></p>
                                                     
                                                     <div className="grid grid-cols-2 gap-3 mb-6">
                                                         <div className="bg-slate-50 rounded-lg p-2.5 flex items-center gap-2">

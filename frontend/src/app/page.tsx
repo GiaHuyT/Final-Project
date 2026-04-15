@@ -219,7 +219,7 @@ export default function Home() {
                         <div className="flex justify-between items-end">
                           <div>
                             <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Giá hiện tại</p>
-                            <p className="font-headline text-2xl font-extrabold text-primary">${product.price.toLocaleString()}</p>
+                            <p className="font-headline text-2xl font-extrabold text-primary">${product.price.toLocaleString('vi-VN')}</p>
                           </div>
                           {/* Time left logic could go here */}
                         </div>
