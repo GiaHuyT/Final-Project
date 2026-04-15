@@ -21,20 +21,38 @@ export class AuctionsCronService {
     
     const now = new Date();
 
-    // 1. Kích hoạt Phiên đấu giá tới giờ (PENDING -> ACTIVE)
-    const startingNow = await this.prisma.auction.findMany({
+    // 1. Kích hoạt Phiên đấu giá tới giờ (PENDING -> ACTIVE), và thông báo sắp bắt đầu
+    const pendingAuctions = await this.prisma.auction.findMany({
       where: {
-        startTime: { lte: now },
         status: 'PENDING',
       },
+      include: {
+        vendor: { select: { id: true, email: true } }
+      }
     });
 
-    for (const auction of startingNow) {
-      await this.prisma.auction.update({
-        where: { id: auction.id },
-        data: { status: 'ACTIVE' },
-      });
-      this.logger.log(`Auction ${auction.id} changed to ACTIVE.`);
+    for (const auction of pendingAuctions) {
+      const startTime = new Date(auction.startTime).getTime();
+      const distanceMinutes = Math.round((startTime - now.getTime()) / 60000);
+
+      // Nhắc nhở vendor
+      if ([5, 10, 15].includes(distanceMinutes)) {
+        await this.notifications.create(auction.vendorId, {
+          type: 'SYSTEM' as any,
+          content: `Chú ý: Phiên đấu giá "${auction.title}" sẽ bắt đầu trong khoảng ${distanceMinutes} phút nữa! Hãy chuẩn bị sẵn sàng.`,
+          link: `/vendor/auctions`, // Wait: vendor's path
+        });
+        this.logger.log(`Notified vendor for auction ${auction.id} starting in ${distanceMinutes} mins.`);
+      }
+
+      // Kích hoạt
+      if (startTime <= now.getTime()) {
+        await this.prisma.auction.update({
+          where: { id: auction.id },
+          data: { status: 'ACTIVE' },
+        });
+        this.logger.log(`Auction ${auction.id} changed to ACTIVE.`);
+      }
     }
 
     // 2. Chốt phiên ACTIVE hết giờ mở cửa -> WAITING_PAYMENT
@@ -68,11 +86,11 @@ export class AuctionsCronService {
         // Trigger tạo link cọc PayOS (để gửi sau hoặc user tự bấm)
         await this.auctionsService.triggerPaymentForWinner(auction.id);
 
-        // Báo cho người thắng "Vòng Sinh Tử 10 Phút"
+        // Báo cho người thắng "Vòng Sinh Tử 5 Phút"
         await this.notifications.create(winner.userId, {
           type: 'AUCTION' as any,
-          content: `CHÚ Ý: Bạn đang cầm Top 1 phiên đấu giá "${auction.title}". HÃY NỘP CỌC 10% TRONG 10 PHÚT TỚI NẾU KHÔNG SẼ BỊ HỦY QUYỀN!`,
-          link: `/auctions/${auction.id}/deposit`,
+          content: `CHÚ Ý: Bạn đang cầm Top 1 phiên đấu giá "${auction.title}". HÃY NỘP CỌC 5% TRONG 5 PHÚT TỚI NẾU KHÔNG SẼ BỊ HỦY QUYỀN!`,
+          link: `/auctions/${auction.id}`,
           metadata: { auctionId: auction.id, bidAmount: winner.bidAmount },
         });
 
@@ -90,11 +108,11 @@ export class AuctionsCronService {
       }
     }
 
-    // 3. Xử lý Vòng 10 Phút: Nếu hết 10 phút từ lúc endTime mà vẫn WAITING_PAYMENT -> Hủy cọc, hồi sinh phiên
-    const tenMinutesAgo = new Date(now.getTime() - 10 * 60 * 1000);
+    // 3. Xử lý Vòng 5 Phút: Nếu hết 5 phút từ lúc endTime mà vẫn WAITING_PAYMENT -> Hủy cọc, hồi sinh phiên
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
     const unpaidAuctions = await this.prisma.auction.findMany({
       where: {
-        endTime: { lte: tenMinutesAgo }, // Đã quá điểm endTime 10 phút
+        endTime: { lte: fiveMinutesAgo }, // Đã quá điểm endTime 5 phút
         status: 'WAITING_PAYMENT',
       },
       include: {
@@ -105,7 +123,7 @@ export class AuctionsCronService {
     });
 
     for (const auction of unpaidAuctions) {
-      this.logger.warn(`Auction ${auction.id} unpaid after 10 mins! Removing winner and extending.`);
+      this.logger.warn(`Auction ${auction.id} unpaid after 5 mins! Removing winner and extending.`);
 
       if (auction.winnerId) {
         // Xóa tất cả các bids của thằng bùng kèo này trong phiên đó để trừng phạt
@@ -115,7 +133,7 @@ export class AuctionsCronService {
 
         await this.notifications.create(auction.winnerId, {
           type: 'SYSTEM' as any,
-          content: `Bạn đã bị tước quyền thắng đấu giá "${auction.title}" do không thanh toán cọc đúng hạn (10 phút). Kỷ lục đặt giá của bạn trong phiên đã bị xóa.`,
+          content: `Bạn đã bị tước quyền thắng đấu giá "${auction.title}" do không thanh toán cọc đúng hạn (5 phút). Kỷ lục đặt giá của bạn trong phiên đã bị xóa.`,
           link: `/auctions/${auction.id}`,
         });
       }
@@ -129,8 +147,8 @@ export class AuctionsCronService {
 
       const newCurrentPrice = remainingBids.length > 0 ? remainingBids[0].bidAmount : auction.startPrice;
       
-      // Hồi sinh phiên tiếp thêm 10 phút nữa
-      const extendedEndTime = new Date(now.getTime() + 10 * 60 * 1000);
+      // Hồi sinh phiên tiếp thêm 5 phút nữa
+      const extendedEndTime = new Date(now.getTime() + 5 * 60 * 1000);
       
       await this.prisma.auction.update({
         where: { id: auction.id },
@@ -145,7 +163,7 @@ export class AuctionsCronService {
       // Báo cho toàn hệ thống
       await this.notifications.create(auction.vendorId, {
         type: 'AUCTION' as any,
-        content: `Người chơi Top 1 đã BÙNG cọc. Phiên đấu giá "${auction.title}" tự động sống lại thêm 10 phút nữa!`,
+        content: `Người chơi Top 1 đã BÙNG cọc. Phiên đấu giá "${auction.title}" tự động sống lại thêm 5 phút nữa!`,
         link: `/auctions/${auction.id}`,
       });
     }

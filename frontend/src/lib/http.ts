@@ -51,7 +51,7 @@ http.interceptors.response.use(
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 Cookies.remove('token'); // Xóa cả Cookie
-                
+
                 // Show a friendly message if possible (optional, but alert is certain)
                 alert('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');
                 window.location.href = '/auth/login';

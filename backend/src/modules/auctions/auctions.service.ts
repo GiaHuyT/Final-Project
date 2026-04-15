@@ -14,7 +14,7 @@ export class AuctionsService {
         // Kiểm tra logic tạo phòng (Ví dụ streamKey nếu là WebRTC)
         let streamKey = null;
         if (dto.type === 'LIVESTREAM' && !dto.streamUrl) {
-           streamKey = `live_${vendorId}_${Date.now()}`;
+            streamKey = `live_${vendorId}_${Date.now()}`;
         }
 
         return this.prisma.auction.create({
@@ -132,12 +132,12 @@ export class AuctionsService {
         });
         if (!auction || !auction.winnerId || !auction.currentPrice) return null;
 
-        const tenPercentDeposit = auction.currentPrice * 0.1;
+        const fivePercentDeposit = auction.currentPrice * 0.05;
 
         return this.transactionsService.createTransactionForAuction(
             auction.id,
-            tenPercentDeposit,
-            `Thanh toan coc 10% trung dau gia xe`
+            fivePercentDeposit,
+            `Coc xe dau gia ${auction.id}`
         );
     }
 }
