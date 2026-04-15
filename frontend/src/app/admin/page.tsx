@@ -60,7 +60,7 @@ export default function AdminDashboard() {
                             <div>
                                 <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Tổng doanh thu hệ thống</span>
                                 <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mt-1 text-slate-900">
-                                    {(stats?.totalRevenue || 0).toLocaleString()} ₫
+                                    {(stats?.totalRevenue || 0).toLocaleString('vi-VN')} ₫
                                 </h2>
                             </div>
                             <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1">
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm font-bold text-slate-900">{order.totalPrice.toLocaleString()} ₫</div>
+                                    <div className="text-sm font-bold text-slate-900">{order.totalPrice.toLocaleString('vi-VN')} ₫</div>
                                     <div className="text-[10px] text-slate-400">{new Date(order.createdAt).toLocaleString('vi-VN')}</div>
                                     <div className="text-[10px] font-bold mt-1 uppercase text-blue-600">{order.status}</div>
                                 </div>

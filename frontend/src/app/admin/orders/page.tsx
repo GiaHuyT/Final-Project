@@ -156,7 +156,7 @@ export default function AdminOrdersPage() {
                                                     </td>
                                                     <td className="px-8 py-5 align-middle">
                                                         <div className="font-black text-orange-600 text-base">
-                                                            {order.totalPrice.toLocaleString()} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
+                                                            {order.totalPrice.toLocaleString('vi-VN')} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-8 py-5 align-middle font-bold text-gray-500">

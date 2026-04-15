@@ -222,9 +222,9 @@ export function AuctionsTab() {
                                                 <td className="px-10 py-6 align-middle">
                                                     <div className="flex flex-col">
                                                         <div className="font-black text-emerald-600 text-base">
-                                                            {(auction.currentPrice || auction.startPrice).toLocaleString()} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
+                                                            {(auction.currentPrice || auction.startPrice).toLocaleString('vi-VN')} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
                                                         </div>
-                                                        <div className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-0.5">Start: {auction.startPrice.toLocaleString()}</div>
+                                                        <div className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-0.5">Start: {auction.startPrice.toLocaleString('vi-VN')}</div>
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-6 align-middle text-center">
