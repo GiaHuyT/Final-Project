@@ -204,7 +204,7 @@ export class AuctionsService {
         const auction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
         if (!auction || auction.vendorId !== vendorId) throw new BadRequestException('Lỗi quyền truy cập');
 
-        const registration = await this.prisma.auctionRegistration.update({
+        const registration = await this.prisma.auctionRegistration.update({ // Force TS recheck
             where: { id: registrationId },
             data: { status: 'REJECTED' }
         });
