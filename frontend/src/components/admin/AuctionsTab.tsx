@@ -85,10 +85,11 @@ export function AuctionsTab() {
         auction.vendor?.username?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const now = new Date().getTime();
     const stats = {
-        active: auctions.filter(a => a.status === 'ACTIVE').length,
-        pending: auctions.filter(a => a.status === 'PENDING').length,
-        finished: auctions.filter(a => a.status === 'FINISHED').length
+        active: auctions.filter(a => a.status === 'ACTIVE' && new Date(a.startTime).getTime() <= now).length,
+        upcoming: auctions.filter(a => a.status === 'ACTIVE' && new Date(a.startTime).getTime() > now).length,
+        finished: auctions.filter(a => a.status === 'FINISHED' || a.status === 'COMPLETED').length
     };
 
     return (
@@ -107,6 +108,20 @@ export function AuctionsTab() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
+                <Card className="border-none shadow-xl shadow-orange-100/50 rounded-3xl overflow-hidden bg-gradient-to-br from-white to-orange-50/30">
+                    <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                            <CardDescription className="font-bold text-orange-600 uppercase text-[10px] tracking-widest">Sắp diễn ra</CardDescription>
+                            <div className="p-2 bg-orange-100 rounded-xl">
+                                <Clock className="h-4 w-4 text-orange-600" />
+                            </div>
+                        </div>
+                        <CardTitle className="text-3xl font-black">{stats.upcoming}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-xs font-bold text-gray-400 capitalize">Đã duyệt chờ lên sàn</p>
+                    </CardContent>
+                </Card>
                 <Card className="border-none shadow-xl shadow-green-100/50 rounded-3xl overflow-hidden bg-gradient-to-br from-white to-green-50/30">
                     <CardHeader className="pb-2">
                         <div className="flex items-center justify-between">
@@ -119,20 +134,6 @@ export function AuctionsTab() {
                     </CardHeader>
                     <CardContent>
                         <p className="text-xs font-bold text-gray-400 capitalize">Phiên đấu giá công khai</p>
-                    </CardContent>
-                </Card>
-                <Card className="border-none shadow-xl shadow-orange-100/50 rounded-3xl overflow-hidden bg-gradient-to-br from-white to-orange-50/30">
-                    <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                            <CardDescription className="font-bold text-orange-600 uppercase text-[10px] tracking-widest">Chờ phê duyệt</CardDescription>
-                            <div className="p-2 bg-orange-100 rounded-xl">
-                                <Clock className="h-4 w-4 text-orange-600" />
-                            </div>
-                        </div>
-                        <CardTitle className="text-3xl font-black">{stats.pending}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-xs font-bold text-gray-400 capitalize">Cần xử lý phê duyệt</p>
                     </CardContent>
                 </Card>
                 <Card className="border-none shadow-xl shadow-blue-100/50 rounded-3xl overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
@@ -244,15 +245,18 @@ export function AuctionsTab() {
                                                 <td className="px-10 py-6 align-middle text-center">
                                                     <Badge
                                                         className={`rounded-full px-4 py-1.5 uppercase text-[9px] font-black shadow-sm border-2 transition-all ${
-                                                            auction.status === 'ACTIVE' 
-                                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                                            auction.status === 'ACTIVE'
+                                                                ? new Date(auction.startTime).getTime() > new Date().getTime() 
+                                                                    ? 'bg-orange-50 text-orange-700 border-orange-200'
+                                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                                                                 : auction.status === 'PENDING'
                                                                     ? 'bg-orange-50 text-orange-700 border-orange-200'
                                                                     : 'bg-gray-50 text-gray-600 border-gray-200'
                                                         }`}
                                                     >
-                                                        {auction.status === 'ACTIVE' ? 'Live Now' :
-                                                            auction.status === 'PENDING' ? 'Waiting Admin' : 'Finished'}
+                                                        {auction.status === 'ACTIVE' 
+                                                            ? (new Date(auction.startTime).getTime() > new Date().getTime() ? 'Upcoming' : 'Live Now')
+                                                            : auction.status === 'PENDING' ? 'Waiting Admin' : 'Finished'}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-10 py-6 align-middle text-right">
