@@ -41,6 +41,7 @@ model User {
   conversations     Conversation[]   @relation("UserConversations")
   messages          Message[]
   cart              Cart?
+  auctionRegistrations AuctionRegistration[]
 }
 
 enum Role {
@@ -225,6 +226,7 @@ model Auction {
   bids           AuctionBid[]
   transactions   Transaction[]
   items          AuctionItem[]
+  registrations  AuctionRegistration[]
 }
 
 model AuctionItem {
@@ -244,6 +246,19 @@ model AuctionBid {
   user        User     @relation(fields: [userId], references: [id])
   bidAmount   Float
   createdAt   DateTime @default(now())
+}
+
+model AuctionRegistration {
+  id          Int      @id @default(autoincrement())
+  auctionId   Int
+  auction     Auction  @relation(fields: [auctionId], references: [id])
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  status      String   @default("REGISTERED") // REGISTERED, DEPOSIT_PAID, etc.
+  createdAt   DateTime @default(now())
+
+  // Đảm bảo user chỉ được đăng ký 1 lần cho 1 phiên đấu giá
+  @@unique([auctionId, userId])
 }
 
 // --- NHÓM DỊCH VỤ ---
