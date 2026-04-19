@@ -44,8 +44,14 @@ export default function VendorProductsPage() {
         year: '',
         condition: 'Xe mới',
         licensePlate: '',
-        mileage: '0',
+        mileage: '',
         conditionDetail: '',
+        usageTime: '',
+        maintenanceHistory: '',
+        
+        wearAndTear: '',
+        vehicleHistory: '',
+        remainingWarranty: '',
         color: '',
         bodyType: '',
         // Engine Stats
@@ -71,9 +77,26 @@ export default function VendorProductsPage() {
         appleCarplay: false,
         electricSeats: false,
         camera360: false,
+        smartKey: false,
+        rearAirCon: false,
+        wirelessCharger: false,
+        cruiseControl: false,
+        hud: false,
+        heatedSeats: false,
+        sunroof: false,
+        premiumAudio: false,
         // Safety
         airbags: '0',
         abs: false,
+        ebd: false,
+        ba: false,
+        esp: false,
+        tcs: false,
+        hsa: false,
+        aeb: false,
+        lka: false,
+        bsm: false,
+        acc: false,
         esp: false,
         ba: false,
         rearSensor: false,
@@ -148,9 +171,14 @@ export default function VendorProductsPage() {
                 price: parseFloat(formData.price) || 0,
                 stock: parseInt(formData.stock) || 0,
                 year: parseInt(formData.year) || undefined,
-                licensePlate: formData.condition === 'Xe cũ' ? formData.licensePlate : null,
-                mileage: formData.condition === 'Xe cũ' ? (parseFloat(formData.mileage) || 0) : null,
-                conditionDetail: formData.condition === 'Xe cũ' ? formData.conditionDetail : null,
+                licensePlate: formData.condition === 'Xe lướt' ? formData.licensePlate : null,
+                mileage: formData.condition === 'Xe lướt' ? (parseFloat(formData.mileage) || 0) : null,
+                conditionDetail: formData.condition === 'Xe lướt' ? formData.conditionDetail : null,
+                usageTime: formData.condition === 'Xe lướt' ? formData.usageTime : null,
+                
+                wearAndTear: formData.condition === 'Xe lướt' ? formData.wearAndTear : null,
+                vehicleHistory: formData.condition === 'Xe lướt' ? formData.vehicleHistory : null,
+                remainingWarranty: formData.condition === 'Xe lướt' ? formData.remainingWarranty : null,
                 length: parseFloat(formData.length) || undefined,
                 width: parseFloat(formData.width) || undefined,
                 height: parseFloat(formData.height) || undefined,
@@ -164,7 +192,7 @@ export default function VendorProductsPage() {
             await http.post('/products', payload);
             toast.success('Thêm sản phẩm thành công');
             setIsAddOpen(false); fetchProducts();
-        } catch (error) { toast.error('Có lỗi xảy ra'); } finally { setIsLoading(false); }
+        } catch (error: any) { toast.error(error.response?.data?.message || 'Có lỗi xảy ra'); } finally { setIsLoading(false); }
     };
 
     const handleEdit = async () => {
@@ -177,9 +205,14 @@ export default function VendorProductsPage() {
                 price: parseFloat(formData.price) || 0,
                 stock: parseInt(formData.stock) || 0,
                 year: parseInt(formData.year) || undefined,
-                licensePlate: formData.condition === 'Xe cũ' ? formData.licensePlate : null,
-                mileage: formData.condition === 'Xe cũ' ? (parseFloat(formData.mileage) || 0) : null,
-                conditionDetail: formData.condition === 'Xe cũ' ? formData.conditionDetail : null,
+                licensePlate: formData.condition === 'Xe lướt' ? formData.licensePlate : null,
+                mileage: formData.condition === 'Xe lướt' ? (parseFloat(formData.mileage) || 0) : null,
+                conditionDetail: formData.condition === 'Xe lướt' ? formData.conditionDetail : null,
+                usageTime: formData.condition === 'Xe lướt' ? formData.usageTime : null,
+                
+                wearAndTear: formData.condition === 'Xe lướt' ? formData.wearAndTear : null,
+                vehicleHistory: formData.condition === 'Xe lướt' ? formData.vehicleHistory : null,
+                remainingWarranty: formData.condition === 'Xe lướt' ? formData.remainingWarranty : null,
                 length: parseFloat(formData.length) || undefined,
                 width: parseFloat(formData.width) || undefined,
                 height: parseFloat(formData.height) || undefined,
@@ -193,7 +226,7 @@ export default function VendorProductsPage() {
             await http.patch(`/products/${selectedProduct.id}`, payload);
             toast.success('Cập nhật thành công');
             setIsEditOpen(false); fetchProducts();
-        } catch (error) { toast.error('Có lỗi xảy ra'); } finally { setIsLoading(false); }
+        } catch (error: any) { toast.error(error.response?.data?.message || 'Có lỗi xảy ra'); } finally { setIsLoading(false); }
     };
 
     const renderProductForm = (mode: 'add' | 'edit') => {
@@ -296,6 +329,61 @@ export default function VendorProductsPage() {
                                         <Input name="year" type="number" value={formData.year} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 font-bold shadow-sm" />
                                     </div>
                                 </div>
+                                <div className="mt-8 space-y-4">
+                                    <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Tình trạng xe</Label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div onClick={() => setFormData(p => ({ ...p, condition: 'Xe mới' }))} className={cn("p-4 rounded-xl border-2 cursor-pointer transition-all", formData.condition === 'Xe mới' ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300')}>
+                                            <div className="font-bold text-slate-900">Xe Mới</div>
+                                            <div className="text-xs text-slate-500 mt-1">Chưa đăng ký, chưa qua sử dụng (ODO ~ 0km)</div>
+                                        </div>
+                                        <div onClick={() => setFormData(p => ({ ...p, condition: 'Xe lướt' }))} className={cn("p-4 rounded-xl border-2 cursor-pointer transition-all", formData.condition === 'Xe lướt' ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300')}>
+                                            <div className="font-bold text-slate-900">Xe Lướt</div>
+                                            <div className="text-xs text-slate-500 mt-1">Đã qua sử dụng, có lịch sử bảo dưỡng và tiêu hao</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {formData.condition === 'Xe lướt' && (
+                                    <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100 space-y-6 mt-6">
+                                        <h4 className="font-bold text-blue-900 flex items-center gap-2"><Info className="w-4 h-4"/> Thông tin chi tiết cho xe lướt (Bắt buộc để định giá)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">1. Số km đã chạy (ODO)</Label>
+                                                <Input name="mileage" type="number" value={formData.mileage} onChange={handleChange} placeholder="0" className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">2. Năm đăng ký / Thời gian SD</Label>
+                                                <Input name="usageTime" value={formData.usageTime} onChange={handleChange} placeholder="VD: 6 tháng, đk năm 2023" className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">3. Lịch sử bảo dưỡng</Label>
+                                                <select name="maintenanceHistory" value={formData.maintenanceHistory} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600 focus:ring-2 focus:ring-blue-500 outline-none flex items-center justify-between" style={{ appearance: 'auto' }}>
+                                                    <option value="">-- Chọn lịch sử bảo dưỡng --</option>
+                                                    <option value="Thường xuyên">Thường xuyên (Bảo dưỡng đúng định kỳ)</option>
+                                                    <option value="Thỉnh thoảng">Thỉnh thoảng (Có bảo dưỡng nhưng không đều)</option>
+                                                    <option value="Hiếm khi">Hiếm khi (Ít khi đi bảo dưỡng)</option>
+                                                    <option value="Chưa bao giờ">Chưa bao giờ</option>
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">4. Mức hao mòn thực tế</Label>
+                                                <Input name="wearAndTear" value={formData.wearAndTear} onChange={handleChange} placeholder="VD: Lốp 90%, trầy xước nhẹ" className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">5. Lịch sử xe (Rủi ro)</Label>
+                                                <Input name="vehicleHistory" value={formData.vehicleHistory} onChange={handleChange} placeholder="VD: Không đâm đụng, thủy kích" className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">6. Bảo hành còn lại</Label>
+                                                <Input name="remainingWarranty" value={formData.remainingWarranty} onChange={handleChange} placeholder="VD: 1 năm hãng" className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Biển số xe (Tùy chọn)</Label>
+                                                <Input name="licensePlate" value={formData.licensePlate} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-slate-600" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </section>
 
                             <section id="section-3" className="scroll-mt-12">
@@ -343,36 +431,126 @@ export default function VendorProductsPage() {
                             </section>
 
                             <section id="section-6" className="scroll-mt-12">
-                                <header className="mb-8"><h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">6. Tiện nghi</h2></header>
-                                <div className="p-8 bg-white border border-slate-200 rounded-3xl grid grid-cols-2 gap-6 shadow-sm">
-                                    {[
-                                        { id: 'autoConditioning', label: 'Điều hòa tự động' },
-                                        { id: 'infotainment', label: 'Màn hình giải trí' },
-                                        { id: 'appleCarplay', label: 'Apple CarPlay' },
-                                        { id: 'camera360', label: 'Camera 360' },
-                                    ].map(item => (
-                                        <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
-                                            <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-6 h-6 rounded-lg text-blue-600/70 focus:ring-blue-500/50 border-slate-300" />
-                                            <Label htmlFor={item.id} className="text-sm font-medium text-slate-600">{item.label}</Label>
+                                <header className="mb-8"><h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">6. Tiện nghi & Công nghệ</h2></header>
+                                
+                                <div className="space-y-6">
+                                    {/* Cơ bản */}
+                                    <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                                        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Tiêu chuẩn tối thiểu (Cơ bản)</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'autoConditioning', label: 'Điều hòa (Tự động)' },
+                                                { id: 'infotainment', label: 'Màn hình trung tâm' },
+                                                { id: 'appleCarplay', label: 'Apple CarPlay / Android Auto' },
+                                            ].map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl text-slate-900">
+                                                    <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300" />
+                                                    <Label htmlFor={item.id} className="text-xs font-bold text-slate-700">{item.label}</Label>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* Nâng cao */}
+                                    <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                                        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Đáng tiền (Nâng cao)</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'electricSeats', label: 'Ghế da & chỉnh điện' },
+                                                { id: 'cruiseControl', label: 'Cruise Control (Ga tự động)' },
+                                                { id: 'smartKey', label: 'Smart Key & Start/Stop' },
+                                                { id: 'rearAirCon', label: 'Cửa gió hàng ghế sau' },
+                                                { id: 'wirelessCharger', label: 'Sạc không dây' },
+                                                { id: 'camera360', label: 'Camera 360 độ' },
+                                            ].map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl text-slate-900">
+                                                    <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300" />
+                                                    <Label htmlFor={item.id} className="text-xs font-bold text-slate-700">{item.label}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Cao cấp */}
+                                    <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-800 rounded-3xl shadow-xl">
+                                        <h4 className="font-bold text-white mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-400"></div> Sang xịn (Cao cấp)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'hud', label: 'HUD (Hiển thị kính lái)' },
+                                                { id: 'heatedSeats', label: 'Ghế Sưởi / Làm mát' },
+                                                { id: 'sunroof', label: 'Cửa sổ trời (Sunroof/Panoramic)' },
+                                                { id: 'premiumAudio', label: 'Dàn âm thanh cao cấp' },
+                                            ].map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-3 bg-slate-800/80 rounded-xl text-white border border-slate-700/50 hover:bg-slate-700 transition-colors">
+                                                    <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-amber-500 focus:ring-amber-500 border-slate-600 bg-slate-900" />
+                                                    <Label htmlFor={item.id} className="text-xs font-medium text-slate-200">{item.label}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
 
                             <section id="section-7" className="scroll-mt-12">
                                 <header className="mb-8"><h2 className="text-3xl font-extrabold tracking-tight text-slate-900 uppercase italic">7. An toàn</h2></header>
-                                <div className="p-8 bg-white border border-slate-200 rounded-3xl grid grid-cols-2 gap-6 shadow-sm">
-                                    {[
-                                        { id: 'abs', label: 'Phanh ABS' },
-                                        { id: 'esp', label: 'Cân bằng ESP' },
-                                        { id: 'ba', label: 'Hỗ trợ phanh BA' },
-                                        { id: 'rearSensor', label: 'Cảm biến lùi' },
-                                    ].map(item => (
-                                        <div key={item.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl text-slate-900">
-                                            <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-6 h-6 rounded-lg text-blue-600/70 focus:ring-blue-500/50 border-slate-300" />
-                                            <Label htmlFor={item.id} className="text-sm font-medium text-slate-600">{item.label}</Label>
+                                
+                                <div className="space-y-6">
+                                    {/* Cơ bản */}
+                                    <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                                        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Bắt buộc phải có (Cơ bản)</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'abs', label: 'ABS (Chống bó cứng phanh)' },
+                                                { id: 'ebd', label: 'EBD (Phân bổ lực phanh)' },
+                                                { id: 'ba', label: 'BA (Hỗ trợ phanh khẩn cấp)' },
+                                            ].map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl text-slate-900">
+                                                    <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 border-slate-300" />
+                                                    <Label htmlFor={item.id} className="text-xs font-bold text-slate-700">{item.label}</Label>
+                                                </div>
+                                            ))}
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl text-slate-900 col-span-2 md:col-span-1">
+                                                <Label className="text-[10px] font-black uppercase text-slate-500 px-1">Túi khí</Label>
+                                                <Input type="number" name="airbags" value={formData.airbags} onChange={handleChange} className="w-16 h-8 text-center bg-white border-slate-200 shadow-sm" />
+                                            </div>
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* Ổn định & Nâng cao */}
+                                    <div className="p-6 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                                        <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Nên có (Giữ ổn định xe)</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'esp', label: 'ESC/VSC (Cân bằng điện tử)' },
+                                                { id: 'tcs', label: 'TCS (Chống trượt)' },
+                                                { id: 'hsa', label: 'HSA (Hỗ trợ ngang dốc)' },
+                                                { id: 'rearSensor', label: 'Camera & Cảm biến lùi' },
+                                            ].map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl text-slate-900">
+                                                    <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300" />
+                                                    <Label htmlFor={item.id} className="text-xs font-bold text-slate-700">{item.label}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* ADAS */}
+                                    <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-800 rounded-3xl shadow-xl">
+                                        <h4 className="font-bold text-white mb-4 flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-amber-400"></div> Cao cấp (ADAS Chủ động)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {[
+                                                { id: 'aeb', label: 'Phanh khẩn cấp tự động (AEB)' },
+                                                { id: 'lka', label: 'Cảnh báo lệch & Kiểm soát làn' },
+                                                { id: 'bsm', label: 'Cảnh báo điểm mù (BSM)' },
+                                                { id: 'acc', label: 'Cruise Control thích ứng (ACC)' },
+                                            ].map(item => (
+                                                <div key={item.id} className="flex items-center gap-3 p-3 bg-slate-800/80 rounded-xl text-white border border-slate-700/50 hover:bg-slate-700 transition-colors">
+                                                    <input type="checkbox" name={item.id} id={item.id} checked={formData[item.id as keyof typeof formData] as boolean} onChange={handleChange} className="w-5 h-5 rounded text-amber-500 focus:ring-amber-500 border-slate-600 bg-slate-900" />
+                                                    <Label htmlFor={item.id} className="text-xs font-medium text-slate-200">{item.label}</Label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </section>
 
@@ -534,7 +712,7 @@ export default function VendorProductsPage() {
                                 <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
                                     <span className="text-slate-900 font-bold text-lg">{product.price.toLocaleString('vi-VN')} <span className="text-[10px] text-slate-400 align-top ml-0.5">VNĐ</span></span>
                                     <div className="flex gap-2">
-                                        <button onClick={() => { setSelectedProduct(product); setFormData({ ...product, price: product.price.toString(), stock: product.stock.toString(), year: product.year?.toString() || '', colorVariants: product.colorVariants?.map((cv: any) => ({ color: cv.color, images: cv.images?.map((im: any) => im.url) || [] })) || [{ color: '', images: [] }] }); setIsEditOpen(true); }} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-8 h-8 rounded flex items-center justify-center transition-colors">
+                                        <button onClick={() => { setSelectedProduct(product); setFormData({ ...product, price: product.price.toString(), stock: product.stock.toString(), year: product.year?.toString() || '', condition: product.condition || 'Xe mới', usageTime: product.usageTime || '', maintenanceHistory: product.maintenanceHistory || '',  wearAndTear: product.wearAndTear || '', vehicleHistory: product.vehicleHistory || '', remainingWarranty: product.remainingWarranty || '', colorVariants: product.colorVariants?.map((cv: any) => ({ color: cv.color, images: cv.images?.map((im: any) => im.url) || [] })) || [{ color: '', images: [] }] }); setIsEditOpen(true); }} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-8 h-8 rounded flex items-center justify-center transition-colors">
                                             <span className="material-symbols-outlined text-[20px]">edit</span>
                                         </button>
                                         <button onClick={async () => { if (confirm('Xóa vĩnh viễn sản phẩm này?')) { try { await http.delete(`/products/${product.id}`); toast.success('Đã xóa'); fetchProducts(); } catch (err) { toast.error('Lỗi'); } } }} className="text-slate-400 hover:text-red-600 hover:bg-red-50 w-8 h-8 rounded flex items-center justify-center transition-colors">
@@ -549,13 +727,15 @@ export default function VendorProductsPage() {
             )}
 
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogContent className="max-w-7xl rounded-2xl p-0 overflow-hidden border-none shadow-2xl bg-white w-[95vw] h-[90vh]">
+                <DialogContent aria-describedby={undefined} className="max-w-7xl rounded-2xl p-0 overflow-hidden border-none shadow-2xl bg-white w-[95vw] h-[90vh]">
+<DialogTitle className="sr-only">Dialog Form</DialogTitle>
                     {renderProductForm('add')}
                 </DialogContent>
             </Dialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="max-w-7xl rounded-2xl p-0 overflow-hidden border-none shadow-2xl bg-white w-[95vw] h-[90vh]">
+                <DialogContent aria-describedby={undefined} className="max-w-7xl rounded-2xl p-0 overflow-hidden border-none shadow-2xl bg-white w-[95vw] h-[90vh]">
+<DialogTitle className="sr-only">Dialog Form</DialogTitle>
                     {renderProductForm('edit')}
                 </DialogContent>
             </Dialog>

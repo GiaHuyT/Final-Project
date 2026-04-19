@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   ChevronDown,
   Menu,
-  ShieldCheck
+  ShieldCheck,
+  Car
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -24,17 +25,17 @@ const menuItems = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/admin' },
   { 
     icon: ShieldCheck, 
-    label: 'Phê duyệt', 
+    label: 'Quản lý phê duyệt', 
     subItems: [
       { label: 'Tài khoản', href: '/admin/approvals/users' },
-      { label: 'Sản phẩm', href: '/admin/approvals/products' },
+      { label: 'Xe', href: '/admin/approvals/products' },
       { label: 'Đấu giá', href: '/admin/approvals/auctions' },
     ]
   },
-  { icon: Users, label: 'Người dùng', href: '/admin/users' },
-  { icon: Package, label: 'Sản phẩm', href: '/admin/products' },
-  { icon: Gavel, label: 'Đấu giá', href: '/admin/auctions' },
-  { icon: ShoppingCart, label: 'Đơn hàng', href: '/admin/orders' },
+  { icon: Users, label: 'Quản lý người dùng', href: '/admin/users' },
+  { icon: Car, label: 'Quản lý xe', href: '/admin/products' },
+  { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
+  { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
   { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
 ];
 

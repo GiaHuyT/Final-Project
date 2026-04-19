@@ -123,6 +123,11 @@ model Product {
   licensePlate      String?
   mileage           Float?
   conditionDetail   String?
+  usageTime         String?
+  maintenanceHistory String?
+  wearAndTear       String?
+  vehicleHistory    String?
+  remainingWarranty String?
   color             String?
   bodyType          String?
   
@@ -150,15 +155,32 @@ model Product {
   autoConditioning  Boolean? @default(false)
   infotainment      Boolean? @default(false)
   appleCarplay      Boolean? @default(false)
+  
   electricSeats     Boolean? @default(false)
+  smartKey          Boolean? @default(false)
+  rearAirCon        Boolean? @default(false)
+  wirelessCharger   Boolean? @default(false)
+  cruiseControl     Boolean? @default(false)
   camera360         Boolean? @default(false)
+
+  hud               Boolean? @default(false)
+  heatedSeats       Boolean? @default(false)
+  sunroof           Boolean? @default(false)
+  premiumAudio      Boolean? @default(false)
 
   // An toàn
   airbags           Int?     @default(0)
   abs               Boolean? @default(false)
-  esp               Boolean? @default(false)
+  ebd               Boolean? @default(false)
   ba                Boolean? @default(false)
+  esp               Boolean? @default(false)
+  tcs               Boolean? @default(false)
+  hsa               Boolean? @default(false)
   rearSensor        Boolean? @default(false)
+  aeb               Boolean? @default(false)
+  lka               Boolean? @default(false)
+  bsm               Boolean? @default(false)
+  acc               Boolean? @default(false)
 
   images            ProductImage[]
   colorVariants     ProductColorVariant[]

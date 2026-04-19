@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
@@ -96,6 +96,15 @@ export class ProductsService {
     }
 
     async create(vendorId: number, data: any) {
+        if (data.licensePlate && data.licensePlate.trim() !== '') {
+            const existing = await this.prisma.product.findFirst({
+                where: { licensePlate: data.licensePlate.trim() }
+            });
+            if (existing) {
+                throw new ConflictException('Biển số xe này đã tồn tại trong hệ thống');
+            }
+        }
+
         const { colorVariants, images, ...productData } = data;
         return this.prisma.product.create({
             data: { 
@@ -120,6 +129,18 @@ export class ProductsService {
     }
 
     async update(id: number, vendorId: number, data: any) {
+        if (data.licensePlate && data.licensePlate.trim() !== '') {
+            const existing = await this.prisma.product.findFirst({
+                where: { 
+                    licensePlate: data.licensePlate.trim(),
+                    id: { not: id }
+                }
+            });
+            if (existing) {
+                throw new ConflictException('Biển số xe này đã tồn tại trong hệ thống');
+            }
+        }
+
         const { colorVariants, images, ...productData } = data;
         
         // If colorVariants or images are provided, we replace them
