@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { MessageSquare, X } from 'lucide-react';
 import { ChatWindow } from './ChatWindow';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 export const ChatButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [initialVendorId, setInitialVendorId] = useState<number | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleOpenChat = (e: CustomEvent) => {
@@ -19,6 +21,11 @@ export const ChatButton = () => {
     window.addEventListener('open-chat', handleOpenChat as any);
     return () => window.removeEventListener('open-chat', handleOpenChat as any);
   }, []);
+
+  // Hide chat button on auth pages
+  if (pathname?.startsWith('/auth/login') || pathname?.startsWith('/auth/register')) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-[60]">

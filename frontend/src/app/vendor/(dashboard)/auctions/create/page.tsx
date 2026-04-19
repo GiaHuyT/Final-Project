@@ -32,6 +32,7 @@ export default function CreateAuctionPage() {
             startPrice: '',
             bidStep: '',
             type: 'OFFLINE',
+            streamSourceType: 'EXTERNAL',
             streamUrl: '',
             startTime: '',
             endTime: '',
@@ -45,15 +46,12 @@ export default function CreateAuctionPage() {
     });
 
     const selectedType = watch('type');
+    const streamSourceType = watch('streamSourceType');
 
     useEffect(() => {
         setIsLivestream(selectedType === 'LIVESTREAM');
-        if (selectedType === 'LIVESTREAM') {
-            trigger('streamUrl');
-        } else {
-            trigger('streamUrl');
-        }
-    }, [selectedType, trigger]);
+        trigger('streamUrl');
+    }, [selectedType, streamSourceType, trigger]);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -86,12 +84,15 @@ export default function CreateAuctionPage() {
         try {
             setLoading(true);
             const token = Cookies.get('token');
+            const { streamSourceType, ...restData } = data;
+
             const payload = {
-                ...data,
+                ...restData,
                 startPrice: Number(data.startPrice.toString().replace(/\./g, '')),
                 bidStep: Number(data.bidStep.toString().replace(/\./g, '')),
                 startTime: new Date(data.startTime).toISOString(),
                 endTime: new Date(data.endTime).toISOString(),
+                streamUrl: streamSourceType === 'INTERNAL' ? '' : data.streamUrl,
                 items: data.items.map((item: any, index: number) => ({
                     productId: Number(item.productId),
                     orderIndex: isLivestream ? index : 0
@@ -170,18 +171,54 @@ export default function CreateAuctionPage() {
                         </div>
 
                         {isLivestream && (
-                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-3">
+                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-4">
                                 <Label className="font-bold text-amber-900 flex items-center gap-2">
                                     <Video className="w-5 h-5" /> Nguồn Livestream
                                 </Label>
-                                <p className="text-sm text-amber-700">Dán link Youtube/Facebook vào đây để phát trực tiếp buổi đấu giá.</p>
-                                <Input placeholder="https://youtube.com/watch?v=..." {...register('streamUrl', {
-                                    validate: (val) => {
-                                        if (isLivestream && !val) return 'Vui lòng nhập link livestream';
-                                        return true;
-                                    }
-                                })} className="bg-white border-amber-300 focus-visible:ring-amber-500 placeholder:text-slate-400/60" />
-                                {errors.streamUrl && <span className="text-red-500 text-xs font-medium">{errors.streamUrl.message as string}</span>}
+                                
+                                <Controller
+                                    name="streamSourceType"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <RadioGroup
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                        >
+                                            <div className={`border rounded-lg p-3 flex items-start space-x-3 cursor-pointer transition-colors ${field.value === 'EXTERNAL' ? 'border-amber-500 bg-amber-100/50' : 'border-amber-200 bg-white hover:border-amber-300'}`}>
+                                                <RadioGroupItem value="EXTERNAL" id="stream-external" className="mt-1 border-amber-500 text-amber-600 data-[state=checked]:border-amber-600 data-[state=checked]:text-amber-600" />
+                                                <div>
+                                                    <Label htmlFor="stream-external" className="font-semibold text-amber-900 text-sm cursor-pointer">Nhập link (Youtube/Facebook)</Label>
+                                                </div>
+                                            </div>
+                                            <div className={`border rounded-lg p-3 flex items-start space-x-3 cursor-pointer transition-colors ${field.value === 'INTERNAL' ? 'border-amber-500 bg-amber-100/50' : 'border-amber-200 bg-white hover:border-amber-300'}`}>
+                                                <RadioGroupItem value="INTERNAL" id="stream-internal" className="mt-1 border-amber-500 text-amber-600 data-[state=checked]:border-amber-600 data-[state=checked]:text-amber-600" />
+                                                <div>
+                                                    <Label htmlFor="stream-internal" className="font-semibold text-amber-900 text-sm cursor-pointer">Live trực tiếp trên web</Label>
+                                                </div>
+                                            </div>
+                                        </RadioGroup>
+                                    )}
+                                />
+
+                                {streamSourceType !== 'INTERNAL' ? (
+                                    <div className="space-y-2 pt-2">
+                                        <p className="text-sm text-amber-700">Dán link Youtube/Facebook vào đây để phát trực tiếp buổi đấu giá.</p>
+                                        <Input placeholder="https://youtube.com/watch?v=..." {...register('streamUrl', {
+                                            validate: (val) => {
+                                                if (isLivestream && streamSourceType !== 'INTERNAL' && !val) return 'Vui lòng nhập link livestream';
+                                                return true;
+                                            }
+                                        })} className="bg-white border-amber-300 focus-visible:ring-amber-500 placeholder:text-slate-400/60" />
+                                        {errors.streamUrl && <span className="text-red-500 text-xs font-medium">{errors.streamUrl.message as string}</span>}
+                                    </div>
+                                ) : (
+                                    <div className="bg-white border border-amber-200 rounded-lg p-3 mt-2">
+                                        <p className="text-sm text-amber-800">
+                                            Hệ thống sẽ cung cấp giao diện phát trực tiếp bằng Camera/Microphone trên website khi phiên bắt đầu.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         )}
                         

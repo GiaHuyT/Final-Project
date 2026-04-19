@@ -21,9 +21,33 @@ export class AuctionsController {
     return this.auctionsService.findAll(status);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/register')
+  async register(@Request() req, @Param('id') id: string) {
+    return this.auctionsService.registerForAuction(+id, req.user.id);
+  }
+
   @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.auctionsService.findOne(+id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get(':id/registrations')
+  async getRegistrations(@Request() req, @Param('id') id: string) {
+    return this.auctionsService.getRegistrations(+id, req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/registrations/:regId/approve')
+  async approveRegistration(@Request() req, @Param('id') id: string, @Param('regId') regId: string) {
+    return this.auctionsService.approveRegistration(+id, +regId, req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/registrations/:regId/reject')
+  async rejectRegistration(@Request() req, @Param('id') id: string, @Param('regId') regId: string) {
+    return this.auctionsService.rejectRegistration(+id, +regId, req.user.id);
   }
 }

@@ -36,13 +36,33 @@ export class AuctionsCronService {
       const distanceMinutes = Math.round((startTime - now.getTime()) / 60000);
 
       // Nhắc nhở vendor
-      if ([5, 10, 15].includes(distanceMinutes)) {
-        await this.notifications.create(auction.vendorId, {
-          type: 'SYSTEM' as any,
-          content: `Chú ý: Phiên đấu giá "${auction.title}" sẽ bắt đầu trong khoảng ${distanceMinutes} phút nữa! Hãy chuẩn bị sẵn sàng.`,
-          link: `/vendor/auctions`, // Wait: vendor's path
-        });
-        this.logger.log(`Notified vendor for auction ${auction.id} starting in ${distanceMinutes} mins.`);
+      const marks = [15, 10, 5];
+      for (const mark of marks) {
+        if (distanceMinutes <= mark && distanceMinutes > mark - 5 && distanceMinutes >= 0) {
+          const stringToMatch = `"${auction.title}" sẽ bắt đầu trong khoảng ${mark} phút nữa`;
+          const existingNotification = await this.prisma.notification.findFirst({
+            where: {
+              userId: auction.vendorId,
+              type: 'SYSTEM',
+              content: {
+                contains: stringToMatch
+              },
+              createdAt: {
+                gte: new Date(now.getTime() - 30 * 60 * 1000)
+              }
+            }
+          });
+
+          if (!existingNotification) {
+            await this.notifications.create(auction.vendorId, {
+              type: 'SYSTEM' as any,
+              content: `Chú ý: Phiên đấu giá "${auction.title}" sẽ bắt đầu trong khoảng ${mark} phút nữa! Hãy chuẩn bị sẵn sàng.`,
+              link: `/vendor/auctions`, 
+            });
+            this.logger.log(`Notified vendor for auction ${auction.id} starting in ${mark} mins.`);
+          }
+          break;
+        }
       }
 
       // Kích hoạt
