@@ -3,12 +3,18 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import http from "@/lib/http";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function AuctionListingPage() {
+  const { user, isLoggedIn } = useAuth();
+  const router = useRouter();
   const [auctions, setAuctions] = useState<any[]>([]);
   const [filteredAuctions, setFilteredAuctions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
+  const [processingAction, setProcessingAction] = useState<number | null>(null);
 
   // Filter States
   const [statusFilter, setStatusFilter] = useState("all"); // all, PENDING, ACTIVE, COMPLETED
@@ -80,6 +86,48 @@ export default function AuctionListingPage() {
     setFromDate("");
     setToDate("");
     setFilteredAuctions(auctions);
+  };
+
+  const handleRegisterClick = async (auction: any) => {
+    if (!isLoggedIn) {
+      toast.error('Vui lòng đăng nhập để đăng ký tham gia đấu giá!');
+      router.push('/auth/login?redirect=/auctions');
+      return;
+    }
+    
+    if (auction.vendorId === user?.id) {
+        toast.error('Bạn là chủ sở hữu phiên đấu giá này.');
+        return;
+    }
+
+    try {
+      setProcessingAction(auction.id);
+      await http.post(`/auctions/${auction.id}/register`);
+      toast.success('Đã gửi yêu cầu đăng ký tham gia!');
+      // Update local state temporarily
+      const updatedAuctions = auctions.map(a => {
+        if (a.id === auction.id) {
+            const updatedRegs = [...(a.registrations || []), { userId: user.id, status: 'PENDING' }];
+            return { ...a, registrations: updatedRegs };
+        }
+        return a;
+      });
+      setAuctions(updatedAuctions);
+      
+      const updatedFiltered = filteredAuctions.map(a => {
+        if (a.id === auction.id) {
+            const updatedRegs = [...(a.registrations || []), { userId: user.id, status: 'PENDING' }];
+            return { ...a, registrations: updatedRegs };
+        }
+        return a;
+      });
+      setFilteredAuctions(updatedFiltered);
+
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký!');
+    } finally {
+      setProcessingAction(null);
+    }
   };
 
   const getTimeLeft = (startTime: string, endTime: string, status: string) => {
@@ -222,6 +270,7 @@ export default function AuctionListingPage() {
                   const isEnded = timeLeft === "ĐÃ KẾT THÚC";
                   const isPending = timeLeft.startsWith("Bắt đầu");
                   const coverImage = auction.items?.[0]?.product?.images?.[0]?.url || "/images/static/car-placeholder.png";
+                  const myReg = auction.registrations?.find((r: any) => r.userId === user?.id);
 
                   return (
                     <div key={auction.id} className="group bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
@@ -263,9 +312,38 @@ export default function AuctionListingPage() {
                                 </div>
                             </div>
 
-                            <Link href={`/auctions/${auction.id}`} className={`block w-full text-center py-4 mt-2 rounded-full font-headline font-bold text-sm tracking-widest transition-all ${isEnded ? 'bg-surface-variant text-on-surface-variant hover:opacity-90' : 'bg-primary text-on-primary hover:opacity-90 active:scale-95'}`}>
-                            {isEnded ? "XEM KẾT QUẢ" : "THAM GIA NGAY"}
-                            </Link>
+                            <div className="mt-2 grid grid-cols-2 gap-2">
+                                <Link href={`/auctions/${auction.id}`} className="block w-full text-center py-3 rounded-full font-headline font-bold text-sm tracking-widest transition-all bg-surface border border-primary text-primary hover:bg-primary/5 active:scale-95">
+                                    XEM TRƯỚC
+                                </Link>
+                                
+                                {isEnded ? (
+                                    <Link href={`/auctions/${auction.id}`} className="block w-full text-center py-3 rounded-full font-headline font-bold text-sm tracking-widest transition-all bg-surface-variant text-on-surface-variant hover:opacity-90">
+                                        KẾT QUẢ
+                                    </Link>
+                                ) : (
+                                    <button 
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handleRegisterClick(auction);
+                                        }}
+                                        disabled={myReg?.status === 'PENDING' || myReg?.status === 'REJECTED' || processingAction === auction.id}
+                                        className={`block w-full text-center py-3 flex items-center justify-center rounded-full font-headline font-bold text-sm tracking-widest transition-all ${
+                                            myReg?.status === 'APPROVED' ? 'bg-primary text-on-primary hover:opacity-90' :
+                                            myReg?.status === 'PENDING' ? 'bg-orange-500 text-white opacity-80 cursor-not-allowed' :
+                                            myReg?.status === 'REJECTED' ? 'bg-error text-white opacity-80 cursor-not-allowed' :
+                                            'bg-primary text-on-primary hover:opacity-90 active:scale-95'
+                                        }`}
+                                    >
+                                        {processingAction === auction.id ? (
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                        ) : myReg?.status === 'APPROVED' ? "THAM GIA NGAY" :
+                                          myReg?.status === 'PENDING' ? "ĐANG CHỜ" :
+                                          myReg?.status === 'REJECTED' ? "BỊ TỪ CHỐI" :
+                                          "ĐĂNG KÝ"}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                       </div>
                     </div>

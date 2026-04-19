@@ -155,6 +155,12 @@ export default function AuctionDetailPage() {
             return;
         }
 
+        const myReg = auction?.registrations?.find((r: any) => r.userId === currentUser.id);
+        if (!myReg || myReg.status !== 'APPROVED') {
+            toast.error("Bạn chưa được duyệt tham gia vòng đấu giá này.");
+            return;
+        }
+
         const amount = Number(bidAmount);
         const requiredBid = currentPrice + auction.bidStep;
 
@@ -176,6 +182,29 @@ export default function AuctionDetailPage() {
                     setBidAmount((amount + auction.bidStep).toString());
                 }
             });
+        }
+    };
+
+    const handleRegisterClick = async () => {
+        if (!currentUser) {
+          toast.error('Vui lòng đăng nhập để đăng ký tham gia đấu giá!');
+          router.push('/auth/login?redirect=/auctions/' + params.id);
+          return;
+        }
+        
+        if (auction.vendorId === currentUser?.id) {
+            toast.error('Bạn là chủ sở hữu phiên đấu giá này.');
+            return;
+        }
+    
+        try {
+          await http.post(`/auctions/${auction.id}/register`);
+          toast.success('Đã gửi yêu cầu đăng ký tham gia!');
+          // Update local state temporarily
+          const updatedRegs = [...(auction.registrations || []), { userId: currentUser.id, status: 'PENDING' }];
+          setAuction({ ...auction, registrations: updatedRegs });
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký!');
         }
     };
 
@@ -323,30 +352,72 @@ export default function AuctionDetailPage() {
                                     </div>
                                 ) : (
                                     <>
-                                        {/* Box Đặt Giá */}
-                                        <div className="space-y-3">
-                                            <p className="text-sm font-semibold text-slate-700 mb-2">Đưa ra mức giá của bạn:</p>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    type="number"
-                                                    min={currentPrice + auction.bidStep}
-                                                    step={auction.bidStep}
-                                                    value={bidAmount}
-                                                    onChange={e => setBidAmount(e.target.value)}
-                                                    className="flex-1 w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                                />
+                                        {/* Box Đặt Giá / Đăng Ký */}
+                                        {currentUser?.id === auction?.vendorId ? (
+                                            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 text-center mt-4">
+                                                <Badge className="bg-indigo-500 mb-2">Chủ phiên đấu giá</Badge>
+                                                <p className="text-sm text-indigo-700">Bạn là người tổ chức phiên này. Bạn có thể theo dõi diễn biến và chat với khách hàng.</p>
+                                                <Link href={`/vendor/auctions/${auction.id}/registrations`} className="block mt-4">
+                                                    <Button className="w-full bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50 gap-2">
+                                                        <Users className="w-4 h-4" />
+                                                        Quản lý người tham gia
+                                                    </Button>
+                                                </Link>
                                             </div>
-                                            <p className="text-xs text-slate-500 mt-1">Bước giá tối thiểu: + {auction.bidStep.toLocaleString('vi-VN')}đ</p>
+                                        ) : (!auction?.registrations?.find((r: any) => r.userId === currentUser?.id) || auction?.registrations?.find((r: any) => r.userId === currentUser?.id)?.status !== 'APPROVED') && !isWinner ? (
+                                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center space-y-3 mt-4">
+                                                <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
+                                                <h3 className="font-bold text-slate-800">Quyền đặt giá bị khóa</h3>
+                                                <p className="text-sm text-slate-500 pb-2">Phiên đấu giá này yêu cầu bạn phải gửi yêu cầu đăng ký và chờ chủ tài sản phê duyệt trước khi được phép đặt giá.</p>
+                                                
+                                                {(() => {
+                                                    const reg = auction?.registrations?.find((r: any) => r.userId === currentUser?.id);
+                                                    if (!reg) {
+                                                        return (
+                                                            <Button onClick={handleRegisterClick} className="w-full bg-primary hover:bg-primary/90 text-on-primary font-bold shadow-md h-12">
+                                                                ĐĂNG KÝ THAM GIA ĐẤU GIÁ
+                                                            </Button>
+                                                        );
+                                                    } else if (reg.status === 'PENDING') {
+                                                        return (
+                                                            <Button disabled className="w-full bg-orange-100 text-orange-700 hover:bg-orange-100 font-bold opacity-80 h-12 cursor-not-allowed border border-orange-200">
+                                                                ĐANG CHỜ CHỦ PHIÊN DUYỆT...
+                                                            </Button>
+                                                        );
+                                                    } else if (reg.status === 'REJECTED') {
+                                                        return (
+                                                            <Button disabled className="w-full bg-red-100 text-red-700 hover:bg-red-100 font-bold opacity-80 h-12 cursor-not-allowed border border-red-200">
+                                                                BỊ TỪ CHỐI THAM GIA
+                                                            </Button>
+                                                        );
+                                                    }
+                                                })()}
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3 mt-4">
+                                                <p className="text-sm font-semibold text-slate-700 mb-2">Đưa ra mức giá của bạn:</p>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="number"
+                                                        min={currentPrice + auction.bidStep}
+                                                        step={auction.bidStep}
+                                                        value={bidAmount}
+                                                        onChange={e => setBidAmount(e.target.value)}
+                                                        className="flex-1 w-full bg-slate-50 border border-slate-200 text-slate-900 font-bold px-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                                    />
+                                                </div>
+                                                <p className="text-xs text-slate-500 mt-1">Bước giá tối thiểu: + {auction.bidStep.toLocaleString('vi-VN')}đ</p>
 
-                                            <Button
-                                                onClick={handlePlaceBid}
-                                                disabled={isEnded || auction.status !== 'ACTIVE'}
-                                                className="w-full bg-slate-900 hover:bg-black text-white h-12 font-bold text-lg gap-2 mt-4"
-                                            >
-                                                <Gavel className="w-5 h-5" />
-                                                ĐẶT GIÁ NGAY
-                                            </Button>
-                                        </div>
+                                                <Button
+                                                    onClick={handlePlaceBid}
+                                                    disabled={isEnded || auction.status !== 'ACTIVE'}
+                                                    className="w-full bg-slate-900 hover:bg-black text-white h-12 font-bold text-lg gap-2 mt-4"
+                                                >
+                                                    <Gavel className="w-5 h-5" />
+                                                    ĐẶT GIÁ NGAY
+                                                </Button>
+                                            </div>
+                                        )}
                                     </>
                                 )}
 
