@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Gavel, Calendar, Edit, Eye, Clock } from 'lucide-react';
+import { Plus, Gavel, Calendar, Edit, Eye, Clock, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import http from '@/lib/http';
+import AuctionRegistrationsModal from '@/components/auctions/AuctionRegistrationsModal';
 
 function AuctionCountdown({ startTime, status }: { startTime: string; status: string }) {
     const [timeLeft, setTimeLeft] = useState<string>('');
@@ -46,32 +47,35 @@ function AuctionCountdown({ startTime, status }: { startTime: string; status: st
 export default function VendorAuctionsPage() {
     const [auctions, setAuctions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
+    const [selectedAuctionId, setSelectedAuctionId] = useState<number | null>(null);
+
+    const fetchAuctions = async () => {
+        try {
+            setLoading(true);
+            const res = await http.get('/auctions');
+            const data = res.data;
+            
+            const userObj = JSON.parse(localStorage.getItem('user') || '{}');
+            if (data && Array.isArray(data)) {
+                const myAuctions = data.filter(a => a.vendorId === userObj.id);
+                setAuctions(myAuctions);
+            }
+        } catch (error) {
+            console.error("Error fetching auctions:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchAuctions = async () => {
-            try {
-                const res = await http.get('/auctions');
-                const data = res.data;
-                
-                // Assuming `/auctions` returns all auctions, we should filter for the current vendor
-                // Note: It's better if there's a specialized `/vendor/auctions` endpoint, but we'll fetch and filter if needed, 
-                // or just use `/auctions` if it already shows context if that endpoint exists. 
-                // Based on the code earlier, `/auctions` is Public and returns all.
-                // We'll filter here for simplicity using localStorage user id.
-                const userObj = JSON.parse(localStorage.getItem('user') || '{}');
-                if (data && Array.isArray(data)) {
-                    const myAuctions = data.filter(a => a.vendorId === userObj.id);
-                    setAuctions(myAuctions);
-                }
-            } catch (error) {
-                console.error("Error fetching auctions:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchAuctions();
     }, []);
+
+    const openRegistrationsModal = (id: number) => {
+        setSelectedAuctionId(id);
+        setIsRegistrationsModalOpen(true);
+    };
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -164,19 +168,37 @@ export default function VendorAuctionsPage() {
                                     </div>
                                 </div>
 
-                                <div className="pt-2 flex gap-2">
-                                    <Link href={`/auctions/${auction.id}`} className="flex-1">
-                                        <Button variant="outline" size="sm" className="w-full gap-2">
-                                            <Eye className="w-3.5 h-3.5" />
-                                            Xem
-                                        </Button>
-                                    </Link>
-                                    {auction.status === 'PENDING' && (
-                                        <Link href={`/vendor/auctions/${auction.id}/edit`}>
-                                            <Button variant="ghost" size="sm" className="px-2 border">
-                                                <Edit className="w-4 h-4 text-slate-500" />
+                                <div className="pt-2 flex flex-col gap-2">
+                                    <div className="flex gap-2">
+                                        <Link href={`/auctions/${auction.id}`} className="flex-1">
+                                            <Button variant="outline" size="sm" className="w-full gap-2">
+                                                <Eye className="w-3.5 h-3.5" />
+                                                Xem Sàn
                                             </Button>
                                         </Link>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className="flex-1 gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                                            onClick={() => openRegistrationsModal(auction.id)}
+                                        >
+                                            <Users className="w-3.5 h-3.5" />
+                                            Duyệt người
+                                            {auction.registrations?.filter((r: any) => r.status === 'PENDING').length > 0 && (
+                                                <span className="bg-rose-500 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1 font-bold">
+                                                    {auction.registrations.filter((r: any) => r.status === 'PENDING').length}
+                                                </span>
+                                            )}
+                                        </Button>
+                                    </div>
+                                    {auction.status === 'PENDING' && (
+                                        <div className="flex justify-end gap-2">
+                                            <Link href={`/vendor/auctions/${auction.id}/edit`}>
+                                                <Button variant="ghost" size="sm" className="px-2 border">
+                                                    <Edit className="w-4 h-4 text-slate-500" />
+                                                </Button>
+                                            </Link>
+                                        </div>
                                     )}
                                 </div>
                             </CardContent>
@@ -184,6 +206,16 @@ export default function VendorAuctionsPage() {
                     ))}
                 </div>
             )}
+
+            <AuctionRegistrationsModal 
+                isOpen={isRegistrationsModalOpen}
+                auctionId={selectedAuctionId}
+                onClose={() => {
+                    setIsRegistrationsModalOpen(false);
+                    setSelectedAuctionId(null);
+                }}
+                onUpdate={fetchAuctions}
+            />
         </div>
     );
 }
