@@ -301,7 +301,8 @@ export default function Home() {
               <ul className="space-y-4 text-sm font-medium">
                 <li><Link className="text-slate-500 hover:text-primary transition-colors duration-300" href="#">Hướng dẫn mua</Link></li>
                 <li><Link className="text-slate-500 hover:text-primary transition-colors duration-300" href="#">Hướng dẫn bán</Link></li>
-                <li><Link className="text-slate-500 hover:text-primary transition-colors duration-300" href="#">Liên hệ hỗ trợ</Link></li>
+                <li><Link className="text-slate-500 hover:text-primary transition-colors duration-300" href="/news-and-events">Tin tức & Sự kiện</Link></li>
+                <li><Link className="text-slate-500 hover:text-primary transition-colors duration-300" href="/contact">Liên hệ hỗ trợ</Link></li>
               </ul>
             </div>
             <div className="col-span-2">

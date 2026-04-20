@@ -239,6 +239,9 @@ export function Navbar() {
                 <div className="hidden md:flex items-center space-x-8 tracking-tight font-semibold text-sm">
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/auctions">Đấu giá</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/categories">Các mẫu xe</Link>
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/news-and-events">Tin tức</Link>
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/maintenance">Bảo dưỡng</Link>
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/contact">Liên hệ</Link>
                 </div>
 
                 <div className="flex items-center space-x-4">
