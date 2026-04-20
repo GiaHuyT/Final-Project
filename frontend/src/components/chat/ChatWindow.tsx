@@ -85,7 +85,7 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
       setAiMessages(prev => [newMsg, ...prev]);
       setIsAiTyping(true);
 
-      const openAiMessages = [...aiMessages, newMsg]
+      const openAiMessages = [newMsg, ...aiMessages]
         .reverse()
         .map(m => ({ role: m.senderId === 'ai' ? 'assistant' : 'user', content: m.content }));
 

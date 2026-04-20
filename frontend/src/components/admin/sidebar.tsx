@@ -28,7 +28,7 @@ const menuItems: any[] = [
   { icon: Car, label: 'Quản lý xe', href: '/admin/products' },
   { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
   { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
-  { icon: Wrench, label: 'Thêm năng lực sửa chữa', href: '/admin/repairs/capacity/add' },
+  { icon: Wrench, label: 'Quản lý cứu hộ / sửa chữa', href: '/admin/repairs/capacity' },
   { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
 ];
 
