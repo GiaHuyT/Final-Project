@@ -14,7 +14,8 @@ import {
   ChevronDown,
   Menu,
   ShieldCheck,
-  Car
+  Car,
+  Wrench
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -23,19 +24,11 @@ import { useRouter, usePathname } from 'next/navigation';
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/admin' },
-  { 
-    icon: ShieldCheck, 
-    label: 'Quản lý phê duyệt', 
-    subItems: [
-      { label: 'Tài khoản', href: '/admin/approvals/users' },
-      { label: 'Xe', href: '/admin/approvals/products' },
-      { label: 'Đấu giá', href: '/admin/approvals/auctions' },
-    ]
-  },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/users' },
   { icon: Car, label: 'Quản lý xe', href: '/admin/products' },
   { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
   { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
+  { icon: Wrench, label: 'Thêm năng lực sửa chữa', href: '/admin/repairs/capacity/add' },
   { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
 ];
 

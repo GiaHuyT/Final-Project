@@ -241,6 +241,8 @@ export function Navbar() {
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/categories">Các mẫu xe</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/news-and-events">Tin tức</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/maintenance">Bảo dưỡng</Link>
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/repairs">Sửa chữa</Link>
+                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/compare">So sánh</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/contact">Liên hệ</Link>
                 </div>
 

@@ -24,6 +24,45 @@ export class RepairsService {
         return this.prisma.repairService.findMany({ where: { profileId: profile.id } });
     }
 
+    async createCapacity(userId: number, dto: any) {
+        let profile = await this.prisma.serviceProfile.findUnique({ where: { userId } });
+        if (!profile) {
+            profile = await this.prisma.serviceProfile.create({
+                data: { userId, serviceType: 'REPAIR' }
+            });
+        }
+        return this.prisma.repairCapacity.create({
+            data: { ...dto, profileId: profile.id }
+        });
+    }
+
+    async getCapacitiesByVendor(userId: number) {
+        const profile = await this.prisma.serviceProfile.findUnique({ where: { userId } });
+        if (!profile) return [];
+        return this.prisma.repairCapacity.findMany({ where: { profileId: profile.id }, orderBy: { createdAt: 'desc' } });
+    }
+
+    async getAllCapacities() {
+        return this.prisma.repairCapacity.findMany({ 
+            include: { 
+                profile: { 
+                    include: { 
+                        user: { select: { id: true, username: true, avatar: true, phonenumber: true, email: true } } 
+                    } 
+                } 
+            }, 
+            orderBy: { createdAt: 'desc' } 
+        });
+    }
+
+    async updateCapacity(id: number, dto: any) {
+        return this.prisma.repairCapacity.update({ where: { id }, data: dto });
+    }
+
+    async deleteCapacity(id: number) {
+        return this.prisma.repairCapacity.delete({ where: { id } });
+    }
+
     async update(id: number, dto: any) {
         return this.prisma.repairService.update({ where: { id }, data: dto });
     }

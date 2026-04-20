@@ -153,9 +153,14 @@ export default function VendorRepairsPage() {
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">Dịch vụ Sửa chữa</h1>
                     <p className="text-muted-foreground font-medium">Quản lý danh sách các gói sửa chữa và bảo dưỡng ô tô của bạn.</p>
                 </div>
-                <Button onClick={() => setIsAddOpen(true)} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 h-12 px-6 font-bold gap-2 shadow-lg shadow-emerald-100 transition-all active:scale-95">
-                    <Plus className="w-5 h-5" /> Thêm dịch vụ mới
-                </Button>
+                <div className="flex gap-3">
+                    <Button onClick={() => window.location.href = '/vendor/repairs/capacity/add'} className="rounded-xl bg-orange-600 hover:bg-orange-700 h-12 px-6 font-bold gap-2 shadow-lg shadow-orange-100 transition-all active:scale-95 text-white">
+                        <Wrench className="w-5 h-5" /> Thêm Năng lực Sửa chữa
+                    </Button>
+                    <Button onClick={() => setIsAddOpen(true)} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 h-12 px-6 font-bold gap-2 shadow-lg shadow-emerald-100 transition-all active:scale-95">
+                        <Plus className="w-5 h-5" /> Thêm Dịch vụ mới
+                    </Button>
+                </div>
             </div>
 
             {loading ? (
