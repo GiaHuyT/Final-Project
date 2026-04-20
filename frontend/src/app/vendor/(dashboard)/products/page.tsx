@@ -97,8 +97,6 @@ export default function VendorProductsPage() {
         lka: false,
         bsm: false,
         acc: false,
-        esp: false,
-        ba: false,
         rearSensor: false,
         colorVariants: [{ color: '', images: [] as string[] }],
     });
