@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { io, Socket } from 'socket.io-client';
 import { Clock, Users, ArrowUpCircle, Gavel, Video, AlertCircle, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
