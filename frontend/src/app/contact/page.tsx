@@ -10,6 +10,7 @@ export default function ContactUsPage() {
     phone: "",
     email: "",
     subject: "",
+    otherSubject: "",
     message: "",
     agreeToContact: false,
     agreeToTerms: false,
@@ -57,10 +58,10 @@ export default function ContactUsPage() {
         </div>
         <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10 text-center">
           <h1 className="font-headline text-5xl md:text-6xl font-extrabold text-white tracking-tighter mb-4">
-            LIÊN HỆ VỚI CHÚNG TÔI
+            LIÊN HỆ BAN QUẢN TRỊ
           </h1>
           <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto">
-            Hệ thống dịch vụ cao cấp AutoBid luôn sẵn sàng phục vụ. Vui lòng để lại thông tin hoặc liên hệ trực tiếp qua số hotline để được hỗ trợ tốt nhất.
+            Ban quản trị nền tảng AutoBid luôn sẵn sàng hỗ trợ bạn. Vui lòng để lại thông tin hoặc liên hệ trực tiếp qua số hotline để được giải đáp thắc mắc về hệ thống.
           </p>
         </div>
       </section>
@@ -161,14 +162,21 @@ export default function ContactUsPage() {
                 </div>
               ) : (
                 <>
-                  <div className="mb-8 border-b border-slate-100 pb-6 flex items-center justify-between">
-                    <div>
+                  <div className="mb-8 border-b border-slate-100 pb-6 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div className="flex-1">
                       <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900">
-                        Gửi lời nhắn
+                        Gửi yêu cầu hỗ trợ
                       </h2>
-                      <p className="text-slate-500 mt-2 text-sm">Điền thông tin vào biểu mẫu, chúng tôi sẽ gọi lại ngay.</p>
+                      <p className="text-slate-500 mt-2 text-sm">Điền thông tin vào biểu mẫu, bộ phận hỗ trợ của nền tảng sẽ liên hệ lại ngay.</p>
+                      <div className="mt-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
+                        <p className="text-blue-800 text-sm leading-relaxed">
+                          <span className="font-bold">Lưu ý:</span> Biểu mẫu này dùng để liên hệ Ban quản trị (hỗ trợ kỹ thuật, khiếu nại, tư vấn tính năng nền tảng). Nếu bạn cần liên hệ mua xe, vui lòng sử dụng tính năng nhắn tin tại trang của thẻ xe hoặc nhà cung cấp.
+                        </p>
+                      </div>
                     </div>
-                    <MessageSquareText className="w-10 h-10 text-slate-200" />
+                    <div className="hidden md:block shrink-0">
+                      <MessageSquareText className="w-10 h-10 text-slate-200" />
+                    </div>
                   </div>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -221,14 +229,29 @@ export default function ContactUsPage() {
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900 appearance-none"
                         >
                           <option value="">-- Chọn vấn đề cần hỗ trợ --</option>
-                          <option value="auction">Tư vấn bán đấu giá xe</option>
-                          <option value="buy">Tư vấn mua xe</option>
-                          <option value="maintenance">Dịch vụ bảo dưỡng định kỳ</option>
-                          <option value="feedback">Góp ý chất lượng dịch vụ</option>
-                          <option value="other">Khác</option>
+                          <option value="vendor_support">Hỗ trợ đăng ký làm nhà cung cấp</option>
+                          <option value="account">Hỗ trợ tài khoản / Đăng nhập</option>
+                          <option value="report">Báo cáo vi phạm / Gian lận</option>
+                          <option value="feedback">Góp ý chất lượng nền tảng</option>
+                          <option value="other">Vấn đề khác</option>
                         </select>
                       </div>
                     </div>
+
+                    {formData.subject === "other" && (
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Vấn đề cụ thể là gì? *</label>
+                        <input 
+                          type="text" 
+                          name="otherSubject"
+                          required
+                          value={formData.otherSubject}
+                          onChange={handleChange}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-slate-900"
+                          placeholder="Vui lòng ghi rõ vấn đề của bạn..."
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Nội dung chi tiết *</label>
@@ -258,7 +281,7 @@ export default function ContactUsPage() {
                           </svg>
                         </div>
                         <span className="text-sm text-slate-600 leading-relaxed user-select-none">
-                          Tôi xác nhận cung cấp thông tin cá nhân để liên hệ với AutoBid.*
+                          Tôi xác nhận cung cấp thông tin cá nhân để Ban quản trị AutoBid có thể liên hệ lại.*
                         </span>
                       </label>
                       <label className="flex items-start gap-3 cursor-pointer group">
@@ -291,7 +314,7 @@ export default function ContactUsPage() {
                           ĐANG XỬ LÝ...
                         </>
                       ) : (
-                        <>GỬI THÔNG TIN</>
+                        <>GỬI YÊU CẦU CHO BAN QUẢN TRỊ</>
                       )}
                     </button>
                   </form>
