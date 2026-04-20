@@ -327,9 +327,13 @@ model RepairCapacity {
   specialty       String   // e.g., Động cơ, Hệ thống điện, Mâm last, v.v.
   experienceYears Int      @default(0)
   vehicleTypes    String   // e.g., "Xe tải, Xe con"
-  brands          String?  // e.g., "Mec, BMW, Audi"
+  province        String?
+  district        String?
+  contactPhone    String?
+  contactName     String?
   description     String?
   imageUrl        String?
+  imageUrls       String[] @default([])
   status          String   @default("Hoạt động")
   createdAt       DateTime @default(now())
 }
