@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import http from '@/lib/http';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Loader2, Save, Image as ImageIcon, Wrench, FileText, Briefcase, Car, Award } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Image as ImageIcon, Wrench, FileText, Briefcase, Car, Award, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 const SPECIALTIES = [
@@ -28,16 +28,47 @@ export default function AdminAddRepairCapacityPage() {
     const [formData, setFormData] = useState({
         name: '',
         experienceYears: '',
-        brands: '',
+        province: '',
+        district: '',
+        contactPhone: '',
+        contactName: '',
         description: '',
         status: 'Hoạt động',
         imageUrl: '',
+        imageUrls: [] as string[],
     });
 
     const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
     const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<string[]>([]);
+    const [provincesList, setProvincesList] = useState<any[]>([]);
+    const [districtsList, setDistrictsList] = useState<any[]>([]);
+
+    useEffect(() => {
+        const loadProvinces = async () => {
+            try {
+                const response = await fetch('https://provinces.open-api.vn/api/?depth=2');
+                const data = await response.json();
+                setProvincesList(data);
+            } catch (err) {
+                console.error("Failed to load provinces", err);
+            }
+        };
+        loadProvinces();
+    }, []);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const provinceName = e.target.value;
+        setFormData(prev => ({ ...prev, province: provinceName, district: '' }));
+        
+        const provinceObj = provincesList.find(p => p.name === provinceName);
+        if (provinceObj && provinceObj.districts) {
+            setDistrictsList(provinceObj.districts);
+        } else {
+            setDistrictsList([]);
+        }
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -45,27 +76,48 @@ export default function AdminAddRepairCapacityPage() {
     };
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-            toast.error('Vui lòng chọn tệp hình ảnh hợp lệ.');
+        const files = Array.from(event.target.files || []);
+        if (!files.length) return;
+        
+        if (formData.imageUrls.length + files.length > 5) {
+            toast.error('Chỉ được tải lên tối đa 5 ảnh đại diện năng lực.');
             return;
         }
 
-        const data = new FormData();
-        data.append('file', file);
         setIsUploading(true);
         try {
-            const res = await http.post('/users/avatar', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setFormData(prev => ({ ...prev, imageUrl: res.data.avatarUrl }));
-            toast.success('Tải ảnh đại diện năng lực thành công!');
+            const newImageUrls = [...formData.imageUrls];
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) continue;
+                const data = new FormData();
+                data.append('file', file);
+                const res = await http.post('/users/avatar', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                newImageUrls.push(res.data.avatarUrl);
+            }
+            setFormData(prev => ({ 
+                ...prev, 
+                imageUrls: newImageUrls, 
+                imageUrl: newImageUrls.length > 0 ? newImageUrls[0] : '' 
+            }));
+            toast.success('Tải ảnh thành công!');
         } catch (error) { 
             toast.error('Có lỗi xảy ra khi tải ảnh lên.'); 
         } finally { 
-            setIsUploading(false); 
+            setIsUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
+    };
+
+    const removeImage = (index: number) => {
+        const newImageUrls = [...formData.imageUrls];
+        newImageUrls.splice(index, 1);
+        setFormData(prev => ({
+            ...prev,
+            imageUrls: newImageUrls,
+            imageUrl: newImageUrls.length > 0 ? newImageUrls[0] : ''
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -81,10 +133,14 @@ export default function AdminAddRepairCapacityPage() {
             await http.post('/repairs/capacity', {
                 name: formData.name,
                 experienceYears: parseInt(formData.experienceYears) || 0,
-                brands: formData.brands,
+                province: formData.province,
+                district: formData.district,
+                contactPhone: formData.contactPhone,
+                contactName: formData.contactName,
                 description: formData.description,
                 status: formData.status,
                 imageUrl: formData.imageUrl,
+                imageUrls: formData.imageUrls,
                 specialty: selectedSpecialties.join(', '),
                 vehicleTypes: selectedVehicleTypes.join(', '),
             });
@@ -178,52 +234,146 @@ export default function AdminAddRepairCapacityPage() {
                                 </div>
                             </div>
                             
-                            <div className="space-y-2">
-                                <Label htmlFor="brands" className="text-sm font-bold text-gray-700">Các hãng xe chuyên trị</Label>
-                                <Input 
-                                    id="brands" 
-                                    name="brands" 
-                                    value={formData.brands} 
-                                    onChange={handleChange} 
-                                    className="rounded-xl h-12 bg-gray-50/50 text-base" 
-                                    placeholder="VD: Honda, Toyota, Mitsubishi (Ngăn cách bởi dấu phẩy)" 
-                                />
-                            </div>
                         </div>
 
                         {/* Image Upload Area */}
                         <div className="space-y-3">
-                            <Label className="text-sm font-bold text-gray-700">Ảnh đại diện năng lực</Label>
-                            <div 
-                                onClick={() => fileInputRef.current?.click()}
-                                className="relative h-64 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 hover:bg-gray-50 hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
-                            >
-                                {formData.imageUrl ? (
-                                    <>
-                                        <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Năng lực sửa chữa" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <span className="text-white font-bold bg-black/50 px-4 py-2 rounded-lg backdrop-blur-sm">Thay đổi ảnh</span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center p-6 space-y-3 text-gray-400 group-hover:text-orange-500 transition-colors">
+                            <Label className="text-sm font-bold text-gray-700">Ảnh đại diện năng lực (Tối đa 5 ảnh)</Label>
+                            
+                            {formData.imageUrls.length < 5 && (
+                                <div 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="relative h-32 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 hover:bg-gray-50 hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group mb-4"
+                                >
+                                    <div className="text-center p-6 space-y-2 text-gray-400 group-hover:text-orange-500 transition-colors">
                                         {isUploading ? (
-                                            <Loader2 className="w-10 h-10 animate-spin mx-auto text-orange-500" />
+                                            <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500" />
                                         ) : (
                                             <>
-                                                <ImageIcon className="w-10 h-10 mx-auto" />
-                                                <p className="text-sm font-medium">Bấm vào đây để tải lên hình ảnh minh họa cho năng lực của bạn.</p>
+                                                <ImageIcon className="w-8 h-8 mx-auto" />
+                                                <p className="text-sm font-medium">Bấm tải thêm ảnh ({formData.imageUrls.length}/5)</p>
                                             </>
                                         )}
                                     </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
+
+                            {formData.imageUrls.length > 0 && (
+                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {formData.imageUrls.map((url, index) => (
+                                        <div key={index} className="relative h-32 rounded-2xl border border-gray-200 overflow-hidden group">
+                                            <img src={url} className="w-full h-full object-cover" alt={`Năng lực ${index + 1}`} />
+                                            <button 
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); removeImage(index); }}
+                                                className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                            </button>
+                                            {index === 0 && (
+                                                <span className="absolute bottom-2 left-2 bg-orange-600 text-white text-[10px] font-bold px-2 py-1 rounded-md">Ảnh chính</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             <input 
                                 type="file" 
                                 ref={fileInputRef}
                                 onChange={handleFileChange} 
                                 accept="image/*" 
+                                multiple
                                 className="hidden" 
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Detailed Description */}
+                <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 space-y-6">
+                    <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+                        <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
+                            <FileText className="w-6 h-6" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-800">Mô Tả Chi Tiết</h2>
+                    </div>
+                    <div className="space-y-4">
+                        <Label htmlFor="description" className="text-sm font-bold text-gray-700">Mô tả thêm về các tiêu chuẩn, trang thiết bị tại xưởng sửa chữa của bạn</Label>
+                        <textarea 
+                            id="description" 
+                            name="description" 
+                            value={formData.description} 
+                            onChange={handleChange} 
+                            className="flex min-h-[200px] w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-4 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700 resize-none" 
+                            placeholder="Ví dụ: Xưởng trang bị máy chuẩn đoán lỗi ô tô thế hệ mới nhất, phòng sơn sấy chuẩn Italia..." 
+                        />
+                    </div>
+                </div>
+
+                {/* Service Area / Khu Vực Phục Vụ */}
+                <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 space-y-6">
+                    <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
+                        <div className="p-3 bg-red-100 text-red-600 rounded-xl">
+                            <MapPin className="w-6 h-6" />
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-800">Khu vực phục vụ <span className="text-red-500">*</span></h2>
+                    </div>
+                    <p className="text-sm text-gray-500 mb-4">Chọn Tỉnh / Thành Phố và thông tin Quận / Huyện để khách hàng tìm kiếm nội bộ chính xác.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="province" className="text-sm font-bold text-gray-700">Tỉnh / TP</Label>
+                            <select 
+                                id="province" 
+                                name="province" 
+                                value={formData.province} 
+                                onChange={handleProvinceChange} 
+                                className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-red-500/50 transition-all font-medium text-gray-700"
+                            >
+                                <option value="">Chọn tỉnh / thành phố</option>
+                                {provincesList.map(p => (
+                                    <option key={p.code} value={p.name}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="district" className="text-sm font-bold text-gray-700">Quận / Huyện</Label>
+                            <select 
+                                id="district" 
+                                name="district" 
+                                value={formData.district} 
+                                onChange={handleChange} 
+                                disabled={!formData.province}
+                                className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-red-500/50 transition-all font-medium text-gray-700 disabled:opacity-50"
+                            >
+                                <option value="">Chọn quận / huyện</option>
+                                {districtsList.map((d: any) => (
+                                    <option key={d.code} value={d.name}>{d.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="contactPhone" className="text-sm font-bold text-gray-700">Số điện thoại liên hệ <span className="text-red-500">*</span></Label>
+                            <Input 
+                                id="contactPhone" 
+                                name="contactPhone" 
+                                value={formData.contactPhone} 
+                                onChange={handleChange} 
+                                className="rounded-xl h-12 bg-gray-50/50 text-base" 
+                                placeholder="Nhập số điện thoại" 
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="contactName" className="text-sm font-bold text-gray-700">Tên liên hệ <span className="text-red-500">*</span></Label>
+                            <Input 
+                                id="contactName" 
+                                name="contactName" 
+                                value={formData.contactName} 
+                                onChange={handleChange} 
+                                className="rounded-xl h-12 bg-gray-50/50 text-base" 
+                                placeholder="Nhập tên người liên hệ" 
+                                required
                             />
                         </div>
                     </div>
@@ -273,27 +423,6 @@ export default function AdminAddRepairCapacityPage() {
                                 </label>
                             ))}
                         </div>
-                    </div>
-                </div>
-
-                {/* Detailed Description */}
-                <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 space-y-6">
-                    <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-                        <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
-                            <FileText className="w-6 h-6" />
-                        </div>
-                        <h2 className="text-xl font-bold text-gray-800">Mô Tả Chi Tiết</h2>
-                    </div>
-                    <div className="space-y-4">
-                        <Label htmlFor="description" className="text-sm font-bold text-gray-700">Mô tả thêm về các tiêu chuẩn, trang thiết bị tại xưởng sửa chữa của bạn</Label>
-                        <textarea 
-                            id="description" 
-                            name="description" 
-                            value={formData.description} 
-                            onChange={handleChange} 
-                            className="flex min-h-[200px] w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-4 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700 resize-none" 
-                            placeholder="Ví dụ: Xưởng trang bị máy chuẩn đoán lỗi ô tô thế hệ mới nhất, phòng sơn sấy chuẩn Italia..." 
-                        />
                     </div>
                 </div>
 
