@@ -15,7 +15,8 @@ import {
   Menu,
   ShieldCheck,
   Car,
-  Wrench
+  Wrench,
+  MessageSquareText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ const menuItems: any[] = [
   { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
   { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
   { icon: Wrench, label: 'Quản lý cứu hộ / sửa chữa', href: '/admin/repairs/capacity' },
+  { icon: MessageSquareText, label: 'Yêu cầu hỗ trợ', href: '/admin/contacts' },
   { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
 ];
 
