@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Search, Wrench, ShieldCheck } from "lucide-react";
 import http from "@/lib/http";
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import toast from "react-hot-toast";
 
 interface RepairCapacity {
   id: number;
@@ -53,9 +54,10 @@ export default function RepairCapacityManagement() {
       try {
         await http.delete(`/repairs/capacity/${id}`);
         fetchCapacities();
+        toast.success("Xóa hồ sơ thành công!");
       } catch (error) {
         console.error("Failed to delete capacity:", error);
-        alert("Có lỗi xảy ra khi xóa.");
+        toast.error("Có lỗi xảy ra khi xóa.");
       }
     }
   };

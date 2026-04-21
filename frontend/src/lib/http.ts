@@ -1,5 +1,6 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import toast from 'react-hot-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
 
@@ -53,7 +54,7 @@ http.interceptors.response.use(
                 Cookies.remove('token'); // Xóa cả Cookie
 
                 // Show a friendly message if possible (optional, but alert is certain)
-                alert('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');
+                toast.error('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');
                 window.location.href = '/auth/login';
                 return Promise.reject(refreshError);
             }
