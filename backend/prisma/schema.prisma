@@ -457,3 +457,17 @@ model Transaction {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+// --- YÊU CẦU HỖ TRỢ CHI TIẾT ---
+model ContactRequest {
+  id           Int      @id @default(autoincrement())
+  name         String
+  phone        String
+  email        String
+  subject      String
+  otherSubject String?
+  message      String
+  status       String   @default("PENDING") // PENDING, RESOLVED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -26,6 +26,7 @@ import { RolesGuard } from './modules/auth/passport/roles.guard';
 
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { AiModule } from './modules/ai/ai.module';
+import { ContactsModule } from './modules/contacts/contacts.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { AiModule } from './modules/ai/ai.module';
     TransactionsModule,
     ReportsModule,
     AiModule,
+    ContactsModule,
   ],
   controllers: [],
   providers: [
