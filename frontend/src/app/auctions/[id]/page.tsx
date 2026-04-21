@@ -213,7 +213,7 @@ export default function AuctionDetailPage() {
         try {
             setIsGeneratingPayment(true);
             const res = await http.post(`/transactions/auction/${auction.id}`, {
-                amount: currentPrice * 0.05, // Cọc 5%
+                amount: Math.round(currentPrice * 0.00001), // Cọc 0.001%
                 description: `Coc xe dau gia ${auction.id}`
             });
             const data = res.data;
@@ -325,7 +325,7 @@ export default function AuctionDetailPage() {
                                     <div className="bg-amber-50 border-amber-200 border rounded-xl p-5 text-center">
                                         <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
                                         <h3 className="font-bold text-amber-900 text-lg mb-1">ĐÃ CHỐT ĐẤU GIÁ</h3>
-                                        <p className="text-sm text-amber-700 mb-4">Đang đợi người có mức cược cao nhất nộp tiền đặt cọc 5% (Trong vòng 5 phút).</p>
+                                        <p className="text-sm text-amber-700 mb-4">Đang đợi người có mức cược cao nhất nộp tiền đặt cọc 0,001% (Trong vòng 5 phút).</p>
 
                                         {isWinner ? (
                                             paymentUrl ? (
@@ -338,7 +338,7 @@ export default function AuctionDetailPage() {
                                                     disabled={isGeneratingPayment}
                                                     className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold h-12 shadow-lg"
                                                 >
-                                                    {isGeneratingPayment ? 'Đang tạo mã QR PayOS...' : `THANH TOÁN CỌC ${(currentPrice * 0.05).toLocaleString('vi-VN')}đ NGAY!`}
+                                                    {isGeneratingPayment ? 'Đang tạo mã QR PayOS...' : `THANH TOÁN CỌC ${Math.round(currentPrice * 0.00001).toLocaleString('vi-VN')}đ NGAY!`}
                                                 </Button>
                                             )
                                         ) : (

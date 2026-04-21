@@ -157,11 +157,11 @@ export class CartService {
     // Clear cart
     await this.clearCart(userId);
 
-    // Create Transaction for Payment
+    // Create Transaction for Payment (Cọc 0.001%)
     return this.transactionsService.createTransactionForOrder(
       order.id,
-      totalPrice,
-      `Thanh toan don hang ${order.id}`
+      Math.round(totalPrice * 0.00001),
+      `Coc don hang ${order.id}`
     );
   }
 }

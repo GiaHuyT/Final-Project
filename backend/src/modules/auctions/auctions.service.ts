@@ -224,11 +224,11 @@ export class AuctionsService {
         });
         if (!auction || !auction.winnerId || !auction.currentPrice) return null;
 
-        const fivePercentDeposit = auction.currentPrice * 0.05;
+        const depositAmount = Math.round(auction.currentPrice * 0.00001);
 
         return this.transactionsService.createTransactionForAuction(
             auction.id,
-            fivePercentDeposit,
+            depositAmount,
             `Coc xe dau gia ${auction.id}`
         );
     }

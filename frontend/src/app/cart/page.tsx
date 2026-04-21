@@ -202,7 +202,7 @@ export default function CartPage() {
 
 
                             <p className="text-[10px] text-slate-400 font-medium text-center mt-6 leading-relaxed">
-                                Bạn sẽ không bị trừ tiền ngay bây giờ. Bộ phận Sale của AutoBid sẽ liên hệ xác nhận và làm Hợp đồng.
+                                Bạn cần thanh toán số tiền cọc tương đương 0,001% giá trị giỏ hàng thông qua mã QR PayOS để hoàn tất đăng ký mua xe.
                             </p>
                         </div>
                     </div>
