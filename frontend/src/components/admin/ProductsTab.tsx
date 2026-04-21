@@ -76,6 +76,11 @@ export function ProductsTab() {
         licensePlate: '',
         mileage: '',
         conditionDetail: '',
+        usageTime: '',
+        maintenanceHistory: '',
+        wearAndTear: '',
+        vehicleHistory: '',
+        remainingWarranty: '',
         color: '',
         bodyType: '',
         // Engine Stats
@@ -121,8 +126,6 @@ export function ProductsTab() {
         lka: false,
         bsm: false,
         acc: false,
-        esp: false,
-        ba: false,
         rearSensor: false,
         colorVariants: [{ color: '', images: [] as string[] }],
     });

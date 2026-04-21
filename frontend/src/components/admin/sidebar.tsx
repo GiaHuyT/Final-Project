@@ -14,28 +14,21 @@ import {
   ChevronDown,
   Menu,
   ShieldCheck,
-  Car
+  Car,
+  Wrench
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Cookies from 'js-cookie';
 import { useRouter, usePathname } from 'next/navigation';
 
-const menuItems = [
+const menuItems: any[] = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/admin' },
-  { 
-    icon: ShieldCheck, 
-    label: 'Quản lý phê duyệt', 
-    subItems: [
-      { label: 'Tài khoản', href: '/admin/approvals/users' },
-      { label: 'Xe', href: '/admin/approvals/products' },
-      { label: 'Đấu giá', href: '/admin/approvals/auctions' },
-    ]
-  },
   { icon: Users, label: 'Quản lý người dùng', href: '/admin/users' },
   { icon: Car, label: 'Quản lý xe', href: '/admin/products' },
   { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
   { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
+  { icon: Wrench, label: 'Quản lý cứu hộ / sửa chữa', href: '/admin/repairs/capacity' },
   { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
 ];
 
@@ -82,7 +75,7 @@ export function AdminSidebar() {
           {menuItems.map((item, index) => {
             const hasSubItems = !!item.subItems;
             const isOpen = openMenus.includes(item.label);
-            const isActive = item.href ? pathname === item.href : item.subItems?.some(si => pathname === si.href);
+            const isActive = item.href ? pathname === item.href : item.subItems?.some((si: any) => pathname === si.href);
 
             if (hasSubItems) {
               return (
@@ -111,7 +104,7 @@ export function AdminSidebar() {
                   
                   {!isCollapsed && isOpen && (
                     <div className="flex flex-col gap-1 ml-9 mt-1 border-l pl-2">
-                      {item.subItems?.map((subItem, siIndex) => (
+                      {item.subItems?.map((subItem: any, siIndex: number) => (
                         <Link
                           key={siIndex}
                           href={subItem.href}

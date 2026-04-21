@@ -30,6 +30,7 @@ const menuItems = [
     { icon: Clock, label: 'Quản lý đơn hàng', href: '/vendor/orders' },
     { icon: Truck, label: 'Xe thuê', href: '/vendor/rental-cars' },
     { icon: Wrench, label: 'Sửa chữa', href: '/vendor/repairs' },
+    { icon: Wrench, label: 'Thêm năng lực sửa chữa', href: '/vendor/repairs/capacity/add' },
     { icon: Bell, label: 'Thông báo', href: '/vendor/notifications' },
 ];
 

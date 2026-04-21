@@ -223,13 +223,7 @@ export function UsersTab() {
     );
 
     return (
-        <div className="container mx-auto py-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Quản lý người dùng</h1>
-                <p className="text-muted-foreground transition-all duration-300">
-                    Xem, thêm mới và quản lý quyền của người dùng trên hệ thống.
-                </p>
-            </div>
+        <div className="space-y-6 flex-1">
 
             <div className="flex justify-end mb-6">
                  <Button onClick={() => setIsAddOpen(true)} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 rounded-xl px-6 transition-all active:scale-95">

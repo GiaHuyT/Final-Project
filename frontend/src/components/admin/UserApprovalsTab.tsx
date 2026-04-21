@@ -100,13 +100,7 @@ export function UserApprovalsTab() {
     );
 
     return (
-        <div className="container mx-auto py-6 space-y-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-black tracking-tight text-gray-900 uppercase tracking-tighter">Phê duyệt Tài khoản</h1>
-                <p className="text-muted-foreground font-medium">
-                    Danh sách người dùng đang chờ phê duyệt quyền Nhà cung cấp (Vendor).
-                </p>
-            </div>
+        <div className="space-y-6 flex-1">
 
             <Card className="border-none shadow-2xl shadow-gray-200/50 rounded-[2.5rem] overflow-hidden">
                 <CardHeader className="border-b bg-gray-50/30 px-10 py-8">

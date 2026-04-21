@@ -293,6 +293,7 @@ model ServiceProfile {
   isApproved  Boolean  @default(false)
   vehicles    RentalCar[]
   repairs     RepairService[]
+  repairCapacities RepairCapacity[]
 }
 
 model RentalCar {
@@ -316,6 +317,25 @@ model RepairService {
   description String?
   price       Float    @default(0)
   status      String   @default("Hoạt động")
+}
+
+model RepairCapacity {
+  id              Int      @id @default(autoincrement())
+  profileId       Int
+  profile         ServiceProfile @relation(fields: [profileId], references: [id])
+  name            String   // Tiêu đề năng lực (Ví dụ: Chuyên đại tu động cơ)
+  specialty       String   // e.g., Động cơ, Hệ thống điện, Mâm last, v.v.
+  experienceYears Int      @default(0)
+  vehicleTypes    String   // e.g., "Xe tải, Xe con"
+  province        String?
+  district        String?
+  contactPhone    String?
+  contactName     String?
+  description     String?
+  imageUrl        String?
+  imageUrls       String[] @default([])
+  status          String   @default("Hoạt động")
+  createdAt       DateTime @default(now())
 }
 
 // --- NHÓM GIAO DỊCH & TƯƠNG TÁC ---

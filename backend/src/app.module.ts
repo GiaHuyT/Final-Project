@@ -25,6 +25,7 @@ import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/passport/roles.guard';
 
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { TransactionsModule } from './modules/transactions/transactions.module';
     PayosModule,
     TransactionsModule,
     ReportsModule,
+    AiModule,
   ],
   controllers: [],
   providers: [

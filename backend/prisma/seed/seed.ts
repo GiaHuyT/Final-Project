@@ -12,7 +12,10 @@ async function main() {
   await prisma.order.deleteMany();
   await prisma.carModel.deleteMany();
   await prisma.brand.deleteMany();
+  await prisma.cartItem.deleteMany();
+  await prisma.cart.deleteMany();
   await prisma.auctionBid.deleteMany();
+  await prisma.auctionItem.deleteMany();
   await prisma.auction.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
@@ -215,6 +218,8 @@ async function main() {
       }
       const finalPrice = basePrice + (productIndex * 50000000); // Increment price slightly
 
+      const isUsedCar = productIndex % 4 === 0;
+      
       products.push({
         name: `${brandName} ${model.name} ${variant} ${year}`,
         description: `Mẫu xe ${model.name} phiên bản ${variant} của ${brandName}. Thiết kế đẳng cấp, vận hành mạnh mẽ, đầy đủ tiện nghi hiện đại.`,
@@ -226,7 +231,10 @@ async function main() {
         modelName: model.name,
         variant: variant,
         year: year,
-        condition: productIndex % 4 === 0 ? 'Xe lướt' : 'Xe mới',
+        condition: isUsedCar ? 'Xe cũ' : 'Xe mới',
+        mileage: isUsedCar ? 5000 + (productIndex * 1500) : null,
+        conditionDetail: isUsedCar ? 'Sơn zin 99%, cam kết không đâm đụng, không ngập nước, máy móc nguyên bản.' : null,
+        licensePlate: isUsedCar ? `51K-${10000 + (productIndex * 7)}` : null,
         imageUrl: imageUrl,
         ...getSpecsForModel(brandName, model.name)
       });
