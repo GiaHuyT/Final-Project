@@ -19,6 +19,9 @@ async function main() {
   await prisma.auction.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.repairCapacity.deleteMany();
+  await prisma.repairService.deleteMany();
+  await prisma.rentalCar.deleteMany();
   await prisma.serviceProfile.deleteMany();
   await prisma.address.deleteMany();
   await prisma.message.deleteMany();
@@ -144,8 +147,8 @@ async function main() {
       bodyType: 'Sedan', airbags: 6, autoConditioning: true, infotainment: true, appleCarplay: true, electricSeats: false, camera360: false,
       abs: true, esp: true, ba: true, rearSensor: true
     };
-    
-    switch(modelName) {
+
+    switch (modelName) {
       case 'Vios': case 'City': case 'Accent': case 'Mazda2':
         return { ...specs, engineCapacity: '1.5', maxPower: '107', maxTorque: '140', transmission: 'CVT', length: 4425, width: 1730, height: 1475, wheelbase: 2550, groundClearance: 133, curbWeight: 1100, fuelTankCapacity: 42, avgFuelConsumption: 5.8, bodyType: 'Sedan' };
       case 'Camry': case 'Accord': case 'Mazda6': case 'K5':
@@ -183,12 +186,12 @@ async function main() {
     const brandName = item.brand;
     // Lấy tối đa 3 model cho mỗi hãng
     const modelsToCreate = item.models.slice(0, 3);
-    
+
     for (const model of modelsToCreate) {
       const vendor = vendors[productIndex % vendors.length];
       const variant = model.variants[0] || 'Standard';
       const year = 2023 + (productIndex % 2); // 2023 or 2024
-      
+
       // Determine image based on brand/type
       let imageUrl = '/images/cars/white_luxury_sedan.png';
       if (['SUV', 'Fortuner', 'Everest', 'Santa Fe', 'CR-V', 'GLC', 'RX', 'Tucson'].some(kw => model.name.includes(kw) || item.brand.includes(kw))) {
@@ -219,7 +222,7 @@ async function main() {
       const finalPrice = basePrice + (productIndex * 50000000); // Increment price slightly
 
       const isUsedCar = productIndex % 4 === 0;
-      
+
       products.push({
         name: `${brandName} ${model.name} ${variant} ${year}`,
         description: `Mẫu xe ${model.name} phiên bản ${variant} của ${brandName}. Thiết kế đẳng cấp, vận hành mạnh mẽ, đầy đủ tiện nghi hiện đại.`,
@@ -246,6 +249,33 @@ async function main() {
   await prisma.product.createMany({
     data: products,
   });
+
+  console.log('Đang tạo hồ sơ năng lực sửa chữa mẫu...');
+
+  // Tạo Profile cho vendor1
+  const vendor1Profile = await prisma.serviceProfile.upsert({
+    where: { userId: vendor1.id },
+    update: {},
+    create: {
+      userId: vendor1.id,
+      serviceType: 'REPAIR',
+      isApproved: true,
+    }
+  });
+
+
+
+  const vendor2Profile = await prisma.serviceProfile.upsert({
+    where: { userId: vendor2.id },
+    update: {},
+    create: {
+      userId: vendor2.id,
+      serviceType: 'REPAIR',
+      isApproved: true,
+    }
+  });
+
+
 
   console.log('Gieo hạt dữ liệu thành công! 🌱');
 }
