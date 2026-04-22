@@ -34,33 +34,51 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
         });
         const data = await res.json();
         setConversations(data);
-        
-        // Handle initial vendor if provided
-        if (initialVendorId && !selectedConversation) {
-          setIsInitializing(true);
-          try {
-            const startRes = await fetch('http://127.0.0.1:3000/chat/conversation', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}` 
-              },
-              body: JSON.stringify({ participantId: initialVendorId })
-            });
-            const conv = await startRes.json();
-            setSelectedConversation(conv);
-          } catch (err) {
-            toast.error("Không thể kết nối với người bán");
-          } finally {
-            setIsInitializing(false);
-          }
-        }
       } catch (err) {
         console.error("Failed to fetch conversations", err);
       }
     };
     fetchConversations();
-  }, [initialVendorId, token]);
+  }, [token]);
+
+  // Robustly handle 'open-chat' events to directly switch the conversation view
+  useEffect(() => {
+    const handleDynamicChatOpen = async (e: any) => {
+      const vendorId = e.detail?.vendorId || initialVendorId;
+      if (!vendorId || !token) return;
+
+      setIsInitializing(true);
+      try {
+        const startRes = await fetch('http://127.0.0.1:3000/chat/conversation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ participantId: Number(vendorId) })
+        });
+        if (startRes.ok) {
+          const conv = await startRes.json();
+          setSelectedConversation(conv);
+        } else {
+          toast.error("Lỗi khi kết nối nhà cung cấp");
+        }
+      } catch (err) {
+        toast.error("Không thể kết nối với máy chủ chat");
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    window.addEventListener('open-chat', handleDynamicChatOpen);
+
+    // Check initial mount trigger
+    if (initialVendorId && !selectedConversation) {
+      handleDynamicChatOpen({ detail: { vendorId: initialVendorId } });
+    }
+
+    return () => window.removeEventListener('open-chat', handleDynamicChatOpen);
+  }, [token, initialVendorId]);
 
   useEffect(() => {
     if (selectedConversation && !selectedConversation.isAi) {
@@ -78,7 +96,7 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
     if (!input.trim()) return;
     const text = input;
     setInput('');
-    
+
     // AI Send Logic
     if (selectedConversation?.isAi) {
       const newMsg = { id: Date.now().toString(), content: text, senderId: user?.id, createdAt: new Date() };
@@ -92,7 +110,7 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
       try {
         const res = await fetch('http://127.0.0.1:3000/ai/chat', {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
@@ -127,10 +145,10 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
     return (
       <div className="w-80 h-[500px] bg-white rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-bottom-4">
         <div className="p-4 border-b bg-slate-50 font-headline font-bold text-lg flex justify-between items-center">
-            Trò chuyện
-            <Button variant="ghost" title="Mở toàn màn hình" size="icon" onClick={() => { onClose(); window.location.href = '/messages'; }} className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
-                <Maximize2 className="h-4 w-4" />
-            </Button>
+          Trò chuyện
+          <Button variant="ghost" title="Mở toàn màn hình" size="icon" onClick={() => { onClose(); window.location.href = '/messages'; }} className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         </div>
         <div className="flex-1 overflow-y-auto">
           {/* AI Mode Button */}
@@ -188,24 +206,24 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
     <div className="w-80 h-[500px] bg-white rounded-2xl shadow-2xl border flex flex-col overflow-hidden animate-in slide-in-from-right-4">
       <div className={cn("p-3 border-b flex items-center justify-between gap-1 shadow-sm relative z-10 text-left", selectedConversation.isAi ? "bg-blue-50" : "bg-slate-50")}>
         <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)} className="h-8 w-8 hover:bg-slate-200">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Avatar className={cn("h-8 w-8", selectedConversation.isAi && "border border-blue-400")}>
-              <AvatarImage src={otherParticipant?.avatar} />
-              <AvatarFallback>{otherParticipant?.username?.[0]}</AvatarFallback>
-            </Avatar>
-            <div className={cn("font-bold text-[13px] truncate max-w-[120px]", selectedConversation.isAi ? "text-blue-800" : "text-slate-900")}>
-                {otherParticipant?.username}
-            </div>
+          <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)} className="h-8 w-8 hover:bg-slate-200">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Avatar className={cn("h-8 w-8", selectedConversation.isAi && "border border-blue-400")}>
+            <AvatarImage src={otherParticipant?.avatar} />
+            <AvatarFallback>{otherParticipant?.username?.[0]}</AvatarFallback>
+          </Avatar>
+          <div className={cn("font-bold text-[13px] truncate max-w-[120px]", selectedConversation.isAi ? "text-blue-800" : "text-slate-900")}>
+            {otherParticipant?.username}
+          </div>
         </div>
         {!selectedConversation.isAi && (
-            <Button variant="ghost" title="Mở toàn màn hình" size="icon" onClick={() => { onClose(); window.location.href = '/messages'; }} className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
-                <Maximize2 className="h-4 w-4" />
-            </Button>
+          <Button variant="ghost" title="Mở toàn màn hình" size="icon" onClick={() => { onClose(); window.location.href = '/messages'; }} className="h-8 w-8 text-slate-400 hover:text-primary transition-colors">
+            <Maximize2 className="h-4 w-4" />
+          </Button>
         )}
       </div>
-      
+
       <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto flex flex-col-reverse gap-3 cursor-default bg-white">
         {typingUser && !selectedConversation.isAi && (
           <div className="text-[10px] text-slate-400 italic">Đang nhập tin nhắn...</div>
@@ -213,7 +231,7 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
         {isAiTyping && selectedConversation.isAi && (
           <div className="text-[10px] text-blue-500 italic font-medium">Trợ lý AI đang tư duy...</div>
         )}
-        
+
         {activeMessages.map((msg: any) => {
           const isMe = msg.senderId === user?.id;
           return (
@@ -227,11 +245,11 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
               <div
                 className={cn(
                   "p-3 rounded-2xl text-[13px] shadow-xs whitespace-pre-wrap leading-relaxed",
-                  isMe 
-                    ? "bg-slate-900 text-white rounded-tr-none" 
-                    : selectedConversation.isAi 
-                        ? "bg-blue-50 text-slate-800 rounded-tl-none font-medium border border-blue-100" 
-                        : "bg-slate-100 text-slate-900 rounded-tl-none font-medium"
+                  isMe
+                    ? "bg-slate-900 text-white rounded-tr-none"
+                    : selectedConversation.isAi
+                      ? "bg-blue-50 text-slate-800 rounded-tl-none font-medium border border-blue-100"
+                      : "bg-slate-100 text-slate-900 rounded-tl-none font-medium"
                 )}
               >
                 {msg.content}
@@ -257,10 +275,10 @@ export const ChatWindow = ({ onClose, initialVendorId }: { onClose: () => void; 
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           className="rounded-full bg-slate-50 border-none focus:ring-2 focus:ring-primary/20 h-11 px-6 text-sm flex-1"
         />
-        <Button 
-          onClick={handleSend} 
+        <Button
+          onClick={handleSend}
           disabled={isAiTyping}
-          size="icon" 
+          size="icon"
           className="rounded-full shrink-0 w-11 h-11 bg-slate-900 hover:bg-black text-white shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center justify-center disabled:opacity-50"
         >
           {isAiTyping ? <Loader2 className="h-5 w-5 animate-spin" /> : <ArrowUp className="h-5 w-5" />}

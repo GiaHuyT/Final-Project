@@ -26,10 +26,10 @@ export const VendorChatButton = ({ vendorId, productId }: { vendorId: number; pr
         body: JSON.stringify({ participantId: vendorId, productId }),
       });
       const conversation = await res.json();
-      
+
       // Emit custom event to open the global chat window with this conversation
-      window.dispatchEvent(new CustomEvent('open-chat', { 
-        detail: { conversationId: conversation.id } 
+      window.dispatchEvent(new CustomEvent('open-chat', {
+        detail: { vendorId: vendorId }
       }));
     } catch (err) {
       console.error('Failed to start chat', err);
