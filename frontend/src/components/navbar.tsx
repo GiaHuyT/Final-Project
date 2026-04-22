@@ -13,7 +13,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Heart, ShoppingCart } from "lucide-react";
+import { Bell, Heart, ShoppingCart, ChevronDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -240,8 +240,17 @@ export function Navbar() {
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/auctions">Đấu giá</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/categories">Các mẫu xe</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/news-and-events">Tin tức</Link>
-                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/maintenance">Bảo dưỡng</Link>
-                    <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/repairs">Sửa chữa</Link>
+                    <div className="relative group">
+                        <button className="text-slate-600 hover:text-slate-900 transition-colors outline-none flex items-center gap-1 cursor-pointer py-2">
+                            Dịch vụ <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
+                        </button>
+                        <div className="absolute top-full left-0 mt-1 w-48 bg-white shadow-xl border border-gray-100 rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2">
+                            <Link href="/maintenance" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ bảo dưỡng</Link>
+                            <Link href="/repairs" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ sửa chữa</Link>
+                            <Link href="/car-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ thuê xe</Link>
+                            <Link href="/driver-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ lái thuê</Link>
+                        </div>
+                    </div>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/compare">So sánh</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/contact">Liên hệ</Link>
                 </div>
