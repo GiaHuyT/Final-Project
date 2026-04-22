@@ -81,12 +81,12 @@ export default function CarRentalPage() {
             
             {/* Search Bar */}
             <div className="relative max-w-xl group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-slate-500 group-focus-within:text-primary transition-colors" />
                 </div>
                 <input
                     type="text"
-                    className="block w-full pl-11 pr-4 py-4 bg-white/10 border border-white/20 rounded-full text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-slate-900/50 transition-all backdrop-blur-md"
+                    className="block w-full pl-12 pr-6 py-4 bg-white/95 backdrop-blur-md border border-white/40 shadow-2xl rounded-full text-slate-900 font-medium placeholder-slate-500 focus:outline-none focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all"
                     placeholder="Tìm theo tên xe, loại xe hoặc nhà cung cấp..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
