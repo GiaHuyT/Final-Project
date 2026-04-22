@@ -153,7 +153,7 @@ export default function VendorProductsPage() {
 
     const validateForm = () => {
         const errors: Record<string, string> = {};
-        const required = ['name', 'brand', 'modelName', 'price', 'year', 'bodyType', 'fuelType', 'transmission'];
+        const required = ['name', 'brand', 'modelName', 'price', 'year', 'fuelType', 'transmission'];
         required.forEach(field => { if (!formData[field as keyof typeof formData]) errors[field] = 'Trường này là bắt buộc'; });
         if (Object.keys(errors).length > 0) { setFormErrors(errors); toast.error('Vui lòng điền đủ thông tin bắt buộc'); return false; }
         return true;
@@ -286,11 +286,13 @@ export default function VendorProductsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Tên xe niêm yết</Label>
-                                        <Input name="name" value={formData.name} onChange={handleChange} className={cn("w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-slate-600 shadow-sm transition-all focus:border-blue-300", formErrors.name && "border-red-500")} placeholder="VD: Porsche 911 GT3 RS" />
+                                        <Input name="name" value={formData.name} onChange={handleChange} className={cn("w-full bg-white border rounded-2xl h-14 px-6 text-slate-600 shadow-sm transition-all focus:border-blue-300", formErrors.name ? "border-red-500" : "border-slate-200")} placeholder="VD: Porsche 911 GT3 RS" />
+                                        {formErrors.name && <span className="text-red-500 text-[10px] italic">{formErrors.name}</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Giá bán (VNĐ)</Label>
-                                        <Input name="price" type="number" value={formData.price} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 text-blue-600/70 shadow-sm" />
+                                        <Input name="price" type="number" value={formData.price} onChange={handleChange} className={cn("w-full bg-white border rounded-2xl h-14 px-6 text-blue-600/70 shadow-sm", formErrors.price ? "border-red-500" : "border-slate-200")} />
+                                        {formErrors.price && <span className="text-red-500 text-[10px] italic">{formErrors.price}</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Kho hàng (Stock)</Label>
@@ -310,21 +312,24 @@ export default function VendorProductsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Hãng xe</Label>
-                                        <select name="brand" value={formData.brand} onChange={(e) => setFormData(p => ({ ...p, brand: e.target.value, modelName: '', variant: '' }))} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 font-bold shadow-sm">
+                                        <select name="brand" value={formData.brand} onChange={(e) => setFormData(p => ({ ...p, brand: e.target.value, modelName: '', variant: '' }))} className={cn("w-full bg-white border rounded-2xl h-14 px-5 font-bold shadow-sm", formErrors.brand ? "border-red-500" : "border-slate-200")}>
                                             <option value="">-- Chọn hãng --</option>
                                             {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
                                         </select>
+                                        {formErrors.brand && <span className="text-red-500 text-[10px] italic">{formErrors.brand}</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Dòng xe</Label>
-                                        <select name="modelName" value={formData.modelName} onChange={(e) => setFormData(p => ({ ...p, modelName: e.target.value, variant: '' }))} disabled={!formData.brand} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 font-bold shadow-sm">
+                                        <select name="modelName" value={formData.modelName} onChange={(e) => setFormData(p => ({ ...p, modelName: e.target.value, variant: '' }))} disabled={!formData.brand} className={cn("w-full bg-white border rounded-2xl h-14 px-5 font-bold shadow-sm", formErrors.modelName ? "border-red-500" : "border-slate-200")}>
                                             <option value="">-- Chọn dòng --</option>
                                             {availableModels.map((m: any) => <option key={m.id} value={m.name}>{m.name}</option>)}
                                         </select>
+                                        {formErrors.modelName && <span className="text-red-500 text-[10px] italic">{formErrors.modelName}</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Năm sản xuất</Label>
-                                        <Input name="year" type="number" value={formData.year} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-6 font-bold shadow-sm" />
+                                        <Input name="year" type="number" value={formData.year} onChange={handleChange} className={cn("w-full bg-white border rounded-2xl h-14 px-6 font-bold shadow-sm", formErrors.year ? "border-red-500" : "border-slate-200")} />
+                                        {formErrors.year && <span className="text-red-500 text-[10px] italic">{formErrors.year}</span>}
                                     </div>
                                 </div>
                                 <div className="mt-8 space-y-4">
@@ -391,15 +396,17 @@ export default function VendorProductsPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Nhiên liệu</Label>
-                                        <select name="fuelType" value={formData.fuelType} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 text-slate-600 shadow-sm">
+                                        <select name="fuelType" value={formData.fuelType} onChange={handleChange} className={cn("w-full bg-white border rounded-2xl h-14 px-5 text-slate-600 shadow-sm", formErrors.fuelType ? "border-red-500" : "border-slate-200")}>
                                             <option value="">-- Chọn --</option><option value="Xăng">Xăng</option><option value="Diesel">Dầu (Diesel)</option><option value="Điện">Điện</option><option value="Hybrid">Hybrid</option>
                                         </select>
+                                        {formErrors.fuelType && <span className="text-red-500 text-[10px] italic">{formErrors.fuelType}</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Hộp số</Label>
-                                        <select name="transmission" value={formData.transmission} onChange={handleChange} className="w-full bg-white border border-slate-200 rounded-2xl h-14 px-5 text-slate-600 shadow-sm">
+                                        <select name="transmission" value={formData.transmission} onChange={handleChange} className={cn("w-full bg-white border rounded-2xl h-14 px-5 text-slate-600 shadow-sm", formErrors.transmission ? "border-red-500" : "border-slate-200")}>
                                             <option value="">-- Chọn --</option><option value="Số sàn">Số sàn</option><option value="Tự động">Số tự động</option><option value="CVT">Vô cấp (CVT)</option>
                                         </select>
+                                        {formErrors.transmission && <span className="text-red-500 text-[10px] italic">{formErrors.transmission}</span>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label className="text-[11px] font-black uppercase tracking-widest text-slate-400">Công suất (hp)</Label>
