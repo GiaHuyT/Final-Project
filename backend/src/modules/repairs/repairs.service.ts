@@ -44,15 +44,28 @@ export class RepairsService {
     }
 
     async getAllCapacities() {
-        return this.prisma.repairCapacity.findMany({ 
-            include: { 
-                profile: { 
-                    include: { 
-                        user: { select: { id: true, username: true, avatar: true, phonenumber: true, email: true } } 
-                    } 
-                } 
-            }, 
-            orderBy: { createdAt: 'desc' } 
+        return this.prisma.repairCapacity.findMany({
+            include: {
+                profile: {
+                    include: {
+                        user: { select: { id: true, username: true, avatar: true, phonenumber: true, email: true } }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    async getCapacityById(id: number) {
+        return this.prisma.repairCapacity.findUnique({
+            where: { id },
+            include: {
+                profile: {
+                    include: {
+                        user: { select: { id: true, username: true, avatar: true, phonenumber: true, email: true } }
+                    }
+                }
+            }
         });
     }
 

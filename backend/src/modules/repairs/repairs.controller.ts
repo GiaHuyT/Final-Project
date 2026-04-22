@@ -37,6 +37,12 @@ export class RepairsController {
         return this.repairsService.getAllCapacities();
     }
 
+    @Public()
+    @Get('capacity/public/:id')
+    getCapacityById(@Param('id') id: string) {
+        return this.repairsService.getCapacityById(+id);
+    }
+
     @Patch('capacity/:id')
     updateCapacity(@Param('id') id: string, @Body() dto: any) {
         return this.repairsService.updateCapacity(+id, dto);
