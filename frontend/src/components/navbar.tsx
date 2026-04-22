@@ -315,12 +315,12 @@ export function Navbar() {
                                 )}
                                 {user?.role === 'VENDOR' && (
                                     <DropdownMenuItem asChild>
-                                        <Link href="/vendor/profile" className="cursor-pointer font-semibold text-sm font-body">Tài khoản của tôi</Link>
+                                        <Link href="/vendor" className="cursor-pointer font-semibold text-sm font-body">Tài khoản của tôi</Link>
                                     </DropdownMenuItem>
                                 )}
                                 {user?.role === 'ADMIN' && (
                                     <DropdownMenuItem asChild>
-                                        <Link href="/admin/products" className="cursor-pointer font-semibold text-sm font-body">Quản trị</Link>
+                                        <Link href="/admin" className="cursor-pointer font-semibold text-sm font-body">Quản trị</Link>
                                     </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem onClick={handleLogout} className="text-error font-bold text-sm cursor-pointer mt-2 font-body">

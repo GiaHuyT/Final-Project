@@ -6,16 +6,26 @@ export class DashboardService {
     constructor(private prisma: PrismaService) { }
 
     async getStats() {
-        const [totalUsers, totalProducts, totalOrders, totalAuctions, revenue] = await Promise.all([
+        const [totalUsers, totalProducts, totalOrders, totalAuctions] = await Promise.all([
             this.prisma.user.count(),
             this.prisma.product.count(),
             this.prisma.order.count(),
-            this.prisma.auction.count({ where: { status: 'ACTIVE' } }),
-            this.prisma.order.aggregate({
-                where: { status: 'DELIVERED' },
-                _sum: { totalPrice: true }
-            })
+            this.prisma.auction.count({ where: { status: 'ACTIVE' } })
         ]);
+
+        const orderItems = await this.prisma.orderItem.findMany({
+            where: { order: { status: 'DELIVERED' } },
+            include: { product: { include: { vendor: true } } }
+        });
+
+        const totalRevenue = orderItems.reduce((acc, item) => {
+            const itemRevenue = item.price * item.quantity;
+            if (item.product?.vendor?.role === 'ADMIN') {
+                return acc + itemRevenue;
+            } else {
+                return acc + itemRevenue * 0.1;
+            }
+        }, 0);
 
         // Lấy 5 đơn hàng mới nhất
         const recentOrders = await this.prisma.order.findMany({
@@ -31,7 +41,7 @@ export class DashboardService {
             totalProducts,
             totalOrders,
             activeAuctions: totalAuctions,
-            totalRevenue: revenue._sum.totalPrice || 0,
+            totalRevenue: totalRevenue,
             recentOrders
         };
     }

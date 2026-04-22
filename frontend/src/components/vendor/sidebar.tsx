@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+    LayoutDashboard,
     Store,
     Box,
     Clock,
@@ -23,6 +24,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 
 const menuItems = [
+    { icon: LayoutDashboard, label: 'Tổng quan', href: '/vendor' },
     { icon: Store, label: 'Hồ sơ nhà cung cấp', href: '/vendor/profile' },
     { icon: TrendingUp, label: 'Doanh số', href: '/vendor/revenue' },
     { icon: Box, label: 'Quản lý xe', href: '/vendor/products' },

@@ -75,7 +75,7 @@ export class ReportsService {
         dateStr = orderDate.getFullYear().toString();
       }
 
-      const itemRevenue = item.price * item.quantity;
+      const itemRevenue = (item.price * item.quantity) * 0.9;
       if (revenueMap.has(dateStr)) {
         revenueMap.set(dateStr, revenueMap.get(dateStr)! + itemRevenue);
       }
