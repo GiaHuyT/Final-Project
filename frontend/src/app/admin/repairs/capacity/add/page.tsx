@@ -11,7 +11,7 @@ import { ArrowLeft, Loader2, Save, Image as ImageIcon, Wrench, FileText, Briefca
 import Link from 'next/link';
 
 const SPECIALTIES = [
-    "Động cơ", "Hệ thống điện", "Phục hồi sau tai nạn", 
+    "Động cơ", "Hệ thống điện", "Phục hồi sau tai nạn",
     "Khung gầm", "Đồng sơn", "Hộp số", "Bảo dưỡng định kỳ"
 ];
 
@@ -24,7 +24,7 @@ export default function AdminAddRepairCapacityPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    
+
     const [formData, setFormData] = useState({
         name: '',
         experienceYears: '',
@@ -61,7 +61,7 @@ export default function AdminAddRepairCapacityPage() {
     const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const provinceName = e.target.value;
         setFormData(prev => ({ ...prev, province: provinceName, district: '' }));
-        
+
         const provinceObj = provincesList.find(p => p.name === provinceName);
         if (provinceObj && provinceObj.districts) {
             setDistrictsList(provinceObj.districts);
@@ -78,7 +78,7 @@ export default function AdminAddRepairCapacityPage() {
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(event.target.files || []);
         if (!files.length) return;
-        
+
         if (formData.imageUrls.length + files.length > 5) {
             toast.error('Chỉ được tải lên tối đa 5 ảnh đại diện năng lực.');
             return;
@@ -96,15 +96,15 @@ export default function AdminAddRepairCapacityPage() {
                 });
                 newImageUrls.push(res.data.avatarUrl);
             }
-            setFormData(prev => ({ 
-                ...prev, 
-                imageUrls: newImageUrls, 
-                imageUrl: newImageUrls.length > 0 ? newImageUrls[0] : '' 
+            setFormData(prev => ({
+                ...prev,
+                imageUrls: newImageUrls,
+                imageUrl: newImageUrls.length > 0 ? newImageUrls[0] : ''
             }));
             toast.success('Tải ảnh thành công!');
-        } catch (error) { 
-            toast.error('Có lỗi xảy ra khi tải ảnh lên.'); 
-        } finally { 
+        } catch (error) {
+            toast.error('Có lỗi xảy ra khi tải ảnh lên.');
+        } finally {
             setIsUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
@@ -122,7 +122,7 @@ export default function AdminAddRepairCapacityPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!formData.name) {
             toast.error('Vui lòng nhập tên năng lực.');
             return;
@@ -145,22 +145,22 @@ export default function AdminAddRepairCapacityPage() {
                 vehicleTypes: selectedVehicleTypes.join(', '),
             });
             toast.success('Thêm năng lực sửa chữa thành công!');
-            router.push('/admin');
-        } catch (error: any) { 
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu năng lực.'); 
-        } finally { 
-            setIsLoading(false); 
+            router.push('/admin/repairs/capacity');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi lưu năng lực.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const toggleSpecialty = (sp: string) => {
-        setSelectedSpecialties(prev => 
+        setSelectedSpecialties(prev =>
             prev.includes(sp) ? prev.filter(x => x !== sp) : [...prev, sp]
         );
     };
 
     const toggleVehicleType = (vt: string) => {
-        setSelectedVehicleTypes(prev => 
+        setSelectedVehicleTypes(prev =>
             prev.includes(vt) ? prev.filter(x => x !== vt) : [...prev, vt]
         );
     };
@@ -183,7 +183,7 @@ export default function AdminAddRepairCapacityPage() {
                     <div className="absolute top-0 right-0 p-8 opacity-5">
                         <Wrench className="w-48 h-48" />
                     </div>
-                    
+
                     <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
                         <div className="p-3 bg-orange-100 text-orange-600 rounded-xl">
                             <Briefcase className="w-6 h-6" />
@@ -195,37 +195,37 @@ export default function AdminAddRepairCapacityPage() {
                         <div className="lg:col-span-2 space-y-6">
                             <div className="space-y-2">
                                 <Label htmlFor="name" className="text-sm font-bold text-gray-700">Tên/Tiêu đề năng lực <span className="text-red-500">*</span></Label>
-                                <Input 
-                                    id="name" 
-                                    name="name" 
-                                    value={formData.name} 
-                                    onChange={handleChange} 
-                                    className="rounded-xl h-12 bg-gray-50/50 text-base" 
-                                    placeholder="VD: Cứu hộ và sửa chữa động cơ Diesel chuyên nghiệp" 
+                                <Input
+                                    id="name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    className="rounded-xl h-12 bg-gray-50/50 text-base"
+                                    placeholder="VD: Cứu hộ và sửa chữa động cơ Diesel chuyên nghiệp"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label htmlFor="experienceYears" className="text-sm font-bold text-gray-700">Số năm kinh nghiệm</Label>
-                                    <Input 
-                                        id="experienceYears" 
-                                        name="experienceYears" 
+                                    <Input
+                                        id="experienceYears"
+                                        name="experienceYears"
                                         type="number"
                                         min="0"
-                                        value={formData.experienceYears} 
-                                        onChange={handleChange} 
-                                        className="rounded-xl h-12 bg-gray-50/50 text-base" 
-                                        placeholder="VD: 5" 
+                                        value={formData.experienceYears}
+                                        onChange={handleChange}
+                                        className="rounded-xl h-12 bg-gray-50/50 text-base"
+                                        placeholder="VD: 5"
                                     />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="status" className="text-sm font-bold text-gray-700">Trạng thái hồ sơ</Label>
-                                    <select 
-                                        id="status" 
-                                        name="status" 
-                                        value={formData.status} 
-                                        onChange={handleChange} 
+                                    <select
+                                        id="status"
+                                        name="status"
+                                        value={formData.status}
+                                        onChange={handleChange}
                                         className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700"
                                     >
                                         <option value="Hoạt động">Công khai (Khách hàng có thể thấy)</option>
@@ -233,15 +233,15 @@ export default function AdminAddRepairCapacityPage() {
                                     </select>
                                 </div>
                             </div>
-                            
+
                         </div>
 
                         {/* Image Upload Area */}
                         <div className="space-y-3">
                             <Label className="text-sm font-bold text-gray-700">Ảnh đại diện năng lực (Tối đa 5 ảnh)</Label>
-                            
+
                             {formData.imageUrls.length < 5 && (
-                                <div 
+                                <div
                                     onClick={() => fileInputRef.current?.click()}
                                     className="relative h-32 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 hover:bg-gray-50 hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group mb-4"
                                 >
@@ -263,7 +263,7 @@ export default function AdminAddRepairCapacityPage() {
                                     {formData.imageUrls.map((url, index) => (
                                         <div key={index} className="relative h-32 rounded-2xl border border-gray-200 overflow-hidden group">
                                             <img src={url} className="w-full h-full object-cover" alt={`Năng lực ${index + 1}`} />
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={(e) => { e.stopPropagation(); removeImage(index); }}
                                                 className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
@@ -277,13 +277,13 @@ export default function AdminAddRepairCapacityPage() {
                                     ))}
                                 </div>
                             )}
-                            <input 
-                                type="file" 
+                            <input
+                                type="file"
                                 ref={fileInputRef}
-                                onChange={handleFileChange} 
-                                accept="image/*" 
+                                onChange={handleFileChange}
+                                accept="image/*"
                                 multiple
-                                className="hidden" 
+                                className="hidden"
                             />
                         </div>
                     </div>
@@ -299,13 +299,13 @@ export default function AdminAddRepairCapacityPage() {
                     </div>
                     <div className="space-y-4">
                         <Label htmlFor="description" className="text-sm font-bold text-gray-700">Mô tả thêm về các tiêu chuẩn, trang thiết bị tại xưởng sửa chữa của bạn</Label>
-                        <textarea 
-                            id="description" 
-                            name="description" 
-                            value={formData.description} 
-                            onChange={handleChange} 
-                            className="flex min-h-[200px] w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-4 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700 resize-none" 
-                            placeholder="Ví dụ: Xưởng trang bị máy chuẩn đoán lỗi ô tô thế hệ mới nhất, phòng sơn sấy chuẩn Italia..." 
+                        <textarea
+                            id="description"
+                            name="description"
+                            value={formData.description}
+                            onChange={handleChange}
+                            className="flex min-h-[200px] w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-4 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700 resize-none"
+                            placeholder="Ví dụ: Xưởng trang bị máy chuẩn đoán lỗi ô tô thế hệ mới nhất, phòng sơn sấy chuẩn Italia..."
                         />
                     </div>
                 </div>
@@ -319,15 +319,15 @@ export default function AdminAddRepairCapacityPage() {
                         <h2 className="text-xl font-bold text-gray-800">Khu vực phục vụ <span className="text-red-500">*</span></h2>
                     </div>
                     <p className="text-sm text-gray-500 mb-4">Chọn Tỉnh / Thành Phố và thông tin Quận / Huyện để khách hàng tìm kiếm nội bộ chính xác.</p>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="province" className="text-sm font-bold text-gray-700">Tỉnh / TP</Label>
-                            <select 
-                                id="province" 
-                                name="province" 
-                                value={formData.province} 
-                                onChange={handleProvinceChange} 
+                            <select
+                                id="province"
+                                name="province"
+                                value={formData.province}
+                                onChange={handleProvinceChange}
                                 className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-red-500/50 transition-all font-medium text-gray-700"
                             >
                                 <option value="">Chọn tỉnh / thành phố</option>
@@ -338,11 +338,11 @@ export default function AdminAddRepairCapacityPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="district" className="text-sm font-bold text-gray-700">Quận / Huyện</Label>
-                            <select 
-                                id="district" 
-                                name="district" 
-                                value={formData.district} 
-                                onChange={handleChange} 
+                            <select
+                                id="district"
+                                name="district"
+                                value={formData.district}
+                                onChange={handleChange}
                                 disabled={!formData.province}
                                 className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-red-500/50 transition-all font-medium text-gray-700 disabled:opacity-50"
                             >
@@ -354,25 +354,25 @@ export default function AdminAddRepairCapacityPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="contactPhone" className="text-sm font-bold text-gray-700">Số điện thoại liên hệ <span className="text-red-500">*</span></Label>
-                            <Input 
-                                id="contactPhone" 
-                                name="contactPhone" 
-                                value={formData.contactPhone} 
-                                onChange={handleChange} 
-                                className="rounded-xl h-12 bg-gray-50/50 text-base" 
-                                placeholder="Nhập số điện thoại" 
+                            <Input
+                                id="contactPhone"
+                                name="contactPhone"
+                                value={formData.contactPhone}
+                                onChange={handleChange}
+                                className="rounded-xl h-12 bg-gray-50/50 text-base"
+                                placeholder="Nhập số điện thoại"
                                 required
                             />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="contactName" className="text-sm font-bold text-gray-700">Tên liên hệ <span className="text-red-500">*</span></Label>
-                            <Input 
-                                id="contactName" 
-                                name="contactName" 
-                                value={formData.contactName} 
-                                onChange={handleChange} 
-                                className="rounded-xl h-12 bg-gray-50/50 text-base" 
-                                placeholder="Nhập tên người liên hệ" 
+                            <Input
+                                id="contactName"
+                                name="contactName"
+                                value={formData.contactName}
+                                onChange={handleChange}
+                                className="rounded-xl h-12 bg-gray-50/50 text-base"
+                                placeholder="Nhập tên người liên hệ"
                                 required
                             />
                         </div>
@@ -391,11 +391,11 @@ export default function AdminAddRepairCapacityPage() {
                         <div className="grid grid-cols-1 gap-4 mt-4">
                             {SPECIALTIES.map(sp => (
                                 <label key={sp} className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                                    <input 
+                                    <input
                                         type="checkbox"
                                         checked={selectedSpecialties.includes(sp)}
                                         onChange={() => toggleSpecialty(sp)}
-                                        className="rounded-md w-5 h-5 border-gray-300 accent-emerald-600 cursor-pointer" 
+                                        className="rounded-md w-5 h-5 border-gray-300 accent-emerald-600 cursor-pointer"
                                     />
                                     <span className="text-sm font-semibold text-gray-700 group-hover:text-emerald-700">{sp}</span>
                                 </label>
@@ -413,11 +413,11 @@ export default function AdminAddRepairCapacityPage() {
                         <div className="grid grid-cols-1 gap-4 mt-4">
                             {VEHICLE_TYPES.map(vt => (
                                 <label key={vt} className="flex items-center space-x-3 cursor-pointer group p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                                    <input 
+                                    <input
                                         type="checkbox"
                                         checked={selectedVehicleTypes.includes(vt)}
                                         onChange={() => toggleVehicleType(vt)}
-                                        className="rounded-md w-5 h-5 border-gray-300 accent-blue-600 cursor-pointer" 
+                                        className="rounded-md w-5 h-5 border-gray-300 accent-blue-600 cursor-pointer"
                                     />
                                     <span className="text-sm font-semibold text-gray-700 group-hover:text-blue-700">{vt}</span>
                                 </label>
@@ -428,17 +428,17 @@ export default function AdminAddRepairCapacityPage() {
 
                 {/* Footer Actions */}
                 <div className="flex items-center justify-end gap-4 pb-12">
-                    <Button 
-                        type="button" 
-                        variant="ghost" 
-                        onClick={() => router.back()} 
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => router.back()}
                         className="h-14 px-8 rounded-xl font-bold text-gray-500 hover:bg-gray-100"
                     >
                         Hủy Bỏ
                     </Button>
-                    <Button 
-                        type="submit" 
-                        disabled={isLoading || isUploading} 
+                    <Button
+                        type="submit"
+                        disabled={isLoading || isUploading}
                         className="h-14 px-10 rounded-xl font-black bg-orange-600 hover:bg-orange-700 shadow-xl shadow-orange-200 text-white gap-2 transition-all active:scale-95 text-lg"
                     >
                         {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
