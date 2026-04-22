@@ -3,6 +3,7 @@ import { RentalCarsService } from './rental-cars.service';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 import { CreateRentalCarDto } from './dto/create-rental-car.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Public } from '../../core/decorators/public.decorator';
 
 @ApiTags('RentalCars')
 @Controller('rental-cars')
@@ -18,6 +19,12 @@ export class RentalCarsController {
     @Get('vendor/me')
     findByVendor(@Request() req: any) {
         return this.rentalCarsService.findByVendor(req.user.id);
+    }
+
+    @Public()
+    @Get('public')
+    findAllPublic() {
+        return this.rentalCarsService.findAllPublic();
     }
 
     @Patch(':id')

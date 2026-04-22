@@ -24,6 +24,20 @@ export class RentalCarsService {
         return this.prisma.rentalCar.findMany({ where: { profileId: profile.id } });
     }
 
+    async findAllPublic() {
+        return this.prisma.rentalCar.findMany({
+            include: {
+                profile: {
+                    include: {
+                        user: {
+                            select: { id: true, username: true, avatar: true, phonenumber: true, email: true }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     async update(id: number, dto: any) {
         return this.prisma.rentalCar.update({ where: { id }, data: dto });
     }
