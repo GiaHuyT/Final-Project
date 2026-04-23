@@ -20,6 +20,8 @@ model User {
   role              Role     @default(CUSTOMER)
   isApprovedVendor      Boolean  @default(false)
   vendorRequestPending  Boolean  @default(false)
+  isApprovedDriver      Boolean  @default(false)
+  driverRequestPending  Boolean  @default(false)
   pendingRequestType    String?
   isActive          Boolean  @default(true)
   createdAt         DateTime @default(now())
@@ -48,6 +50,7 @@ enum Role {
   ADMIN
   VENDOR
   CUSTOMER
+  DRIVER
 }
 
 model Address {
@@ -294,6 +297,8 @@ model ServiceProfile {
   vehicles    RentalCar[]
   repairs     RepairService[]
   repairCapacities RepairCapacity[]
+  maintenanceServices MaintenanceService[]
+  driverRentalServices DriverRentalService[]
 }
 
 model RentalCar {
@@ -336,6 +341,76 @@ model RepairCapacity {
   imageUrls       String[] @default([])
   status          String   @default("Hoạt động")
   createdAt       DateTime @default(now())
+}
+
+model MaintenanceService {
+  id              Int      @id @default(autoincrement())
+  profileId       Int
+  profile         ServiceProfile @relation(fields: [profileId], references: [id])
+  name            String
+  description     String?
+  price           Float    @default(0)
+  status          String   @default("Hoạt động")
+  createdAt       DateTime @default(now())
+}
+
+model DriverRentalService {
+  id              Int      @id @default(autoincrement())
+  profileId       Int
+  profile         ServiceProfile @relation(fields: [profileId], references: [id])
+  name            String
+  dob             String?
+  experienceYears Int      @default(0)
+  pricePerKm      Float    @default(0)
+  avatarUrl       String?
+  licenseFrontUrl String?
+  licenseBackUrl  String?
+  idCardFrontUrl  String?
+  idCardBackUrl   String?
+  criminalRecordUrl String?
+  status          String   @default("Hoạt động")
+  createdAt       DateTime @default(now())
+
+  // 1. Thông tin cá nhân mới
+  idCardNumber    String?
+  phoneNumber     String?
+  email           String?
+  currentAddress  String?
+
+  // 2. Thông tin bằng lái
+  licenseType     String?
+  licenseNumber   String?
+  licenseIssueDate String?
+  licenseExpiryDate String?
+  hasServiceExperience Boolean @default(false)
+
+  // 3. Lý lịch & An toàn
+  hasCriminalRecord Boolean @default(false)
+  healthConditionValid Boolean @default(true)
+
+  // 4. Khu vực hoạt động
+  operatingCities String[] @default([])
+  workType        String?  // Full-time / Part-time
+  workShifts      String[] @default([]) // Sáng, Chiều, Đêm
+
+  // 5. Thông tin thanh toán
+  bankAccountNumber String?
+  bankName        String?
+  bankAccountName String?
+
+  // 6. Thiết bị & kết nối
+  hasSmartphone   Boolean @default(true)
+  osPlatform      String? // Android / iOS
+  hasMobileData   Boolean @default(true)
+
+  // 8. Điều khoản & cam kết
+  agreedToTerms   Boolean @default(false)
+  agreedToNoAlcohol Boolean @default(false)
+  agreedToResponsibility Boolean @default(false)
+
+  // 9. Thông tin thêm (Optional)
+  bio             String?
+  languages       String[] @default([])
 }
 
 // --- NHÓM GIAO DỊCH & TƯƠNG TÁC ---

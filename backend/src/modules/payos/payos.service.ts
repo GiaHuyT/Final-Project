@@ -57,4 +57,29 @@ export class PayosService {
       return null;
     }
   }
+
+  async lookupAccount(bin: string, accountNumber: string) {
+    try {
+      const clientId = this.configService.get<string>('CLIENT_ID');
+      const apiKey = this.configService.get<string>('API_KEY');
+      
+      const response = await fetch('https://api.vietqr.io/v2/lookup', {
+        method: 'POST',
+        headers: {
+          'x-client-id': clientId || '',
+          'x-api-key': apiKey || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          bin,
+          accountNumber
+        })
+      });
+      
+      return await response.json();
+    } catch (error: any) {
+      console.error('PayOS Lookup Account Error:', error);
+      throw new InternalServerErrorException(error.message || 'Lỗi khi tra cứu tài khoản');
+    }
+  }
 }

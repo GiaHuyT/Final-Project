@@ -49,4 +49,14 @@ export class PayosController {
 
     return { status: 'success', data: verifiedData };
   }
+
+  @Public()
+  @Post('lookup-account')
+  async lookupAccount(@Body() body: { bin: string, accountNumber: string }) {
+    try {
+      return await this.payosService.lookupAccount(body.bin, body.accountNumber);
+    } catch (error: any) {
+      throw new BadRequestException(error.message);
+    }
+  }
 }
