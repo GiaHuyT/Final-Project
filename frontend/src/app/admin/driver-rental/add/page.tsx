@@ -93,7 +93,7 @@ export default function AdminAddDriverRentalPage() {
         }
     };
 
-    const ImageUploadBox = ({ title, fieldName, refVar }: { title: string, fieldName: keyof typeof formData, refVar: React.RefObject<HTMLInputElement> }) => (
+    const ImageUploadBox = ({ title, fieldName, refVar }: { title: string, fieldName: keyof typeof formData, refVar: React.RefObject<HTMLInputElement | null> }) => (
         <div className="space-y-3">
             <Label className="text-sm font-bold text-gray-700">{title}</Label>
             <div
