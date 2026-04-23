@@ -113,6 +113,13 @@ export class UsersController {
     return this.usersService.applyVendor(req.user.id);
   }
 
+  @Post('apply-driver')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Gửi yêu cầu đăng ký làm Tài xế' })
+  applyDriver(@Req() req, @Body() body: any) {
+    return this.usersService.applyDriver(req.user.id, body);
+  }
+
   @Patch('switch-role')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Chuyển đổi vai trò giữa Customer và Vendor' })
@@ -138,7 +145,7 @@ export class UsersController {
       cb(null, true);
     },
     limits: {
-      fileSize: 2 * 1024 * 1024, // 2MB
+      fileSize: 50 * 1024 * 1024, // 50MB
     },
   }))
   @ApiOperation({ summary: 'Upload avatar' })
@@ -146,10 +153,24 @@ export class UsersController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    const avatarUrl = `http://localhost:3000/uploads/avatars/${file.filename}`;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const avatarUrl = `${protocol}://${host}/uploads/avatars/${file.filename}`;
     return { avatarUrl };
   }
-
+  @Post('verify-document')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify uploaded document using AI' })
+  async verifyDocument(@Body() body: { imageUrl: string, documentType: string }) {
+    if (!body.imageUrl || !body.documentType) {
+      throw new BadRequestException('imageUrl and documentType are required');
+    }
+    const check = await this.usersService['aiService'].verifyDocumentImage(body.imageUrl, body.documentType);
+    if (!check.isValid) {
+      throw new BadRequestException(check.reason);
+    }
+    return { success: true };
+  }
 
   @Public()
   @Get('check-route')
@@ -161,9 +182,13 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy tất cả người dùng (Admin)' })
   findAll(@Query() query: any) {
-    const { vendorRequestPending } = query;
-    const isPending = vendorRequestPending === 'true';
-    return this.usersService.findAll(vendorRequestPending !== undefined ? isPending : undefined);
+    const { vendorRequestPending, driverRequestPending } = query;
+    const isPendingVendor = vendorRequestPending === 'true';
+    const isPendingDriver = driverRequestPending === 'true';
+    return this.usersService.findAll(
+      vendorRequestPending !== undefined ? isPendingVendor : undefined,
+      driverRequestPending !== undefined ? isPendingDriver : undefined
+    );
   }
 
   @Post()
@@ -192,6 +217,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Phê duyệt quyền Vendor cho người dùng (Admin)' })
   approveVendor(@Param('id') id: string, @Body('isApproved') isApproved: boolean) {
     return this.usersService.updateStatus(+id, isApproved);
+  }
+
+  @Patch(':id/approve-driver')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Phê duyệt quyền Tài xế cho người dùng (Admin)' })
+  approveDriver(@Param('id') id: string, @Body('isApproved') isApproved: boolean) {
+    return this.usersService.updateDriverStatus(+id, isApproved);
   }
 
   @Patch(':id/toggle-active')

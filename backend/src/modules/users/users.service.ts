@@ -3,12 +3,14 @@ import { PrismaService } from 'prisma/prisma.service';
 import type { Prisma, NotificationType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private aiService: AiService,
   ) { }
 
   async create(userData: any) {
@@ -30,10 +32,13 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async findAll(vendorRequestPending?: boolean) {
+  async findAll(vendorRequestPending?: boolean, driverRequestPending?: boolean) {
     const where: Prisma.UserWhereInput = {};
     if (vendorRequestPending !== undefined) {
       where.vendorRequestPending = vendorRequestPending;
+    }
+    if (driverRequestPending !== undefined) {
+      where.driverRequestPending = driverRequestPending;
     }
 
     return this.prisma.user.findMany({
@@ -84,6 +89,156 @@ export class UsersService {
         type: 'SYSTEM' as any,
         content: `Người dùng ${user.username} đã gửi yêu cầu đăng ký làm Nhà cung cấp (Vendor).`,
         link: '/admin/users', // Giả định có trang quản lý user
+      });
+    }
+
+    return { message: 'Đã gửi yêu cầu đăng ký thành công' };
+  }
+
+  async updateDriverStatus(id: number, isApprovedDriver: boolean) {
+    const user = await (this.prisma.user as any).update({
+      where: { id },
+      data: {
+        isApprovedDriver,
+        driverRequestPending: false,
+        pendingRequestType: null,
+        role: isApprovedDriver ? 'DRIVER' : undefined
+      }
+    });
+
+    await this.notifications.create(id, {
+      type: 'SYSTEM' as any,
+      content: isApprovedDriver
+        ? 'Chúc mừng! Yêu cầu đăng ký Tài xế của bạn đã được phê duyệt.'
+        : 'Rất tiếc, yêu cầu đăng ký Tài xế của bạn đã bị từ chối.',
+      link: '/profile',
+    });
+
+    return user;
+  }
+
+  async applyDriver(userId: number, driverData?: any) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } }) as any;
+    if (!user) throw new BadRequestException('Người dùng không tồn tại');
+    if (user.isApprovedDriver || user.role === 'DRIVER') throw new BadRequestException('Bạn đã là Tài xế');
+    if (user.driverRequestPending) throw new BadRequestException('Yêu cầu của bạn đang chờ xử lý');
+
+    if (driverData) {
+      if (!driverData.idCardFrontUrl || !driverData.idCardBackUrl || !driverData.licenseFrontUrl || !driverData.licenseBackUrl || !driverData.criminalRecordUrl) {
+          throw new BadRequestException('Vui lòng tải lên đầy đủ tất cả các giấy tờ bắt buộc (CCCD 2 mặt, GPLX 2 mặt, Lý lịch tư pháp).');
+      }
+
+      if (driverData.avatarUrl) {
+        const check = await this.aiService.verifyDocumentImage(driverData.avatarUrl, 'Ảnh chân dung');
+        if (!check.isValid) throw new BadRequestException(`Ảnh chân dung không hợp lệ: ${check.reason}`);
+      }
+      if (driverData.idCardFrontUrl) {
+        const check = await this.aiService.verifyDocumentImage(driverData.idCardFrontUrl, 'Căn cước công dân (Mặt trước)');
+        if (!check.isValid) throw new BadRequestException(`Ảnh Căn cước công dân (Mặt trước) không hợp lệ: ${check.reason}`);
+      }
+      if (driverData.idCardBackUrl) {
+        const check = await this.aiService.verifyDocumentImage(driverData.idCardBackUrl, 'Căn cước công dân (Mặt sau)');
+        if (!check.isValid) throw new BadRequestException(`Ảnh Căn cước công dân (Mặt sau) không hợp lệ: ${check.reason}`);
+      }
+      if (driverData.licenseFrontUrl) {
+        const check = await this.aiService.verifyDocumentImage(driverData.licenseFrontUrl, 'Giấy phép lái xe (Mặt trước)');
+        if (!check.isValid) throw new BadRequestException(`Ảnh Giấy phép lái xe (Mặt trước) không hợp lệ: ${check.reason}`);
+      }
+      if (driverData.licenseBackUrl) {
+        const check = await this.aiService.verifyDocumentImage(driverData.licenseBackUrl, 'Giấy phép lái xe (Mặt sau)');
+        if (!check.isValid) throw new BadRequestException(`Ảnh Giấy phép lái xe (Mặt sau) không hợp lệ: ${check.reason}`);
+      }
+      if (driverData.criminalRecordUrl) {
+        const check = await this.aiService.verifyDocumentImage(driverData.criminalRecordUrl, 'Lý lịch tư pháp (Giấy chứng nhận tiền án tiền sự)');
+        if (!check.isValid) throw new BadRequestException(`Ảnh Lý lịch tư pháp không hợp lệ: ${check.reason}`);
+      }
+    }
+
+    await (this.prisma.user as any).update({
+      where: { id: userId },
+      data: {
+        driverRequestPending: true,
+        pendingRequestType: 'DRIVER_REGISTRATION'
+      }
+    });
+
+    if (driverData) {
+      let profile = await this.prisma.serviceProfile.findUnique({ where: { userId } });
+      if (!profile) {
+        profile = await this.prisma.serviceProfile.create({
+          data: {
+            userId,
+            serviceType: 'DRIVER'
+          }
+        });
+      }
+
+      await this.prisma.driverRentalService.create({
+        data: {
+          profileId: profile.id,
+          name: driverData.name || user.username,
+          dob: driverData.dob,
+          experienceYears: driverData.experienceYears ? Number(driverData.experienceYears) : 0,
+          pricePerKm: driverData.pricePerKm ? Number(driverData.pricePerKm) : 0,
+          avatarUrl: driverData.avatarUrl,
+          licenseFrontUrl: driverData.licenseFrontUrl,
+          licenseBackUrl: driverData.licenseBackUrl,
+          idCardFrontUrl: driverData.idCardFrontUrl,
+          idCardBackUrl: driverData.idCardBackUrl,
+          criminalRecordUrl: driverData.criminalRecordUrl,
+          
+          // 1. Thông tin cá nhân mới
+          idCardNumber: driverData.idCardNumber,
+          phoneNumber: driverData.phoneNumber,
+          email: driverData.email,
+          currentAddress: driverData.currentAddress,
+
+          // 2. Thông tin bằng lái
+          licenseType: driverData.licenseType,
+          licenseNumber: driverData.licenseNumber,
+          licenseIssueDate: driverData.licenseIssueDate,
+          licenseExpiryDate: driverData.licenseExpiryDate,
+          hasServiceExperience: driverData.hasServiceExperience === true || driverData.hasServiceExperience === 'true',
+
+          // 3. Lý lịch & An toàn
+          hasCriminalRecord: driverData.hasCriminalRecord === true || driverData.hasCriminalRecord === 'true',
+          healthConditionValid: driverData.healthConditionValid === true || driverData.healthConditionValid === 'true',
+
+          // 4. Khu vực hoạt động
+          operatingCities: Array.isArray(driverData.operatingCities) ? driverData.operatingCities : (driverData.operatingCities ? [driverData.operatingCities] : []),
+          workType: driverData.workType,
+          workShifts: Array.isArray(driverData.workShifts) ? driverData.workShifts : (driverData.workShifts ? [driverData.workShifts] : []),
+
+          // 5. Thông tin thanh toán
+          bankAccountNumber: driverData.bankAccountNumber,
+          bankName: driverData.bankName,
+          bankAccountName: driverData.bankAccountName,
+
+          // 6. Thiết bị & kết nối
+          hasSmartphone: driverData.hasSmartphone !== false && driverData.hasSmartphone !== 'false',
+          osPlatform: driverData.osPlatform,
+          hasMobileData: driverData.hasMobileData !== false && driverData.hasMobileData !== 'false',
+
+          // 8. Điều khoản & cam kết
+          agreedToTerms: driverData.agreedToTerms === true || driverData.agreedToTerms === 'true',
+          agreedToNoAlcohol: driverData.agreedToNoAlcohol === true || driverData.agreedToNoAlcohol === 'true',
+          agreedToResponsibility: driverData.agreedToResponsibility === true || driverData.agreedToResponsibility === 'true',
+
+          // 9. Thông tin thêm (Optional)
+          bio: driverData.bio,
+          languages: Array.isArray(driverData.languages) ? driverData.languages : (driverData.languages ? [driverData.languages] : []),
+
+          status: 'Chờ duyệt'
+        }
+      });
+    }
+
+    const admins = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
+    for (const admin of admins) {
+      await this.notifications.create(admin.id, {
+        type: 'SYSTEM' as any,
+        content: `Người dùng ${user.username} đã gửi yêu cầu đăng ký làm Tài xế.`,
+        link: '/admin/users',
       });
     }
 
@@ -183,6 +338,8 @@ export class UsersService {
         role: true,
         isApprovedVendor: true,
         vendorRequestPending: true,
+        isApprovedDriver: true,
+        driverRequestPending: true,
         pendingRequestType: true,
         createdAt: true,
       }
