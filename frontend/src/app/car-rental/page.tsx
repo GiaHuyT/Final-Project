@@ -81,7 +81,7 @@ export default function CarRentalPage() {
             
             {/* Search Bar */}
             <div className="relative max-w-xl group">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
                     <Search className="h-5 w-5 text-slate-500 group-focus-within:text-primary transition-colors" />
                 </div>
                 <input

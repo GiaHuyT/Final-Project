@@ -6,6 +6,7 @@ import Link from "next/link";
 import http from "@/lib/http";
 import WishlistButton from "@/components/ui/wishlist-button";
 import { VendorRegistrationModal } from "@/components/VendorRegistrationModal";
+import { Search } from "lucide-react";
 
 export default function Home() {
   const [auctions, setAuctions] = useState<any[]>([]);
@@ -83,7 +84,7 @@ export default function Home() {
               </p>
               {/* Search Bar Component */}
               <div className="bg-white/95 backdrop-blur-md p-2 rounded-full flex items-center shadow-2xl max-w-xl group focus-within:ring-2 ring-primary/20 transition-all border border-white/20">
-                <span className="material-symbols-outlined ml-4 text-slate-500">search</span>
+                <Search className="ml-4 text-slate-500 h-6 w-6" />
                 <input className="bg-transparent border-none focus:ring-0 w-full text-slate-900 font-bold px-4 placeholder:!text-slate-500 outline-none" placeholder="Tìm kiếm theo hãng, mẫu xe hoặc năm..." type="text" />
                 <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-headline font-bold text-sm tracking-wide hover:bg-slate-800 active:scale-95 transition-all">
                   TÌM XE

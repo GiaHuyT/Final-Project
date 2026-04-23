@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -83,10 +83,10 @@ export function AdminTopbar() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push('/profile')}>Hồ sơ</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/admin/settings')}>Cài đặt</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push('/profile')} className="flex items-center gap-2"><User className="h-4 w-4" /> Hồ sơ</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => router.push('/admin/settings')} className="flex items-center gap-2"><Settings className="h-4 w-4" /> Cài đặt</DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive" onClick={handleLogout}>Đăng xuất</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive flex items-center gap-2" onClick={handleLogout}><LogOut className="h-4 w-4" /> Đăng xuất</DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, Store, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -83,15 +83,15 @@ export function VendorTopbar() {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push('/vendor/profile')}>
-                            Hồ sơ nhà cung cấp
+                        <DropdownMenuItem onClick={() => router.push('/vendor/profile')} className="flex items-center gap-2">
+                            <Store className="h-4 w-4" /> Hồ sơ nhà cung cấp
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push('/profile')}>
-                            Tài khoản cá nhân
+                        <DropdownMenuItem onClick={() => router.push('/profile')} className="flex items-center gap-2">
+                            <User className="h-4 w-4" /> Tài khoản cá nhân
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleLogout}>
-                            Đăng xuất
+                        <DropdownMenuItem className="text-destructive focus:text-destructive flex items-center gap-2" onClick={handleLogout}>
+                            <LogOut className="h-4 w-4" /> Đăng xuất
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

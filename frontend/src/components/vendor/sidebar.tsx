@@ -26,12 +26,8 @@ import { useRouter } from 'next/navigation';
 const menuItems = [
     { icon: LayoutDashboard, label: 'Tổng quan', href: '/vendor' },
     { icon: Store, label: 'Hồ sơ nhà cung cấp', href: '/vendor/profile' },
-    { icon: TrendingUp, label: 'Doanh số', href: '/vendor/revenue' },
     { icon: Box, label: 'Quản lý xe', href: '/vendor/products' },
-    { icon: Gavel, label: 'Quản lý đấu giá', href: '/vendor/auctions' },
-    { icon: Clock, label: 'Quản lý đơn hàng', href: '/vendor/orders' },
-    { icon: Truck, label: 'Xe thuê', href: '/vendor/rental-cars' },
-    { icon: Wrench, label: 'Sửa chữa', href: '/vendor/repairs' },
+    { icon: Wrench, label: 'Sửa chữa lưu động', href: '/vendor/repairs' },
     { icon: Wrench, label: 'Thêm năng lực sửa chữa', href: '/vendor/repairs/capacity/add' },
     { icon: Bell, label: 'Thông báo', href: '/vendor/notifications' },
 ];

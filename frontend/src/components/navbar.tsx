@@ -13,7 +13,7 @@ import {
     DropdownMenuTrigger,
     DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
-import { Bell, Heart, ShoppingCart, ChevronDown } from "lucide-react";
+import { Bell, Heart, ShoppingCart, ChevronDown, Wrench, ShieldAlert, Car, UserCircle, User, Store, Shield, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -245,10 +245,10 @@ export function Navbar() {
                             Dịch vụ <ChevronDown className="h-4 w-4 transition-transform group-hover:rotate-180" />
                         </button>
                         <div className="absolute top-full left-0 mt-1 w-48 bg-white shadow-xl border border-gray-100 rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2">
-                            <Link href="/maintenance" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ bảo dưỡng</Link>
-                            <Link href="/repairs" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ sửa chữa</Link>
-                            <Link href="/car-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ thuê xe</Link>
-                            <Link href="/driver-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors">Dịch vụ lái thuê</Link>
+                            <Link href="/maintenance" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><Wrench className="h-4 w-4" /> Dịch vụ bảo dưỡng</Link>
+                            <Link href="/repairs" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Dịch vụ sửa chữa</Link>
+                            <Link href="/car-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><Car className="h-4 w-4" /> Dịch vụ thuê xe</Link>
+                            <Link href="/driver-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><UserCircle className="h-4 w-4" /> Dịch vụ lái thuê</Link>
                         </div>
                     </div>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/compare">So sánh</Link>
@@ -310,21 +310,21 @@ export function Navbar() {
                                 <DropdownMenuSeparator />
                                 {user?.role !== 'VENDOR' && (
                                     <DropdownMenuItem asChild>
-                                        <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body">Hồ sơ</Link>
+                                        <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><User className="h-4 w-4" /> Hồ sơ</Link>
                                     </DropdownMenuItem>
                                 )}
                                 {user?.role === 'VENDOR' && (
                                     <DropdownMenuItem asChild>
-                                        <Link href="/vendor" className="cursor-pointer font-semibold text-sm font-body">Tài khoản của tôi</Link>
+                                        <Link href="/vendor" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Store className="h-4 w-4" /> Tài khoản của tôi</Link>
                                     </DropdownMenuItem>
                                 )}
                                 {user?.role === 'ADMIN' && (
                                     <DropdownMenuItem asChild>
-                                        <Link href="/admin" className="cursor-pointer font-semibold text-sm font-body">Quản trị</Link>
+                                        <Link href="/admin" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Shield className="h-4 w-4" /> Quản trị</Link>
                                     </DropdownMenuItem>
                                 )}
-                                <DropdownMenuItem onClick={handleLogout} className="text-error font-bold text-sm cursor-pointer mt-2 font-body">
-                                    Đăng xuất
+                                <DropdownMenuItem onClick={handleLogout} className="text-error font-bold text-sm cursor-pointer mt-2 font-body flex items-center gap-2">
+                                    <LogOut className="h-4 w-4" /> Đăng xuất
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

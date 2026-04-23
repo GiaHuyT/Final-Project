@@ -16,7 +16,10 @@ import {
   ShieldCheck,
   Car,
   Wrench,
-  MessageSquareText
+  MessageSquareText,
+  Truck,
+  ShieldAlert,
+  UserCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,11 +28,20 @@ import { useRouter, usePathname } from 'next/navigation';
 
 const menuItems: any[] = [
   { icon: LayoutDashboard, label: 'Tổng quan', href: '/admin' },
-  { icon: Users, label: 'Quản lý người dùng', href: '/admin/users' },
+  { icon: Users, label: 'Quản lý tài khoản', href: '/admin/users' },
   { icon: Car, label: 'Quản lý xe', href: '/admin/products' },
   { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
   { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
-  { icon: Wrench, label: 'Quản lý cứu hộ / sửa chữa', href: '/admin/repairs/capacity' },
+  { 
+    icon: Wrench, 
+    label: 'Dịch vụ', 
+    subItems: [
+      { icon: Wrench, label: 'Dịch vụ bảo dưỡng', href: '/admin/maintenance' },
+      { icon: ShieldAlert, label: 'Dịch vụ sửa chữa', href: '/admin/repairs/capacity' },
+      { icon: Car, label: 'Dịch vụ thuê xe', href: '/admin/rental-cars' },
+      { icon: UserCircle, label: 'Dịch vụ lái thuê', href: '/admin/driver-rental' }
+    ]
+  },
   { icon: MessageSquareText, label: 'Yêu cầu hỗ trợ', href: '/admin/contacts' },
   { icon: Settings, label: 'Cài đặt', href: '/admin/settings' },
 ];
@@ -111,10 +123,11 @@ export function AdminSidebar() {
                           key={siIndex}
                           href={subItem.href}
                           className={cn(
-                            "text-sm py-1.5 px-3 rounded-md text-muted-foreground hover:text-primary hover:bg-accent transition-all",
+                            "flex items-center gap-2 text-sm py-1.5 px-3 rounded-md text-muted-foreground hover:text-primary hover:bg-accent transition-all",
                             pathname === subItem.href && "text-primary font-medium bg-accent/50"
                           )}
                         >
+                          {subItem.icon && <subItem.icon className="h-4 w-4" />}
                           {subItem.label}
                         </Link>
                       ))}
