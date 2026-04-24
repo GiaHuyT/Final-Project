@@ -23,7 +23,7 @@ export const useChat = (conversationId?: number) => {
     const chatSocket = getSocket('chat');
     if (!chatSocket || !conversationId) return;
 
-    chatSocket.emit('joinConversation', { conversationId });
+    chatSocket.emit('joinConversation', { conversationId: Number(conversationId) });
 
     chatSocket.on('newMessage', (message: any) => {
       if (message.conversationId === conversationId) {
@@ -62,14 +62,26 @@ export const useChat = (conversationId?: number) => {
   const sendMessage = (content: string) => {
     const chatSocket = getSocket('chat');
     if (chatSocket && conversationId) {
-      chatSocket.emit('sendMessage', { conversationId, content });
+      // Optimistic update
+      const tempMessage = {
+        id: Date.now(),
+        content,
+        senderId: user?.id,
+        createdAt: new Date().toISOString(),
+        conversationId
+      };
+      setMessages((prev) => [tempMessage, ...prev]);
+
+      chatSocket.emit('sendMessage', { conversationId: Number(conversationId), content });
+    } else {
+      console.error('Socket or conversationId missing!', { hasSocket: !!chatSocket, conversationId });
     }
   };
 
   const sendTyping = (typing: boolean) => {
     const chatSocket = getSocket('chat');
     if (chatSocket && conversationId) {
-      chatSocket.emit('typing', { conversationId, isTyping: typing });
+      chatSocket.emit('typing', { conversationId: Number(conversationId), isTyping: typing });
     }
   };
 

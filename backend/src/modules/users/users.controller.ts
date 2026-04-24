@@ -85,6 +85,13 @@ export class UsersController {
     return this.usersService.findVendors();
   }
 
+  @Get('admin/support')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Lấy thông tin admin hỗ trợ' })
+  getSupportAdmin(@Req() req) {
+    return this.usersService.getSupportAdmin(req.user.id);
+  }
+
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })

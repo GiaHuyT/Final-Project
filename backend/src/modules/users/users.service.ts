@@ -47,6 +47,41 @@ export class UsersService {
     });
   }
 
+  async getSupportAdmin(userId: number) {
+    // 1. Kiểm tra xem user này đã từng chat với Admin nào trong vòng 24h qua chưa
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const existingConversations = await this.prisma.conversation.findMany({
+      where: {
+        updatedAt: {
+          gte: twentyFourHoursAgo
+        },
+        participants: {
+          some: { id: userId }
+        }
+      },
+      include: {
+        participants: true
+      }
+    });
+
+    for (const conv of existingConversations) {
+      const adminInConv = conv.participants.find(p => p.roles.includes('ADMIN') && p.id !== userId);
+      if (adminInConv) {
+        return { id: adminInConv.id, username: adminInConv.username, avatar: adminInConv.avatar };
+      }
+    }
+
+    // 2. Nếu chưa từng chat, lấy danh sách Admin và random 1 người để chia đều tải
+    const admins = await this.prisma.user.findMany({
+      where: { roles: { has: 'ADMIN' } },
+      select: { id: true, username: true, avatar: true }
+    });
+    if (!admins.length) throw new BadRequestException('Không tìm thấy tài khoản hỗ trợ');
+    
+    const randomAdmin = admins[Math.floor(Math.random() * admins.length)];
+    return randomAdmin;
+  }
+
   async updateStatus(id: number, isApprovedVendor: boolean) {
     const user = await (this.prisma.user as any).update({
       where: { id },

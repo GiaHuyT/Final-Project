@@ -13,8 +13,7 @@ export const initSocket = (namespace: string, token: string, userId: number | st
     auth: {
       token,
       userId,
-    },
-    transports: ['websocket'],
+    }
   });
 
   socket.on('connect', () => {
