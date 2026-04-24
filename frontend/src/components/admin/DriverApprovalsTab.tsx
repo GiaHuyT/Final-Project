@@ -94,7 +94,7 @@ export function DriverApprovalsTab() {
             <input
               type="text"
               placeholder="Tìm kiếm..."
-              className="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-400"
+              className="pl-10 pr-4 py-2 w-full border border-slate-200 rounded-xl text-sm outline-none focus:border-gray-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -114,7 +114,7 @@ export function DriverApprovalsTab() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
-                <tr><td colSpan={5} className="p-16 text-center"><Loader2 className="w-10 h-10 animate-spin text-orange-600 mx-auto" /></td></tr>
+                <tr><td colSpan={5} className="p-16 text-center"><Loader2 className="w-10 h-10 animate-spin text-gray-900 mx-auto" /></td></tr>
               ) : pendingServices.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-16 text-center text-slate-500">
@@ -124,7 +124,7 @@ export function DriverApprovalsTab() {
                 </tr>
               ) : (
                 pendingServices.map((item) => (
-                  <tr key={item.id} className="hover:bg-orange-50/10 transition-colors group">
+                  <tr key={item.id} className="hover:bg-gray-100/50 transition-colors group">
                     <td className="px-8 py-6 align-middle">
                         <div className="w-12 h-12 rounded-full overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex items-center justify-center">
                             {item.avatarUrl ? (
@@ -146,12 +146,12 @@ export function DriverApprovalsTab() {
                        <Button size="sm" variant="outline" onClick={() => {
                            setSelectedService(item);
                            setIsViewOpen(true);
-                       }} className="rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-50 border-blue-100 h-8">
+                       }} className="rounded-xl text-xs font-bold text-gray-900 hover:bg-gray-100 border-gray-200 h-8">
                            <Eye className="w-3.5 h-3.5 mr-1.5" /> Xem hồ sơ
                        </Button>
                     </td>
                     <td className="px-8 py-6 align-middle text-right space-x-2">
-                      <Button size="sm" onClick={() => handleApproveDriver(item, true)} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 px-4">
+                      <Button size="sm" onClick={() => handleApproveDriver(item, true)} className="rounded-xl bg-gray-900 hover:bg-black text-white font-bold h-8 px-4">
                           <CheckCircle className="w-3.5 h-3.5 mr-1.5" /> Duyệt
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleApproveDriver(item, false)} className="rounded-xl text-red-600 border-red-100 hover:bg-red-50 font-bold h-8 px-4">
@@ -212,7 +212,7 @@ export function DriverApprovalsTab() {
               </div>
               <DialogFooter className="bg-white px-10 py-6 border-t">
                   <Button variant="ghost" onClick={() => setIsViewOpen(false)} className="rounded-xl font-bold">Đóng</Button>
-                  <Button onClick={() => { setIsViewOpen(false); handleApproveDriver(selectedService, true); }} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 px-8 font-black text-white ml-2">
+                  <Button onClick={() => { setIsViewOpen(false); handleApproveDriver(selectedService, true); }} className="rounded-xl bg-gray-900 hover:bg-black px-8 font-black text-white ml-2">
                       <CheckCircle className="w-4 h-4 mr-2" /> Phê duyệt ngay
                   </Button>
               </DialogFooter>
@@ -221,7 +221,7 @@ export function DriverApprovalsTab() {
 
       <Dialog open={confirmModalState.isOpen} onOpenChange={(open) => setConfirmModalState(prev => ({ ...prev, isOpen: open }))}>
           <DialogContent className="max-w-md rounded-[2.5rem] p-10 text-center border-none shadow-3xl bg-white">
-              <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-gray-100 text-gray-900 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <ShieldCheck className="w-10 h-10" />
               </div>
               <DialogTitle className="text-2xl font-black text-slate-900 mb-3 uppercase tracking-tight">{confirmModalState.title}</DialogTitle>
@@ -234,7 +234,7 @@ export function DriverApprovalsTab() {
                           confirmModalState.onConfirm();
                           setConfirmModalState(prev => ({ ...prev, isOpen: false }));
                       }}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-emerald-600/20"
+                      className="w-full bg-gray-900 hover:bg-black text-white h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-gray-900/20"
                   >
                       Xác nhận
                   </Button>

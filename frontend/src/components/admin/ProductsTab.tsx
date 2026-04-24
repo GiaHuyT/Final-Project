@@ -143,7 +143,7 @@ export function ProductsTab() {
         http.get('/categories').then(res => setCategories(res.data)).catch(err => console.error(err));
         http.get('/brands').then(res => setBrands(res.data)).catch(err => console.error(err));
         http.get('/users').then(res => {
-            const vendorList = res.data.filter((u: any) => u.role === 'VENDOR');
+            const vendorList = res.data.filter((u: any) => u.roles?.includes('VENDOR'));
             setVendors(vendorList);
         }).catch(err => console.error(err));
     }, []);

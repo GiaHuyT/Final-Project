@@ -20,21 +20,21 @@ export default function UserManagementPage() {
                 <TabsList className="mb-6 h-auto p-1.5 bg-gray-100/80 rounded-2xl">
                     <TabsTrigger 
                         value="list" 
-                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all font-bold gap-2 text-gray-600"
+                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-gray-900 transition-all font-bold gap-2 text-gray-600"
                     >
                         <Users className="w-4 h-4" />
                         Danh sách thành viên
                     </TabsTrigger>
                     <TabsTrigger 
                         value="approvals" 
-                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all font-bold gap-2 text-gray-600"
+                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-gray-900 transition-all font-bold gap-2 text-gray-600"
                     >
                         <ShieldCheck className="w-4 h-4" />
                         Phê duyệt Vendor
                     </TabsTrigger>
                     <TabsTrigger 
                         value="driver-approvals" 
-                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-emerald-600 transition-all font-bold gap-2 text-gray-600"
+                        className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-gray-900 transition-all font-bold gap-2 text-gray-600"
                     >
                         <Car className="w-4 h-4" />
                         Phê duyệt Tài xế

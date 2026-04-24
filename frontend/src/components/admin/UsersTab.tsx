@@ -34,14 +34,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+
 import { Label } from "@/components/ui/label";
 import {
     Select,
@@ -61,7 +54,7 @@ interface User {
     username: string;
     email: string | null;
     phonenumber: string | null;
-    role: string;
+    roles: string[];
     isApprovedVendor: boolean;
     vendorRequestPending: boolean;
     avatar: string | null;
@@ -85,14 +78,14 @@ export function UsersTab() {
         phonenumber: "",
         email: "",
         password: "",
-        role: ""
+        roles: [] as string[]
     });
     const [addData, setAddData] = useState({
         username: "",
         phonenumber: "",
         email: "",
         password: "",
-        role: "CUSTOMER"
+        roles: ["CUSTOMER"]
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
@@ -141,7 +134,7 @@ export function UsersTab() {
             phonenumber: user.phonenumber || "",
             email: user.email || "",
             password: "",
-            role: user.role
+            roles: user.roles
         });
         setIsEditOpen(true);
     };
@@ -197,7 +190,7 @@ export function UsersTab() {
                 phonenumber: "",
                 email: "",
                 password: "",
-                role: "CUSTOMER"
+                roles: ["CUSTOMER"]
             });
             fetchUsers();
         } catch (error: any) {
@@ -222,11 +215,272 @@ export function UsersTab() {
         (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
+    if (isViewOpen && selectedUser) {
+        return (
+            <div className="space-y-6 flex-1 animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex items-center gap-4 mb-2">
+                    <Button variant="outline" onClick={() => setIsViewOpen(false)} className="rounded-xl font-bold border-2">
+                        Quay lại danh sách
+                    </Button>
+                </div>
+                <Card className="border-none shadow-xl shadow-gray-200/50 overflow-hidden rounded-3xl">
+                    <div className="bg-gradient-to-r from-gray-900 to-black h-40 relative">
+                         <div className="absolute -bottom-16 left-12 p-1.5 bg-white rounded-full shadow-2xl">
+                            <Avatar className="h-32 w-32 border-4 border-white">
+                                <AvatarImage src={selectedUser.avatar || ""} />
+                                <AvatarFallback className="text-4xl font-black bg-gradient-to-br from-gray-200 to-gray-300 text-gray-900 uppercase">
+                                    {selectedUser.username.substring(0, 2)}
+                                </AvatarFallback>
+                            </Avatar>
+                         </div>
+                    </div>
+                    <div className="pt-24 pb-10 px-12">
+                        <h3 className="text-3xl font-black text-gray-900 tracking-tight leading-none">{selectedUser.username}</h3>
+                        <div className="flex gap-2.5 mt-4">
+                             <Badge variant="secondary" className="bg-gray-100 text-gray-900 border-gray-200 border-2 font-black uppercase text-[10px] rounded-full px-4 py-1">{selectedUser?.roles?.join(', ')}</Badge>
+                             <Badge className={`font-black uppercase text-[10px] rounded-full px-4 py-1 border-2 shadow-sm ${selectedUser.isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+                                {selectedUser.isActive ? "Đang hoạt động" : "Tạm khóa"}
+                             </Badge>
+                        </div>
+
+                        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                                { label: "Địa chỉ Email", value: selectedUser.email || 'Chưa cập nhật', icon: Mail },
+                                { label: "Số điện thoại", value: selectedUser.phonenumber || 'Chưa cập nhật', icon: Phone },
+                                { label: "Ngày gia nhập", value: new Date(selectedUser.createdAt).toLocaleDateString('vi-VN'), icon: ShieldCheck },
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-4 p-5 bg-gray-50 rounded-2xl border border-gray-100/80 transition-hover hover:border-gray-300 hover:bg-white shadow-sm duration-300">
+                                    <div className="p-3 bg-white rounded-xl shadow-sm">
+                                        <item.icon className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] font-black text-gray-400 uppercase tracking-wider">{item.label}</div>
+                                        <div className="text-sm font-black text-gray-800 mt-1">{item.value}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
+
+    if (isEditOpen && selectedUser) {
+        return (
+            <div className="space-y-6 flex-1 animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex items-center gap-4 mb-2">
+                    <Button variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold border-2">
+                        Quay lại danh sách
+                    </Button>
+                </div>
+                <Card className="border-none shadow-xl shadow-gray-200/50 overflow-hidden rounded-3xl">
+                    <div className="bg-gradient-to-r from-gray-900 to-black px-10 py-7">
+                         <div className="text-white text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                                <Edit className="w-6 h-6" />
+                            </div>
+                            Hiệu chỉnh thông tin
+                         </div>
+                    </div>
+                    <CardContent className="p-10 space-y-6">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2.5">
+                                <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Tên hiển thị</Label>
+                                <Input
+                                    value={editData.username}
+                                    onChange={(e) => setEditData({ ...editData, username: e.target.value })}
+                                    className={`h-14 rounded-2xl border-2 transition-all font-bold ${editErrors.username ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                                />
+                                {editErrors.username && <p className="text-[10px] text-red-500 font-bold ml-1">{editErrors.username}</p>}
+                            </div>
+                            <div className="space-y-2.5">
+                                <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Số điện thoại</Label>
+                                <Input
+                                    value={editData.phonenumber}
+                                    onChange={(e) => setEditData({ ...editData, phonenumber: e.target.value })}
+                                    className={`h-14 rounded-2xl border-2 transition-all font-bold ${editErrors.phonenumber ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                                />
+                                {editErrors.phonenumber && <p className="text-[10px] text-red-500 font-bold ml-1">{editErrors.phonenumber}</p>}
+                            </div>
+                        </div>
+                        <div className="space-y-2.5">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Email liên lạc</Label>
+                            <Input
+                                type="email"
+                                value={editData.email}
+                                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                                className={`h-14 rounded-2xl border-2 transition-all font-bold ${editErrors.email ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                            />
+                            {editErrors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{editErrors.email}</p>}
+                        </div>
+                        <div className="space-y-2.5">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Mật khẩu mới (Nếu có)</Label>
+                            <div className="relative flex items-center">
+                                <Input
+                                    type={showEditPassword ? "text" : "password"}
+                                    placeholder="..."
+                                    value={editData.password}
+                                    onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                                    className="h-14 rounded-2xl border-2 border-gray-100 focus:border-gray-900 focus:ring-4 focus:ring-gray-200 font-bold pr-12"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowEditPassword(!showEditPassword); }}
+                                    className="absolute right-4 text-gray-400 hover:text-gray-900 transition-colors"
+                                >
+                                    {showEditPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="space-y-2.5">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Cấp bậc truy cập</Label>
+                            <div className="flex flex-col gap-2 p-4 border-2 border-gray-100 rounded-2xl">
+                                {['ADMIN', 'VENDOR', 'CUSTOMER', 'DRIVER'].map((roleItem) => (
+                                    <Label key={roleItem} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                                            checked={editData.roles.includes(roleItem)}
+                                            onChange={(e) => {
+                                                let newRoles = e.target.checked ? [...editData.roles, roleItem] : editData.roles.filter(r => r !== roleItem);
+                                                if (roleItem === 'ADMIN' && e.target.checked) newRoles = ['ADMIN'];
+                                                else if (roleItem !== 'ADMIN' && e.target.checked) newRoles = newRoles.filter(r => r !== 'ADMIN');
+                                                setEditData({ ...editData, roles: newRoles });
+                                            }}
+                                        />
+                                        <span className="font-bold text-sm text-gray-700">
+                                            {roleItem === 'ADMIN' ? 'Phụ trách hệ thống (ADMIN)' :
+                                             roleItem === 'VENDOR' ? 'Nhà cung cấp (VENDOR)' :
+                                             roleItem === 'DRIVER' ? 'Tài xế (DRIVER)' :
+                                             'Người dùng (CUSTOMER)'}
+                                        </span>
+                                    </Label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="pt-6 flex justify-end gap-3">
+                            <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-gray-100 transition-all">Hủy</Button>
+                            <Button onClick={handleUpdateUser} className="bg-gray-900 hover:bg-black text-white font-black px-10 h-12 rounded-2xl uppercase tracking-tighter transition-all shadow-md">Lưu thông tin</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
+    if (isAddOpen) {
+        return (
+            <div className="space-y-6 flex-1 animate-in fade-in zoom-in-95 duration-300">
+                <div className="flex items-center gap-4 mb-2">
+                    <Button variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold border-2">
+                        Quay lại danh sách
+                    </Button>
+                </div>
+                <Card className="border-none shadow-xl shadow-gray-200/50 overflow-hidden rounded-3xl">
+                    <div className="bg-gradient-to-r from-gray-800 to-black px-10 py-7">
+                         <div className="text-white text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                                <UserPlus className="w-6 h-6" />
+                            </div>
+                            Thêm thành viên mới
+                         </div>
+                    </div>
+                    <CardContent className="p-10 space-y-6">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2.5">
+                                <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Tên đăng nhập</Label>
+                                <Input
+                                    placeholder="giahuy123..."
+                                    value={addData.username}
+                                    onChange={(e) => setAddData({ ...addData, username: e.target.value })}
+                                    className={`h-14 rounded-2xl border-2 transition-all font-bold ${errors.username ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                                />
+                                {errors.username && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.username}</p>}
+                            </div>
+                            <div className="space-y-2.5">
+                                <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Số điện thoại</Label>
+                                <Input
+                                    placeholder="0123xxx..."
+                                    value={addData.phonenumber}
+                                    onChange={(e) => setAddData({ ...addData, phonenumber: e.target.value })}
+                                    className={`h-14 rounded-2xl border-2 transition-all font-bold ${errors.phonenumber ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                                />
+                                {errors.phonenumber && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.phonenumber}</p>}
+                            </div>
+                        </div>
+                        <div className="space-y-2.5">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Địa chỉ Email</Label>
+                            <Input
+                                type="email"
+                                placeholder="name@domain.com..."
+                                value={addData.email}
+                                onChange={(e) => setAddData({ ...addData, email: e.target.value })}
+                                className={`h-14 rounded-2xl border-2 transition-all font-bold ${errors.email ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                            />
+                            {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email}</p>}
+                        </div>
+                        <div className="space-y-2.5">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Mật khẩu truy cập</Label>
+                            <div className="relative flex items-center">
+                                <Input
+                                    type={showAddPassword ? "text" : "password"}
+                                    placeholder="..."
+                                    value={addData.password}
+                                    onChange={(e) => setAddData({ ...addData, password: e.target.value })}
+                                    className={`h-14 rounded-2xl border-2 transition-all font-bold pr-12 ${errors.password ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-gray-900 focus:ring-4 focus:ring-gray-200"}`}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowAddPassword(!showAddPassword); }}
+                                    className="absolute right-4 text-gray-400 hover:text-gray-900 transition-colors"
+                                >
+                                    {showAddPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            {errors.password && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.password}</p>}
+                        </div>
+                        <div className="space-y-2.5">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider ml-1">Vị trí đảm nhiệm</Label>
+                            <div className="flex flex-col gap-2 p-4 border-2 border-gray-100 rounded-2xl">
+                                {['ADMIN', 'VENDOR', 'CUSTOMER', 'DRIVER'].map((roleItem) => (
+                                    <Label key={roleItem} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-50 rounded-xl transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                                            checked={addData.roles.includes(roleItem)}
+                                            onChange={(e) => {
+                                                let newRoles = e.target.checked ? [...addData.roles, roleItem] : addData.roles.filter(r => r !== roleItem);
+                                                if (roleItem === 'ADMIN' && e.target.checked) newRoles = ['ADMIN'];
+                                                else if (roleItem !== 'ADMIN' && e.target.checked) newRoles = newRoles.filter(r => r !== 'ADMIN');
+                                                setAddData({ ...addData, roles: newRoles });
+                                            }}
+                                        />
+                                        <span className="font-bold text-sm text-gray-700">
+                                            {roleItem === 'ADMIN' ? 'Phụ trách hệ thống (ADMIN)' :
+                                             roleItem === 'VENDOR' ? 'Nhà cung cấp (VENDOR)' :
+                                             roleItem === 'DRIVER' ? 'Tài xế (DRIVER)' :
+                                             'Người dùng (CUSTOMER)'}
+                                        </span>
+                                    </Label>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="pt-6 flex justify-end gap-3">
+                            <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-gray-100 transition-all">Hủy</Button>
+                            <Button onClick={handleCreateUser} className="bg-gray-900 hover:bg-black text-white font-black px-12 h-12 rounded-2xl uppercase tracking-tighter transition-all shadow-md">Tạo tài khoản</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     return (
-        <div className="space-y-6 flex-1">
+        <div className="space-y-6 flex-1 animate-in fade-in zoom-in-95 duration-300">
 
             <div className="flex justify-end mb-6">
-                 <Button onClick={() => setIsAddOpen(true)} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 rounded-xl px-6 transition-all active:scale-95">
+                 <Button onClick={() => setIsAddOpen(true)} className="gap-2 bg-gray-900 hover:bg-black text-white font-bold shadow-lg shadow-gray-300 rounded-xl px-6 transition-all active:scale-95">
                     <UserPlus className="h-4 w-4" />
                     Thêm người dùng mới
                 </Button>
@@ -240,11 +494,11 @@ export function UsersTab() {
                             <CardDescription className="font-medium text-gray-500">Quản lý toàn bộ tài khoản người dùng trong hệ thống.</CardDescription>
                         </div>
                         <div className="relative w-full md:w-80 group">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-blue-600" />
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-gray-900" />
                             <Input
                                 type="search"
                                 placeholder="Tìm kiếm nhanh..."
-                                className="pl-11 h-12 rounded-2xl bg-white focus:ring-4 focus:ring-blue-100 border-gray-200 font-bold transition-all shadow-sm"
+                                className="pl-11 h-12 rounded-2xl bg-white focus:ring-4 focus:ring-gray-200 border-gray-200 font-bold transition-all shadow-sm"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
@@ -255,8 +509,8 @@ export function UsersTab() {
                     {loading ? (
                         <div className="flex h-80 items-center justify-center">
                             <div className="relative">
-                                <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-                                <div className="absolute inset-0 blur-xl bg-blue-400/20 animate-pulse rounded-full"></div>
+                                <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
+                                <div className="absolute inset-0 blur-xl bg-gray-500/20 animate-pulse rounded-full"></div>
                             </div>
                         </div>
                     ) : (
@@ -266,7 +520,7 @@ export function UsersTab() {
                                     <tr>
                                         <th className="px-8 py-5">Thành viên</th>
                                         <th className="px-8 py-5">Vai trò hệ thống</th>
-                                        <th className="px-8 py-5">Trạng thái</th>
+
                                         <th className="px-8 py-5">Thông tin liên hệ</th>
                                         <th className="px-8 py-5 text-right">Hành động</th>
                                     </tr>
@@ -274,7 +528,7 @@ export function UsersTab() {
                                 <tbody className="divide-y divide-gray-100 bg-white">
                                     {filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="px-8 py-20 text-center">
+                                            <td colSpan={4} className="px-8 py-20 text-center">
                                                 <div className="flex flex-col items-center gap-3">
                                                     <div className="p-4 bg-gray-50 rounded-full">
                                                         <Search className="h-8 w-8 text-gray-300" />
@@ -285,13 +539,13 @@ export function UsersTab() {
                                         </tr>
                                     ) : (
                                         filteredUsers.map((user) => (
-                                            <tr key={user.id} className="hover:bg-blue-50/10 transition-all group">
+                                            <tr key={user.id} className="hover:bg-gray-100/50 transition-all group">
                                                 <td className="px-8 py-5 align-middle">
                                                     <div className="flex items-center gap-4">
                                                         <div className="relative">
                                                             <Avatar className="h-12 w-12 border-2 border-white shadow-md ring-2 ring-gray-100 transition-transform group-hover:scale-110">
                                                                 <AvatarImage src={user.avatar || ""} />
-                                                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-700 text-white font-black text-xs">
+                                                                <AvatarFallback className="bg-gradient-to-br from-gray-800 to-black text-white font-black text-xs">
                                                                     {user.username.substring(0, 2).toUpperCase()}
                                                                 </AvatarFallback>
                                                             </Avatar>
@@ -300,59 +554,57 @@ export function UsersTab() {
                                                         <div className="flex flex-col">
                                                             <span className="font-black text-gray-900 text-base leading-tight tracking-tight">{user.username}</span>
                                                             <span className="text-[10px] text-gray-400 font-black uppercase flex items-center gap-1 mt-0.5">
-                                                                <span className="text-blue-500">ID:</span> #{user.id}
+                                                                <span className="text-gray-1000">ID:</span> #{user.id}
                                                             </span>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 align-middle">
-                                                    <div className="flex items-center gap-2">
-                                                        {user.role === 'ADMIN' ? (
-                                                            <Badge className="bg-red-50 text-red-600 border-red-100 border-2 hover:bg-red-100 transition-colors flex items-center gap-1.5 font-black rounded-xl px-3 py-1 text-[10px]">
-                                                                <ShieldCheck className="h-3 w-3" />
-                                                                ADMIN
-                                                            </Badge>
-                                                        ) : user.role === 'VENDOR' ? (
-                                                            <Badge className="bg-blue-50 text-blue-700 border-blue-100 border-2 hover:bg-blue-100 transition-colors flex items-center gap-1.5 font-black rounded-xl px-3 py-1 text-[10px]">
-                                                                <ShieldAlert className="h-3 w-3" />
-                                                                VENDOR
-                                                            </Badge>
-                                                        ) : (
-                                                            <Badge className="bg-gray-50 text-gray-600 border-gray-100 border-2 hover:bg-gray-100 transition-colors font-black rounded-xl px-3 py-1 text-[10px]">
-                                                                CUSTOMER
-                                                            </Badge>
-                                                        )}
+                                                    <div className="flex flex-col items-start gap-2">
+                                                        {Array.from(new Set((user.roles as string[]) || []))?.map((role, idx) => {
+                                                            if (role === 'ADMIN') {
+                                                                return (
+                                                                    <Badge key={idx} className="bg-red-50 text-red-600 border-red-100 border-2 hover:bg-red-100 transition-colors flex items-center gap-1.5 font-black rounded-xl px-3 py-1 text-[10px]">
+                                                                        <ShieldCheck className="h-3 w-3" />
+                                                                        ADMIN
+                                                                    </Badge>
+                                                                );
+                                                            }
+                                                            if (role === 'VENDOR') {
+                                                                return (
+                                                                    <Badge key={idx} className="bg-gray-100 text-black border-gray-200 border-2 hover:bg-gray-200 transition-colors flex items-center gap-1.5 font-black rounded-xl px-3 py-1 text-[10px]">
+                                                                        <ShieldAlert className="h-3 w-3" />
+                                                                        VENDOR
+                                                                    </Badge>
+                                                                );
+                                                            }
+                                                            if (role === 'DRIVER') {
+                                                                return (
+                                                                    <Badge key={idx} className="bg-blue-50 text-blue-600 border-blue-100 border-2 hover:bg-blue-100 transition-colors flex items-center gap-1.5 font-black rounded-xl px-3 py-1 text-[10px]">
+                                                                        <UserPlus className="h-3 w-3" />
+                                                                        DRIVER
+                                                                    </Badge>
+                                                                );
+                                                            }
+                                                            return (
+                                                                <Badge key={idx} className="bg-gray-50 text-gray-600 border-gray-100 border-2 hover:bg-gray-100 transition-colors font-black rounded-xl px-3 py-1 text-[10px]">
+                                                                    CUSTOMER
+                                                                </Badge>
+                                                            );
+                                                        })}
                                                     </div>
-                                                </td>
-                                                <td className="px-8 py-5 align-middle">
-                                                    <Badge 
-                                                        variant="outline"
-                                                        className={`rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-tight shadow-sm border-2 ${
-                                                            !user.isActive 
-                                                                ? 'bg-gray-50 text-gray-400 border-gray-200' 
-                                                                : (user.vendorRequestPending 
-                                                                    ? 'bg-yellow-50 text-yellow-700 border-yellow-200 animate-pulse'
-                                                                    : (user.isApprovedVendor 
-                                                                        ? 'bg-green-50 text-green-700 border-green-200' 
-                                                                        : 'bg-gray-50 text-gray-500 border-gray-200'))
-                                                        }`}
-                                                    >
-                                                        {!user.isActive ? 'Đã khóa' : (user.vendorRequestPending 
-                                                            ? 'Yêu cầu Vendor' 
-                                                            : (user.isApprovedVendor ? 'Đã duyệt Vendor' : 'Customer'))}
-                                                    </Badge>
                                                 </td>
                                                 <td className="px-8 py-5 align-middle">
                                                     <div className="flex flex-col gap-1.5">
                                                         <div className="flex items-center gap-2 group/contact">
-                                                            <div className="p-1.5 bg-gray-50 rounded-lg group-hover/contact:bg-blue-50 transition-colors">
-                                                                <Mail className="h-3 w-3 text-gray-400 group-hover/contact:text-blue-600" />
+                                                            <div className="p-1.5 bg-gray-50 rounded-lg group-hover/contact:bg-gray-100 transition-colors">
+                                                                <Mail className="h-3 w-3 text-gray-400 group-hover/contact:text-gray-900" />
                                                             </div>
                                                             <span className="text-xs font-black text-gray-700 truncate max-w-[150px]">{user.email || 'N/A'}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 group/contact">
-                                                            <div className="p-1.5 bg-gray-50 rounded-lg group-hover/contact:bg-blue-50 transition-colors">
-                                                                <Phone className="h-3 w-3 text-gray-400 group-hover/contact:text-blue-600" />
+                                                            <div className="p-1.5 bg-gray-50 rounded-lg group-hover/contact:bg-gray-100 transition-colors">
+                                                                <Phone className="h-3 w-3 text-gray-400 group-hover/contact:text-gray-900" />
                                                             </div>
                                                             <span className="text-[11px] font-bold text-gray-400 tracking-tight">{user.phonenumber || 'N/A'}</span>
                                                         </div>
@@ -361,24 +613,24 @@ export function UsersTab() {
                                                 <td className="px-8 py-5 align-middle text-right">
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" className="h-10 w-10 p-0 rounded-2xl hover:bg-blue-50 hover:text-blue-600 border border-transparent hover:border-blue-100 transition-all active:scale-90">
+                                                            <Button variant="ghost" className="h-10 w-10 p-0 rounded-2xl hover:bg-gray-100 hover:text-gray-900 border border-transparent hover:border-gray-200 transition-all active:scale-90">
                                                                 <MoreHorizontal className="h-5 w-5" />
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" className="rounded-2xl border-none shadow-2xl p-2 min-w-[200px] animate-in slide-in-from-top-1 duration-200">
                                                             <DropdownMenuLabel className="text-[10px] uppercase font-black text-gray-400 px-4 py-3 tracking-widest">Trung tâm điều khiển</DropdownMenuLabel>
-                                                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsViewOpen(true); }} className="gap-3 rounded-xl focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-bold px-4 py-3">
+                                                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsViewOpen(true); }} className="gap-3 rounded-xl focus:bg-gray-100 focus:text-gray-900 cursor-pointer font-bold px-4 py-3">
                                                                 <Eye className="h-4 w-4" /> Xem hồ sơ chi tiết
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => openEditModal(user)} className="gap-3 rounded-xl focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-bold px-4 py-3">
+                                                            <DropdownMenuItem onClick={() => openEditModal(user)} className="gap-3 rounded-xl focus:bg-gray-100 focus:text-gray-900 cursor-pointer font-bold px-4 py-3">
                                                                 <Edit className="h-4 w-4" /> Chỉnh sửa thông tin
                                                             </DropdownMenuItem>
                                                             
-                                                            {(user.vendorRequestPending || user.isApprovedVendor || user.role === 'VENDOR') && (
+                                                            {(user.vendorRequestPending || user.isApprovedVendor || user.roles?.includes('VENDOR')) && (
                                                                 <DropdownMenuItem
                                                                     className={cn(
                                                                         "rounded-xl focus:text-white cursor-pointer font-bold px-4 py-3",
-                                                                        user.vendorRequestPending ? "bg-yellow-50 text-yellow-700 focus:bg-yellow-600" : "text-blue-700 focus:bg-blue-600"
+                                                                        user.vendorRequestPending ? "bg-yellow-50 text-yellow-700 focus:bg-yellow-600" : "text-black focus:bg-gray-900"
                                                                     )}
                                                                     onClick={() => handleToggleVendorStatus(user.id, user.isApprovedVendor)}
                                                                 >
@@ -390,7 +642,7 @@ export function UsersTab() {
                                                             <DropdownMenuSeparator className="my-2 bg-gray-50" />
                                                             
                                                             <DropdownMenuItem
-                                                                className={`rounded-xl font-bold cursor-pointer px-4 py-3 transition-colors ${user.isActive ? "text-orange-600 focus:bg-orange-50 focus:text-orange-600" : "text-green-600 focus:bg-green-50 focus:text-green-600"}`}
+                                                                className={`rounded-xl font-bold cursor-pointer px-4 py-3 transition-colors ${user.isActive ? "text-gray-900 focus:bg-gray-100 focus:text-gray-900" : "text-green-600 focus:bg-green-50 focus:text-green-600"}`}
                                                                 onClick={() => handleLockAccount(user.id)}
                                                             >
                                                                 {user.isActive ? (
@@ -420,226 +672,6 @@ export function UsersTab() {
                     )}
                 </CardContent>
             </Card>
-
-            {/* Modal Xem chi tiết */}
-            <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-                <DialogContent className="sm:max-w-[480px] p-0 border-none shadow-3xl rounded-[2.5rem] overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-800 h-32 relative">
-                         <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 p-1.5 bg-white rounded-full shadow-2xl">
-                            <Avatar className="h-32 w-32 border-4 border-white">
-                                <AvatarImage src={selectedUser?.avatar || ""} />
-                                <AvatarFallback className="text-4xl font-black bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 uppercase">
-                                    {selectedUser?.username.substring(0, 2)}
-                                </AvatarFallback>
-                            </Avatar>
-                         </div>
-                    </div>
-                    <div className="pt-20 pb-10 px-10 text-center">
-                        <h3 className="text-3xl font-black text-gray-900 tracking-tight leading-none">{selectedUser?.username}</h3>
-                        <div className="flex justify-center gap-2.5 mt-4">
-                             <Badge variant="secondary" className="bg-blue-50 text-blue-600 border-blue-100 border-2 font-black uppercase text-[10px] rounded-full px-4 py-1">{selectedUser?.role}</Badge>
-                             <Badge className={`font-black uppercase text-[10px] rounded-full px-4 py-1 border-2 shadow-sm ${selectedUser?.isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-600 border-red-200"}`}>
-                                {selectedUser?.isActive ? "Đang hoạt động" : "Tạm khóa"}
-                             </Badge>
-                        </div>
-
-                        <div className="mt-10 space-y-3">
-                            {[
-                                { label: "Địa chỉ Email", value: selectedUser?.email || 'Chưa cập nhật', icon: Mail },
-                                { label: "Số điện thoại", value: selectedUser?.phonenumber || 'Chưa cập nhật', icon: Phone },
-                                { label: "Ngày gia nhập", value: selectedUser && new Date(selectedUser.createdAt).toLocaleDateString('vi-VN'), icon: ShieldCheck },
-                            ].map((item, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100/80 transition-hover hover:border-blue-200 hover:bg-white shadow-sm duration-300">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white rounded-xl shadow-sm">
-                                            <item.icon className="w-4 h-4 text-gray-400" />
-                                        </div>
-                                        <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider">{item.label}</span>
-                                    </div>
-                                    <span className="text-sm font-black text-gray-800">{item.value}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="p-6 bg-gray-50/80 border-t flex justify-center gap-4">
-                         <Button onClick={() => setIsViewOpen(false)} className="rounded-2xl px-12 h-12 font-black bg-white text-gray-600 hover:bg-gray-100 border-2 border-gray-200 shadow-xl transition-all active:scale-95 text-xs uppercase tracking-widest">Đóng</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Modal Chỉnh sửa */}
-            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 border-none shadow-3xl rounded-[2.5rem] overflow-hidden">
-                    <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-10 py-7">
-                         <DialogTitle className="text-white text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
-                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                                <Edit className="w-6 h-6" />
-                            </div>
-                            Hiệu chỉnh thông tin
-                         </DialogTitle>
-                    </div>
-                    <div className="px-10 py-8 space-y-6 pb-32">
-                        <div className="grid grid-cols-2 gap-5">
-                            <div className="space-y-2.5">
-                                <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Tên hiển thị</Label>
-                                <Input
-                                    value={editData.username}
-                                    onChange={(e) => setEditData({ ...editData, username: e.target.value })}
-                                    className={`h-12 rounded-2xl border-2 transition-all font-bold ${editErrors.username ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-blue-500 focus:ring-4 focus:ring-blue-100"}`}
-                                />
-                                {editErrors.username && <p className="text-[10px] text-red-500 font-bold ml-1">{editErrors.username}</p>}
-                            </div>
-                            <div className="space-y-2.5">
-                                <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Số điện thoại</Label>
-                                <Input
-                                    value={editData.phonenumber}
-                                    onChange={(e) => setEditData({ ...editData, phonenumber: e.target.value })}
-                                    className={`h-12 rounded-2xl border-2 transition-all font-bold ${editErrors.phonenumber ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-blue-500 focus:ring-4 focus:ring-blue-100"}`}
-                                />
-                                {editErrors.phonenumber && <p className="text-[10px] text-red-500 font-bold ml-1">{editErrors.phonenumber}</p>}
-                            </div>
-                        </div>
-                        <div className="space-y-2.5">
-                            <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Email liên lạc</Label>
-                            <Input
-                                type="email"
-                                value={editData.email}
-                                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                                className={`h-12 rounded-2xl border-2 transition-all font-bold ${editErrors.email ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-blue-500 focus:ring-4 focus:ring-blue-100"}`}
-                            />
-                            {editErrors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{editErrors.email}</p>}
-                        </div>
-                        <div className="space-y-2.5">
-                            <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Mật khẩu mới (Nếu có)</Label>
-                            <div className="relative flex items-center">
-                                <Input
-                                    type={showEditPassword ? "text" : "password"}
-                                    placeholder="..."
-                                    value={editData.password}
-                                    onChange={(e) => setEditData({ ...editData, password: e.target.value })}
-                                    className="h-12 rounded-2xl border-2 border-gray-100 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 font-bold pr-12"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => { setShowEditPassword(!showEditPassword); }}
-                                    className="absolute right-4 text-gray-400 hover:text-blue-600 transition-colors"
-                                >
-                                    {showEditPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="space-y-2.5">
-                            <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Cấp bậc truy cập</Label>
-                            <Select
-                                value={editData.role}
-                                onValueChange={(value) => setEditData({ ...editData, role: value })}
-                            >
-                                <SelectTrigger className="h-12 rounded-2xl border-2 border-gray-100 font-black shadow-sm transition-all focus:ring-4 focus:ring-blue-100">
-                                    <SelectValue placeholder="Chọn vai trò" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 z-[99999]">
-                                    <SelectItem value="ADMIN" className="font-black rounded-xl focus:bg-red-50 focus:text-red-600 px-4 py-3">PHỤ TRÁCH HỆ THỐNG (ADMIN)</SelectItem>
-                                    <SelectItem value="VENDOR" className="font-black rounded-xl focus:bg-blue-50 focus:text-blue-600 px-4 py-3">NHÀ CUNG CẤP (VENDOR)</SelectItem>
-                                    <SelectItem value="CUSTOMER" className="font-black rounded-xl focus:bg-gray-50 px-4 py-3">NGƯỜI MUA (CUSTOMER)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-10">
-                        <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all shadow-none">Quay lại</Button>
-                        <Button onClick={handleUpdateUser} className="bg-blue-600 hover:bg-blue-700 text-white font-black px-10 h-12 rounded-2xl uppercase tracking-tighter transition-all shadow-none">Lưu thông tin</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            {/* Modal Thêm người dùng */}
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogContent className="sm:max-w-[500px] p-0 border-none shadow-3xl rounded-[2.5rem] overflow-hidden">
-                    <div className="bg-gradient-to-r from-orange-500 to-orange-700 px-10 py-7">
-                         <DialogTitle className="text-white text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
-                            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                                <UserPlus className="w-6 h-6" />
-                            </div>
-                            Thêm thành viên mới
-                         </DialogTitle>
-                    </div>
-                    <div className="px-10 py-8 space-y-6 pb-32">
-                        <div className="grid grid-cols-2 gap-5">
-                            <div className="space-y-2.5">
-                                <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Tên đăng nhập</Label>
-                                <Input
-                                    placeholder="giahuy123..."
-                                    value={addData.username}
-                                    onChange={(e) => setAddData({ ...addData, username: e.target.value })}
-                                    className={`h-12 rounded-2xl border-2 transition-all font-bold ${errors.username ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-orange-500 focus:ring-4 focus:ring-orange-100"}`}
-                                />
-                                {errors.username && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.username}</p>}
-                            </div>
-                            <div className="space-y-2.5">
-                                <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Số điện thoại</Label>
-                                <Input
-                                    placeholder="0123xxx..."
-                                    value={addData.phonenumber}
-                                    onChange={(e) => setAddData({ ...addData, phonenumber: e.target.value })}
-                                    className={`h-12 rounded-2xl border-2 transition-all font-bold ${errors.phonenumber ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-orange-500 focus:ring-4 focus:ring-orange-100"}`}
-                                />
-                                {errors.phonenumber && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.phonenumber}</p>}
-                            </div>
-                        </div>
-                        <div className="space-y-2.5">
-                            <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Địa chỉ Email</Label>
-                            <Input
-                                type="email"
-                                placeholder="name@domain.com..."
-                                value={addData.email}
-                                onChange={(e) => setAddData({ ...addData, email: e.target.value })}
-                                className={`h-12 rounded-2xl border-2 transition-all font-bold ${errors.email ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-orange-500 focus:ring-4 focus:ring-orange-100"}`}
-                            />
-                            {errors.email && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.email}</p>}
-                        </div>
-                        <div className="space-y-2.5">
-                            <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Mật khẩu truy cập</Label>
-                            <div className="relative flex items-center">
-                                <Input
-                                    type={showAddPassword ? "text" : "password"}
-                                    placeholder="..."
-                                    value={addData.password}
-                                    onChange={(e) => setAddData({ ...addData, password: e.target.value })}
-                                    className={`h-12 rounded-2xl border-2 transition-all font-bold pr-12 ${errors.password ? "border-red-500 bg-red-50 shadow-red-50" : "focus:border-orange-500 focus:ring-4 focus:ring-orange-100"}`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => { setShowAddPassword(!showAddPassword); }}
-                                    className="absolute right-4 text-gray-400 hover:text-orange-600 transition-colors"
-                                >
-                                    {showAddPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
-                            </div>
-                            {errors.password && <p className="text-[10px] text-red-500 font-bold ml-1">{errors.password}</p>}
-                        </div>
-                        <div className="space-y-2.5">
-                            <Label className="text-[11px] font-black uppercase text-gray-500 tracking-wider ml-1">Vị trí đảm nhiệm</Label>
-                            <Select
-                                value={addData.role}
-                                onValueChange={(value) => setAddData({ ...addData, role: value })}
-                            >
-                                <SelectTrigger className="h-12 rounded-2xl border-2 border-gray-100 font-black shadow-sm transition-all focus:ring-4 focus:ring-orange-100">
-                                    <SelectValue placeholder="Chọn vai trò" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-2xl p-2 z-[99999]">
-                                    <SelectItem value="ADMIN" className="font-black rounded-xl focus:bg-red-50 focus:text-red-600 px-4 py-3">PHỤ TRÁCH HỆ THỐNG (ADMIN)</SelectItem>
-                                    <SelectItem value="VENDOR" className="font-black rounded-xl focus:bg-blue-50 focus:text-blue-600 px-4 py-3">NHÀ CUNG CẤP (VENDOR)</SelectItem>
-                                    <SelectItem value="CUSTOMER" className="font-black rounded-xl focus:bg-gray-50 px-4 py-3">NGƯỜI MUA (CUSTOMER)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-                    <div className="px-10 py-7 bg-gray-50/80 border-t flex justify-end gap-3 relative z-10">
-                        <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-2xl h-12 px-8 font-bold text-gray-500 hover:bg-white transition-all shadow-none">Đóng cửa sổ</Button>
-                        <Button onClick={handleCreateUser} className="bg-orange-600 hover:bg-orange-700 text-white font-black px-12 h-12 rounded-2xl uppercase tracking-tighter transition-all shadow-none">Tạo tài khoản</Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }
