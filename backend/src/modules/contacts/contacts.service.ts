@@ -24,7 +24,7 @@ export class ContactsService {
     });
 
     // Bắn thông báo qua websocket tới tất cả Admin
-    const admins = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
+    const admins = await this.prisma.user.findMany({ where: { roles: { has: 'ADMIN' } } });
     for (const admin of admins) {
       await this.notifications.create(admin.id, {
         type: 'SYSTEM',

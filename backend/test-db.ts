@@ -4,7 +4,7 @@ async function main() {
     const prisma = new PrismaClient();
     const user = await prisma.user.findUnique({
         where: { id: 5 },
-        select: { id: true, username: true, role: true }
+        select: { id: true, username: true, roles: true }
     });
     console.log('USER_CHECK_RESULT:', JSON.stringify(user));
     await prisma.$disconnect();

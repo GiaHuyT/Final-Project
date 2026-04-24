@@ -17,7 +17,7 @@ model User {
   password          String
 
   avatar            String?
-  role              Role     @default(CUSTOMER)
+  roles             Role[]   @default([CUSTOMER])
   isApprovedVendor      Boolean  @default(false)
   vendorRequestPending  Boolean  @default(false)
   isApprovedDriver      Boolean  @default(false)

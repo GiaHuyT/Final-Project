@@ -20,11 +20,11 @@ export class RolesGuard implements CanActivate {
         const { user } = context.switchToHttp().getRequest();
 
         // Nếu không có user (do route Public hoặc lỗi JWT) mà lại yêu cầu Role thì chặn
-        if (!user || !user.role) {
+        if (!user || !user.roles || user.roles.length === 0) {
             return false;
         }
 
-        // Kiểm tra xem role của user có nằm trong danh sách role yêu cầu không
-        return requiredRoles.includes(user.role);
+        // Kiểm tra xem user có ít nhất một role nằm trong danh sách yêu cầu không
+        return requiredRoles.some((role) => user.roles.includes(role));
     }
 }

@@ -28,8 +28,9 @@ export default function AdminLayout({
 
         try {
             const user = JSON.parse(userStr);
+            if (user.role && !user.roles) user.roles = [user.role];
             console.log("Current user in AdminLayout:", user);
-            if (user.role === 'ADMIN') {
+            if (user.roles?.includes('ADMIN')) {
                 setIsAuthorized(true);
             } else {
                 console.warn("User is not ADMIN. Role:", user.role);

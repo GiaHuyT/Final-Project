@@ -78,7 +78,7 @@ export class AuthController {
         throw new UnauthorizedException('User not found');
       }
 
-      const accessToken = this.authService.generateAccessToken(user.id, user.role);
+      const accessToken = this.authService.generateAccessToken(user.id, user.roles);
       return { accessToken };
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');

@@ -122,8 +122,8 @@ export class UsersController {
 
   @Patch('switch-role')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Chuyển đổi vai trò giữa Customer và Vendor' })
-  switchRole(@Req() req, @Body('role') role: 'CUSTOMER' | 'VENDOR') {
+  @ApiOperation({ summary: 'Chuyển đổi vai trò' })
+  switchRole(@Req() req, @Body('role') role: string) {
     return this.usersService.switchRole(req.user.id, role);
   }
 

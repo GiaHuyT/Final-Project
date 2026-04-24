@@ -28,7 +28,8 @@ export default function VendorLayout({
 
         try {
             const user = JSON.parse(userStr);
-            if (user.role === 'VENDOR') {
+            if (user.role && !user.roles) user.roles = [user.role];
+            if (user.roles?.includes('VENDOR')) {
                 setIsAuthorized(true);
             } else {
                 console.warn("User is not VENDOR. Role:", user.role);

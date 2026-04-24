@@ -21,7 +21,7 @@ export class AuthService {
   generateToken(user: any) {
     const payload = {
       sub: user.id,
-      role: user.role,
+      roles: user.roles,
     };
 
     return {
@@ -31,8 +31,8 @@ export class AuthService {
     };
   }
 
-  generateAccessToken(userId: number, role: string) {
-    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '24h' });
+  generateAccessToken(userId: number, roles: string[]) {
+    return this.jwtService.sign({ sub: userId, roles }, { expiresIn: '24h' });
   }
 
   generateRefreshToken(userId: number) {
@@ -80,7 +80,7 @@ export class AuthService {
 
     // Notify Admins
     const admins = await this.usersService.findAll(); // Should filter for ADMIN in a real scenario
-    const adminList = admins.filter(u => u.role === 'ADMIN');
+    const adminList = admins.filter(u => u.roles.includes('ADMIN'));
     for (const admin of adminList) {
       await this.notifications.create(admin.id, {
         type: 'SYSTEM' as any,
@@ -92,7 +92,7 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
     };
   }
 
@@ -118,7 +118,7 @@ export class AuthService {
       username: user.username,
       email: user.email,
       phoneNumber: user.phonenumber,
-      role: user.role,
+      roles: user.roles,
       avatar: user.avatar,
     };
   }
@@ -130,7 +130,7 @@ export class AuthService {
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role,
+      roles: user.roles,
     };
   }
 

@@ -186,6 +186,7 @@ export function Navbar() {
             const storedUser = localStorage.getItem("user");
             if (token && storedUser) {
                 const userData = JSON.parse(storedUser);
+                if (userData.role && !userData.roles) userData.roles = [userData.role];
                 setIsLoggedIn(true);
                 setUser(userData);
 
@@ -228,7 +229,7 @@ export function Navbar() {
         window.location.reload();
     };
 
-    if (pathname?.startsWith('/auth')) {
+    if (pathname?.startsWith('/auth') || pathname?.startsWith('/driver') || pathname?.startsWith('/vendor') || pathname?.startsWith('/admin')) {
         return null;
     }
 
@@ -308,21 +309,30 @@ export function Navbar() {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                {user?.role !== 'VENDOR' && (
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><User className="h-4 w-4" /> Hồ sơ</Link>
-                                    </DropdownMenuItem>
-                                )}
-                                {user?.role === 'VENDOR' && (
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/vendor" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Store className="h-4 w-4" /> Tài khoản của tôi</Link>
-                                    </DropdownMenuItem>
-                                )}
-                                {user?.role === 'ADMIN' && (
-                                    <DropdownMenuItem asChild>
-                                        <Link href="/admin" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Shield className="h-4 w-4" /> Quản trị</Link>
-                                    </DropdownMenuItem>
-                                )}
+                                {(() => {
+                                    const isAdmin = user?.roles?.some((r: string) => r.toUpperCase() === 'ADMIN') || user?.role?.toUpperCase() === 'ADMIN';
+                                    const isVendor = user?.roles?.some((r: string) => r.toUpperCase() === 'VENDOR') || user?.role?.toUpperCase() === 'VENDOR';
+                                    
+                                    return (
+                                        <>
+                                            {!isAdmin && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><User className="h-4 w-4" /> Tài khoản của tôi</Link>
+                                                </DropdownMenuItem>
+                                            )}
+                                            {isVendor && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href="/vendor" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Store className="h-4 w-4" /> Quản lý cửa hàng</Link>
+                                                </DropdownMenuItem>
+                                            )}
+                                            {isAdmin && (
+                                                <DropdownMenuItem asChild>
+                                                    <Link href="/admin" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Shield className="h-4 w-4" /> Quản trị</Link>
+                                                </DropdownMenuItem>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                                 <DropdownMenuItem onClick={handleLogout} className="text-error font-bold text-sm cursor-pointer mt-2 font-body flex items-center gap-2">
                                     <LogOut className="h-4 w-4" /> Đăng xuất
                                 </DropdownMenuItem>

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Cookies from "js-cookie";
 import http from "@/lib/http";
 import { toast } from "react-hot-toast";
 import { Loader2, Car, Gavel, Bell, User, ArrowRight, Store, ShieldCheck, ChevronRight, ChevronDown, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
@@ -23,9 +24,6 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [isRegModalOpen, setIsRegModalOpen] = useState(false);
     const [isDriverRegModalOpen, setIsDriverRegModalOpen] = useState(false);
-    const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
-    const [pendingRole, setPendingRole] = useState<string>("");
-
     const [driverFormData, setDriverFormData] = useState({
         // 1. Cá nhân
         name: '', dob: '', idCardNumber: '', phoneNumber: '', email: '', currentAddress: '',
@@ -319,7 +317,7 @@ export default function ProfilePage() {
         const requiredFields = [
             'name', 'dob', 'idCardNumber', 'phoneNumber', 'currentAddress',
             'licenseType', 'licenseNumber', 'experienceYears',
-            'operatingCities', 'bankAccountNumber', 'bankName', 'bankAccountName',
+            'bankAccountNumber', 'bankName', 'bankAccountName',
             'avatarUrl', 'idCardFrontUrl', 'idCardBackUrl', 'licenseFrontUrl', 'licenseBackUrl', 'criminalRecordUrl', 'pricePerKm'
         ];
 
@@ -367,6 +365,7 @@ export default function ProfilePage() {
                 if (phoneError) newAiErrors.phoneNumber = phoneError; else delete newAiErrors.phoneNumber;
                 return newAiErrors;
             });
+            toast.error('Vui lòng kiểm tra lại! Có trường thông tin bị thiếu hoặc không hợp lệ.');
             return;
         }
 
@@ -532,24 +531,32 @@ export default function ProfilePage() {
                         <div className="mt-6 px-2">
                             <button
                                 type="button"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
 
                                     if (!user) return;
 
                                     if (user.isApprovedVendor) {
-                                        setPendingRole(user.role === 'VENDOR' ? 'CUSTOMER' : 'VENDOR');
-                                        setIsSwitchModalOpen(true);
-                                    } else if (user.vendorRequestPending) {
-                                        toast.success("Yêu cầu đã được gửi, vui lòng chờ.");
+                                        let finalUser = user;
+                                        if (!user.roles?.includes('VENDOR')) {
+                                            try {
+                                                const { data: updatedUser } = await http.patch('/users/switch-role', { role: 'VENDOR' });
+                                                finalUser = updatedUser;
+                                            } catch (err: any) {
+                                                console.error(err);
+                                            }
+                                        }
+                                        localStorage.setItem('user', JSON.stringify(finalUser));
+                                        Cookies.set('user_role', JSON.stringify(finalUser.roles || []));
+                                        window.location.href = '/vendor';
                                     } else {
                                         setIsRegModalOpen(true);
                                     }
                                 }}
                                 className={cn(
                                     "w-full py-4 px-4 rounded-2xl border flex items-center justify-between transition-all font-bold text-[13px] group shadow-sm",
-                                    user?.role === 'VENDOR'
+                                    user?.roles?.includes('VENDOR')
                                         ? "bg-slate-900 text-white border-slate-900 hover:bg-black"
                                         : "bg-white border-slate-200 text-slate-700 hover:border-slate-900 active:scale-[0.98]"
                                 )}
@@ -557,13 +564,13 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-3">
                                     <div className={cn(
                                         "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                                        user?.role === 'VENDOR' ? "bg-white/10" : "bg-slate-100 group-hover:bg-slate-900 group-hover:text-white"
+                                        user?.roles?.includes('VENDOR') ? "bg-white/10" : "bg-slate-100 group-hover:bg-slate-900 group-hover:text-white"
                                     )}>
                                         <Store className="w-4 h-4" />
                                     </div>
                                     <span>
                                         {user?.isApprovedVendor
-                                            ? (user?.role === 'VENDOR' ? 'Chế độ Người bán' : 'Tài khoản nhà cung cấp')
+                                            ? (user?.roles?.includes('VENDOR') ? 'Chế độ Người bán' : 'Tài khoản nhà cung cấp')
                                             : (user?.vendorRequestPending ? 'Đang chờ phê duyệt' : 'Tài khoản nhà cung cấp')
                                         }
                                     </span>
@@ -576,21 +583,32 @@ export default function ProfilePage() {
                         <div className="mt-4 px-2">
                             <button
                                 type="button"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
 
                                     if (!user) return;
 
                                     if (user.isApprovedDriver) {
-                                        toast.success("Bạn đã được duyệt làm Tài xế!");
+                                        let finalUser = user;
+                                        if (!user.roles?.includes('DRIVER')) {
+                                            try {
+                                                const { data: updatedUser } = await http.patch('/users/switch-role', { role: 'DRIVER' });
+                                                finalUser = updatedUser;
+                                            } catch (err: any) {
+                                                console.error(err);
+                                            }
+                                        }
+                                        localStorage.setItem('user', JSON.stringify(finalUser));
+                                        Cookies.set('user_role', JSON.stringify(finalUser.roles || []));
+                                        window.location.href = '/driver';
                                     } else {
                                         setIsDriverRegModalOpen(true);
                                     }
                                 }}
                                 className={cn(
                                     "w-full py-4 px-4 rounded-2xl border flex items-center justify-between transition-all font-bold text-[13px] group shadow-sm",
-                                    user?.role === 'DRIVER'
+                                    user?.roles?.includes('DRIVER')
                                         ? "bg-emerald-900 text-white border-emerald-900 hover:bg-emerald-950"
                                         : "bg-white border-slate-200 text-slate-700 hover:border-emerald-900 hover:text-emerald-900 active:scale-[0.98]"
                                 )}
@@ -598,7 +616,7 @@ export default function ProfilePage() {
                                 <div className="flex items-center gap-3">
                                     <div className={cn(
                                         "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                                        user?.role === 'DRIVER' ? "bg-white/10" : "bg-slate-100 group-hover:bg-emerald-900 group-hover:text-white"
+                                        user?.roles?.includes('DRIVER') ? "bg-white/10" : "bg-slate-100 group-hover:bg-emerald-900 group-hover:text-white"
                                     )}>
                                         <Car className="w-4 h-4" />
                                     </div>
@@ -619,12 +637,23 @@ export default function ProfilePage() {
                         {/* Registration Modal */}
                         <Dialog open={isRegModalOpen} onOpenChange={setIsRegModalOpen}>
                             <DialogContent className="sm:max-w-[460px] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
-                                <div className="bg-gradient-to-br from-[#404040] to-[#171717] p-8 text-white relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
-                                    <Store className="w-12 h-12 mb-4 relative z-10 opacity-90" />
-                                    <DialogTitle className="text-2xl font-black mb-2 relative z-10">Đăng ký Nhà cung cấp</DialogTitle>
-                                    <DialogDescription className="text-neutral-400 font-medium relative z-10">Bắt đầu kinh doanh xe chuyên nghiệp trên hệ thống AutoBid ngay hôm nay.</DialogDescription>
-                                </div>
+                                {user?.vendorRequestPending ? (
+                                    <div className="p-12 text-center space-y-6 bg-white my-auto">
+                                        <div className="w-24 h-24 bg-slate-100 text-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <ShieldCheck className="w-12 h-12" />
+                                        </div>
+                                        <DialogTitle className="text-2xl font-black text-slate-800">Hồ Sơ Đang Được Xét Duyệt</DialogTitle>
+                                        <p className="text-slate-500 font-medium leading-relaxed">Hồ sơ đăng ký nhà cung cấp của bạn đã được gửi thành công. Đội ngũ AutoBid sẽ tiến hành xác minh thông tin trong vòng <strong className="text-slate-800">1-2 ngày làm việc</strong>.<br/><br/>Kết quả sẽ được thông báo qua Email và Thông báo trên hệ thống.</p>
+                                        <Button onClick={() => setIsRegModalOpen(false)} className="bg-[#171717] hover:bg-black text-white rounded-xl px-12 h-14 font-bold mt-4 shadow-lg shadow-black/20 uppercase tracking-widest text-sm w-full">Đã hiểu</Button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="bg-gradient-to-br from-[#404040] to-[#171717] p-8 text-white relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
+                                            <Store className="w-12 h-12 mb-4 relative z-10 opacity-90" />
+                                            <DialogTitle className="text-2xl font-black mb-2 relative z-10">Đăng ký Nhà cung cấp</DialogTitle>
+                                            <DialogDescription className="text-neutral-400 font-medium relative z-10">Bắt đầu kinh doanh xe chuyên nghiệp trên hệ thống AutoBid ngay hôm nay.</DialogDescription>
+                                        </div>
                                 <div className="p-8 space-y-6 bg-white">
                                     <div className="space-y-4">
                                         {[
@@ -668,6 +697,8 @@ export default function ProfilePage() {
                                         </Button>
                                     </div>
                                 </div>
+                                </>
+                                )}
                             </DialogContent>
                         </Dialog>
 
@@ -679,7 +710,7 @@ export default function ProfilePage() {
                                         <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                             <ShieldCheck className="w-12 h-12" />
                                         </div>
-                                        <h3 className="text-2xl font-black text-slate-800">Hồ Sơ Đang Được Xét Duyệt</h3>
+                                        <DialogTitle className="text-2xl font-black text-slate-800">Hồ Sơ Đang Được Xét Duyệt</DialogTitle>
                                         <p className="text-slate-500 font-medium leading-relaxed">Hồ sơ đăng ký đối tác tài xế của bạn đã được gửi thành công. Đội ngũ AutoBid sẽ tiến hành xác minh thông tin và giấy tờ trong vòng <strong className="text-emerald-600">3-4 ngày làm việc</strong>.<br/><br/>Kết quả sẽ được thông báo qua Email và Thông báo trên hệ thống.</p>
                                         <Button onClick={() => setIsDriverRegModalOpen(false)} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-12 h-14 font-bold mt-4 shadow-lg shadow-emerald-600/20 uppercase tracking-widest text-sm">Đã hiểu</Button>
                                     </div>
@@ -845,63 +876,12 @@ export default function ProfilePage() {
                                         </div>
                                     </section>
 
-                                    {/* 4. Khu vực hoạt động */}
+                                    {/* 4. Giá thuê & Thanh toán */}
                                     <section className="space-y-4">
-                                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b pb-2">📍 4. Khu vực hoạt động</h3>
-                                        
-                                        <div className="space-y-4 bg-white p-4 rounded-xl border">
-                                            <Label className="text-sm font-bold text-slate-800">Thêm khu vực hoạt động <span className="text-red-500">*</span></Label>
-                                            
-                                            <div className="space-y-3">
-                                                {areas.map((area, index) => (
-                                                    <div key={index} className="flex flex-col md:flex-row gap-4 items-center border-b pb-4 last:border-0 last:pb-0">
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 w-full">
-                                                            <select value={area.provCode} onChange={(e) => handleProvChange(index, e)} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
-                                                                <option value="">Chọn Tỉnh / Thành phố</option>
-                                                                {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
-                                                            </select>
-                                                            <select value={area.distCode} onChange={(e) => handleDistChange(index, e)} disabled={!area.provCode} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-400">
-                                                                <option value="">Chọn Quận / Huyện</option>
-                                                                {area.districts.map((d: any) => <option key={d.code} value={d.code}>{d.name}</option>)}
-                                                            </select>
-                                                            <select value={area.wardCode} onChange={(e) => handleWardChange(index, e)} disabled={!area.distCode} className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:bg-slate-50 disabled:text-slate-400">
-                                                                <option value="">Chọn Phường / Xã</option>
-                                                                {area.wards.map((w: any) => {
-                                                                    const isSelectedElsewhere = areas.some((a, i) => i !== index && a.wardCode === String(w.code));
-                                                                    return (
-                                                                        <option key={w.code} value={w.code} disabled={isSelectedElsewhere}>
-                                                                            {w.name} {isSelectedElsewhere ? '(Đã chọn)' : ''}
-                                                                        </option>
-                                                                    );
-                                                                })}
-                                                            </select>
-                                                        </div>
-                                                        {areas.length > 1 && (
-                                                            <Button type="button" variant="ghost" onClick={() => removeOperatingArea(index)} className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 shrink-0">
-                                                                <Trash2 className="w-5 h-5" />
-                                                            </Button>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <Button type="button" onClick={addOperatingArea} className="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 border border-emerald-200 rounded-lg px-4 py-2 mt-2 flex items-center gap-2">
-                                                <Plus className="w-4 h-4" /> Thêm khu vực khác
-                                            </Button>
-
-                                            {missingFields.includes('operatingCities') && driverFormData.operatingCities.length === 0 && (
-                                                <p className="text-sm text-red-500 font-medium mt-2">Bạn phải thêm ít nhất một khu vực hoạt động</p>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b pb-2">💰 4. Giá thuê & Thông tin thanh toán</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                             <div className="space-y-1.5"><Label className="text-xs font-bold text-slate-600">Giá thuê (VNĐ/Km) <span className="text-red-500">*</span></Label><Input type="number" name="pricePerKm" value={driverFormData.pricePerKm} onChange={handleDriverChange} className={missingFields.includes('pricePerKm') ? "border-red-500 focus-visible:ring-red-500" : ""} />{missingFields.includes('pricePerKm') && <p className="text-[11px] text-red-500 font-medium">Vui lòng nhập Giá thuê (VNĐ/Km)</p>}</div>
                                         </div>
-                                    </section>
-
-                                    {/* 5. Thanh toán */}
-                                    <section className="space-y-4">
-                                        <h3 className="text-lg font-black text-slate-800 flex items-center gap-2 border-b pb-2">💰 5. Thông tin thanh toán</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div className="space-y-1.5">
                                                 <Label className="text-xs font-bold text-slate-600">Ngân hàng <span className="text-red-500">*</span></Label>
@@ -967,9 +947,9 @@ export default function ProfilePage() {
                                         </div>
                                     </section>
 
-                                    {/* 6. Cam kết */}
+                                    {/* 5. Cam kết */}
                                     <section className="space-y-4 bg-orange-50 p-6 rounded-2xl border border-orange-200">
-                                        <h3 className="text-lg font-black text-orange-900 flex items-center gap-2">📄 6. Điều khoản & Cam kết</h3>
+                                        <h3 className="text-lg font-black text-orange-900 flex items-center gap-2">📄 5. Điều khoản & Cam kết</h3>
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-3">
                                                 <input type="checkbox" id="aTerms" checked={driverFormData.agreedToTerms} onChange={(e) => { setDriverFormData(p => ({ ...p, agreedToTerms: e.target.checked })); if (e.target.checked) setMissingFields(prev => prev.filter(f => f !== 'agreedToTerms')); }} className={`w-5 h-5 rounded ${missingFields.includes('agreedToTerms') ? 'border-red-500' : 'border-orange-300'} text-orange-600 focus:ring-orange-500`} />
@@ -1001,44 +981,6 @@ export default function ProfilePage() {
                             </DialogContent>
                         </Dialog>
 
-                        {/* Switch Role Modal */}
-                        <Dialog open={isSwitchModalOpen} onOpenChange={setIsSwitchModalOpen}>
-                            <DialogContent className="sm:max-w-[400px] rounded-[2rem] p-8 text-center border-none shadow-2xl">
-                                <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                    <User className="w-10 h-10" />
-                                </div>
-                                <DialogTitle className="text-2xl font-black text-slate-900 mb-2">Chuyển đổi vai trò</DialogTitle>
-                                <DialogDescription className="text-slate-500 font-medium mb-8">
-                                    Bạn có chắc chắn muốn chuyển sang tài khoản **{pendingRole === 'VENDOR' ? 'Nhà cung cấp' : 'Người mua'}** không?
-                                    Giao diện sẽ được cập nhật tương ứng.
-                                </DialogDescription>
-                                <div className="flex flex-col gap-3">
-                                    <Button
-                                        onClick={async () => {
-                                            try {
-                                                const { data: updatedUser } = await http.patch('/users/switch-role', { role: pendingRole });
-                                                localStorage.setItem('user', JSON.stringify(updatedUser));
-                                                toast.success('Chuyển đổi thành công!');
-                                                setIsSwitchModalOpen(false);
-                                                setTimeout(() => window.location.reload(), 500);
-                                            } catch (err: any) {
-                                                toast.error(err.response?.data?.message || 'Lỗi khi chuyển đổi');
-                                            }
-                                        }}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white h-14 rounded-2xl font-black text-sm uppercase tracking-wider shadow-lg shadow-blue-600/20"
-                                    >
-                                        Xác nhận chuyển đổi
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => setIsSwitchModalOpen(false)}
-                                        className="w-full h-12 rounded-xl font-bold text-slate-400"
-                                    >
-                                        Hủy bỏ
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
 
                         {/* Personal Info Bento Section */}
                         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">

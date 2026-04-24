@@ -47,7 +47,7 @@ export class AiService {
 
       // Lấy danh sách Top nhà cung cấp uy tín
       const vendors = await this.prisma.user.findMany({
-        where: { role: 'VENDOR', isActive: true },
+        where: { roles: { has: 'VENDOR' }, isActive: true },
         select: { id: true, username: true }
       });
       const vendorIds = vendors.map(v => v.id);

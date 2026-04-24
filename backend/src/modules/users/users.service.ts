@@ -83,7 +83,7 @@ export class UsersService {
     });
 
     // Thông báo cho Admin
-    const admins = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
+    const admins = await this.prisma.user.findMany({ where: { roles: { has: 'ADMIN' } } });
     for (const admin of admins) {
       await this.notifications.create(admin.id, {
         type: 'SYSTEM' as any,
@@ -102,7 +102,7 @@ export class UsersService {
         isApprovedDriver,
         driverRequestPending: false,
         pendingRequestType: null,
-        role: isApprovedDriver ? 'DRIVER' : undefined
+        roles: isApprovedDriver ? { push: 'DRIVER' } : undefined
       }
     });
 
@@ -120,7 +120,7 @@ export class UsersService {
   async applyDriver(userId: number, driverData?: any) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } }) as any;
     if (!user) throw new BadRequestException('Người dùng không tồn tại');
-    if (user.isApprovedDriver || user.role === 'DRIVER') throw new BadRequestException('Bạn đã là Tài xế');
+    if (user.isApprovedDriver || user.roles.includes('DRIVER')) throw new BadRequestException('Bạn đã là Tài xế');
     if (user.driverRequestPending) throw new BadRequestException('Yêu cầu của bạn đang chờ xử lý');
 
     if (driverData) {
@@ -233,7 +233,7 @@ export class UsersService {
       });
     }
 
-    const admins = await this.prisma.user.findMany({ where: { role: 'ADMIN' } });
+    const admins = await this.prisma.user.findMany({ where: { roles: { has: 'ADMIN' } } });
     for (const admin of admins) {
       await this.notifications.create(admin.id, {
         type: 'SYSTEM' as any,
@@ -245,24 +245,31 @@ export class UsersService {
     return { message: 'Đã gửi yêu cầu đăng ký thành công' };
   }
 
-  async switchRole(userId: number, role: 'CUSTOMER' | 'VENDOR') {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  async switchRole(userId: number, role: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } }) as any;
     if (!user) throw new BadRequestException('Người dùng không tồn tại');
 
     if (role === 'VENDOR' && !user.isApprovedVendor) {
       throw new BadRequestException('Tài khoản chưa được phê duyệt quyền Vendor');
     }
+    if (role === 'DRIVER' && !user.isApprovedDriver) {
+      throw new BadRequestException('Tài khoản chưa được phê duyệt quyền Tài xế');
+    }
+
+    if (user.roles?.includes(role)) {
+        return user;
+    }
 
     return this.prisma.user.update({
       where: { id: userId },
-      data: { role }
+      data: { roles: { push: role as any } }
     });
   }
 
-  async updateRole(id: number, role: any) {
+  async updateRole(id: number, roles: any) {
     return this.prisma.user.update({
       where: { id },
-      data: { role }
+      data: { roles }
     });
   }
 
@@ -335,13 +342,18 @@ export class UsersService {
         email: true,
         phonenumber: true,
         avatar: true,
-        role: true,
+        roles: true,
         isApprovedVendor: true,
         vendorRequestPending: true,
         isApprovedDriver: true,
         driverRequestPending: true,
         pendingRequestType: true,
         createdAt: true,
+        serviceProfiles: {
+          select: {
+            driverRentalServices: true,
+          }
+        }
       }
     });
   }
@@ -352,7 +364,7 @@ export class UsersService {
 
   async findVendors() {
     return this.prisma.user.findMany({
-      where: { role: 'VENDOR' },
+      where: { roles: { has: 'VENDOR' } },
       select: {
         id: true,
         username: true,
@@ -375,7 +387,7 @@ export class UsersService {
         email: true,
         avatar: true,
         createdAt: true,
-        role: true,
+        roles: true,
         products: {
           where: { status: true },
           orderBy: { createdAt: 'desc' },

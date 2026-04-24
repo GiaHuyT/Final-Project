@@ -20,7 +20,7 @@ export class DashboardService {
 
         const totalRevenue = orderItems.reduce((acc, item) => {
             const itemRevenue = item.price * item.quantity;
-            if (item.product?.vendor?.role === 'ADMIN') {
+            if (item.product?.vendor?.roles.includes('ADMIN')) {
                 return acc + itemRevenue;
             } else {
                 return acc + itemRevenue * 0.1;

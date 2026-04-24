@@ -37,7 +37,7 @@ async function main() {
       username: 'admin1',
       email: 'admin1@example.com',
       password: hashedPassword, // '123456' encoded with bcrypt
-      role: Role.ADMIN,
+      roles: [Role.ADMIN],
 
     },
   });
@@ -47,7 +47,7 @@ async function main() {
       username: 'admin2',
       email: 'admin2@example.com',
       password: hashedPassword, // '123456' encoded with bcrypt
-      role: Role.ADMIN,
+      roles: [Role.ADMIN],
 
     },
   });
@@ -57,7 +57,7 @@ async function main() {
       username: 'vendor1',
       email: 'vendor1@example.com',
       password: hashedPassword,
-      role: Role.VENDOR,
+      roles: [Role.VENDOR],
       isApprovedVendor: true,
     },
   });
@@ -67,7 +67,7 @@ async function main() {
       username: 'vendor2',
       email: 'vendor2@example.com',
       password: hashedPassword,
-      role: Role.VENDOR,
+      roles: [Role.VENDOR],
       isApprovedVendor: true,
     },
   });
@@ -77,7 +77,7 @@ async function main() {
       username: 'vendor3',
       email: 'vendor3@example.com',
       password: hashedPassword,
-      role: Role.VENDOR,
+      roles: [Role.VENDOR],
       isApprovedVendor: true,
     },
   });
@@ -87,7 +87,7 @@ async function main() {
       username: 'customer1',
       email: 'customer1@example.com',
       password: hashedPassword,
-      role: Role.CUSTOMER,
+      roles: [Role.CUSTOMER],
 
     },
   });
