@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
+import { containsBannedWords } from '../../common/utils/content-filter.util';
 
 @WebSocketGateway({
   cors: {
@@ -64,6 +65,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const userId = this.getUserIdFromSocket(client);
     if (!userId) return { error: 'Unauthorized' };
+
+    if (containsBannedWords(data.content)) {
+      return { error: 'Nội dung chứa từ khóa vi phạm tiêu chuẩn cộng đồng.' };
+    }
 
     const message = await this.chatService.sendMessage(
       data.conversationId,

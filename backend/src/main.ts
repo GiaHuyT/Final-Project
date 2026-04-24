@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ContentFilterInterceptor } from './common/interceptors/content-filter.interceptor';
 
 import cookieParser from 'cookie-parser';
 
@@ -35,6 +36,9 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Cấu hình bộ lọc nội dung nhạy cảm toàn cầu
+  app.useGlobalInterceptors(new ContentFilterInterceptor());
 
   // Swagger setup
   const config = new DocumentBuilder()
