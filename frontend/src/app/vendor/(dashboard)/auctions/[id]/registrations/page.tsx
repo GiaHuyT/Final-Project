@@ -112,7 +112,7 @@ export default function AuctionRegistrationsPage() {
                                                 {format(new Date(reg.createdAt), 'HH:mm dd/MM/yyyy')}
                                             </td>
                                             <td className="px-6 py-4">
-                                                {reg.status === 'PENDING' && <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none"><Clock className="w-3 h-3 mr-1"/> Đang chờ duyệt</Badge>}
+                                                {reg.status === 'PENDING' && <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none"><Clock className="w-3 h-3 mr-1"/> Đang chờ duyệt</Badge>}
                                                 {reg.status === 'APPROVED' && <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none"><Check className="w-3 h-3 mr-1"/> Đã duyệt</Badge>}
                                                 {reg.status === 'REJECTED' && <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none"><X className="w-3 h-3 mr-1"/> Đã từ chối</Badge>}
                                             </td>

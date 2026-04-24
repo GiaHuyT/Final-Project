@@ -63,7 +63,7 @@ export default function CreateAuctionPage() {
                 
                 if (data && Array.isArray(data)) {
                     // Filter to only products owned by this vendor
-                    const myProducts = data.filter((p: any) => p.vendor?.id === userObj.id || p.vendorId === userObj.id);
+                    const myProducts = data.filter((p: any) => p.vendorId && userObj?.id && Number(p.vendorId) === Number(userObj.id));
                     setProducts(myProducts);
                 }
             } catch (error) {
@@ -136,7 +136,7 @@ export default function CreateAuctionPage() {
                     <CardContent className="p-6 space-y-6">
                         <div className="space-y-2">
                             <Label htmlFor="title" className="font-semibold text-slate-700">Tên phiên đấu giá <span className="text-red-500">*</span></Label>
-                            <Input id="title" placeholder="VD: Đấu giá Siêu xe Mercedes-Benz S450 dọn kho đón Tết..." {...register('title', { required: 'Vui lòng nhập tên phiên đấu giá' })} className="h-11 border-slate-200 focus-visible:ring-orange-500 placeholder:text-slate-400/60" />
+                            <Input id="title" placeholder="VD: Đấu giá Siêu xe Mercedes-Benz S450 dọn kho đón Tết..." {...register('title', { required: 'Vui lòng nhập tên phiên đấu giá' })} className="h-11 border-slate-200 focus-visible:ring-blue-500 placeholder:text-slate-400/60" />
                             {errors.title && <span className="text-red-500 text-xs font-medium">{errors.title.message as string}</span>}
                         </div>
                         
@@ -224,7 +224,7 @@ export default function CreateAuctionPage() {
                         
                         <div className="space-y-2">
                             <Label htmlFor="description" className="font-semibold text-slate-700">Mô tả/Thể lệ luật chơi</Label>
-                            <Textarea id="description" placeholder="Nhập thêm mô tả về tình trạng, nội quy trả giá..." {...register('description')} className="min-h-[100px] border-slate-200 focus-visible:ring-orange-500 placeholder:text-slate-400/60" />
+                            <Textarea id="description" placeholder="Nhập thêm mô tả về tình trạng, nội quy trả giá..." {...register('description')} className="min-h-[100px] border-slate-200 focus-visible:ring-blue-500 placeholder:text-slate-400/60" />
                         </div>
                     </CardContent>
                 </Card>
@@ -240,7 +240,7 @@ export default function CreateAuctionPage() {
                             <div className="flex justify-between items-center">
                                 <Label className="font-semibold text-slate-700 text-base flex items-center gap-2"><Package className="w-5 h-5" /> Danh sách xe đấu giá</Label>
                                 {isLivestream && (
-                                    <Button type="button" variant="outline" size="sm" onClick={() => append({ productId: '', orderIndex: fields.length })} className="gap-1 border-orange-200 text-orange-600 hover:bg-orange-50">
+                                    <Button type="button" variant="outline" size="sm" onClick={() => append({ productId: '', orderIndex: fields.length })} className="gap-1 border-blue-200 text-blue-600 hover:bg-blue-50">
                                         <Plus className="w-4 h-4" /> Thêm xe
                                     </Button>
                                 )}
@@ -395,7 +395,7 @@ export default function CreateAuctionPage() {
                     <Link href="/vendor/auctions">
                         <Button type="button" variant="outline" className="px-8 border-slate-300">Hủy bỏ</Button>
                     </Link>
-                    <Button type="submit" disabled={loading} className="px-8 bg-orange-600 hover:bg-orange-700 gap-2">
+                    <Button type="submit" disabled={loading} className="px-8 bg-blue-600 text-white hover:bg-blue-700 gap-2">
                         <Save className="w-4 h-4" />
                         {loading ? 'Đang tạo...' : 'Lưu và Ra Mắt Phiên'}
                     </Button>

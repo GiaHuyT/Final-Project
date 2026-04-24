@@ -136,7 +136,7 @@ export default function VendorProfilePage() {
     if (loading) {
         return (
             <div className="flex h-[60vh] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
             </div>
         );
     }
@@ -145,13 +145,13 @@ export default function VendorProfilePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8 space-y-8 max-w-4xl mx-auto">
             <div className="space-y-6 border-b border-gray-100 pb-8">
                 <h1 className="text-2xl text-gray-800 font-normal">
-                    Nhà cung cấp: <span className="font-semibold text-orange-600">{watchedUsername || userNameDisplay}</span>
+                    Nhà cung cấp: <span className="font-semibold text-blue-600">{watchedUsername || userNameDisplay}</span>
                 </h1>
 
                 <div className="flex items-center gap-6">
                     <Avatar className="h-24 w-24 border-4 border-gray-50 shadow-sm relative overflow-hidden group">
                         <AvatarImage src={previewAvatarUrl || undefined} alt={watchedUsername || userNameDisplay} />
-                        <AvatarFallback className="text-2xl bg-primary text-on-primary font-bold">
+                        <AvatarFallback className="text-4xl bg-blue-100 text-blue-700 font-bold">
                             {(watchedUsername || userNameDisplay).substring(0, 1).toUpperCase()}
                         </AvatarFallback>
                         {isSaving && avatarFile instanceof File && (
@@ -171,7 +171,7 @@ export default function VendorProfilePage() {
                         <Button
                             onClick={handleAvatarClick}
                             disabled={isSaving}
-                            className="bg-orange-600 hover:bg-orange-700 text-white"
+                            className="bg-blue-600 text-white hover:bg-blue-700 text-white"
                         >
                             {isSaving && avatarFile instanceof File ? "Đang tải lên..." : "Tải ảnh mới"}
                         </Button>
@@ -201,7 +201,7 @@ export default function VendorProfilePage() {
                             <Input
                                 id="username"
                                 {...register('username')}
-                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
+                                className="bg-gray-50/50 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                             />
                             {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
                         </div>
@@ -221,14 +221,14 @@ export default function VendorProfilePage() {
                             <Input
                                 id="phonenumber"
                                 {...register('phonenumber')}
-                                className="bg-gray-50/50 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
+                                className="bg-gray-50/50 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                                 placeholder="Nhập số điện thoại"
                             />
                         </div>
                     </div>
 
                     <div className="flex justify-end pt-4 border-t border-gray-50">
-                        <Button type="submit" disabled={isSaving} className="bg-orange-600 hover:bg-orange-700 text-white min-w-[140px] shadow-sm shadow-orange-200">
+                        <Button type="submit" disabled={isSaving} className="bg-blue-600 text-white hover:bg-blue-700 text-white min-w-[140px] shadow-sm shadow-blue-200">
                             {isSaving ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

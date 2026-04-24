@@ -38,7 +38,7 @@ function AuctionCountdown({ startTime, status }: { startTime: string; status: st
     if (status !== 'PENDING' || !timeLeft) return null;
 
     return (
-        <span className="font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md ml-auto">
+        <span className="font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md ml-auto">
             {timeLeft}
         </span>
     );
@@ -93,13 +93,13 @@ export default function VendorAuctionsPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                        <Gavel className="w-6 h-6 text-orange-600" />
+                        <Gavel className="w-6 h-6 text-blue-600" />
                         Quản lý Đấu giá
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">Tạo và theo dõi các phiên đấu giá của bạn</p>
                 </div>
                 <Link href="/vendor/auctions/create">
-                    <Button className="bg-orange-600 hover:bg-orange-700 gap-2">
+                    <Button variant="outline" className="rounded-xl border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700 shadow-sm shadow-blue-100 gap-2 transition-all font-bold">
                         <Plus className="w-4 h-4" />
                         Tạo phiên đấu giá
                     </Button>
@@ -124,7 +124,7 @@ export default function VendorAuctionsPage() {
                     <h3 className="text-lg font-semibold text-slate-700">Chưa có phiên đấu giá nào</h3>
                     <p className="text-slate-500 mb-6 max-w-sm">Hãy tạo phiên đấu giá đầu tiên để bắt đầu bán xe với giá tốt nhất.</p>
                     <Link href="/vendor/auctions/create">
-                        <Button variant="outline" className="border-orange-200 text-orange-600 hover:bg-orange-50">Tạo ngay</Button>
+                        <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">Tạo ngay</Button>
                     </Link>
                 </Card>
             ) : (
@@ -152,7 +152,7 @@ export default function VendorAuctionsPage() {
                                     </div>
                                     <div className="flex justify-between items-center text-slate-500">
                                         <span>Giá hiện tại:</span>
-                                        <span className="font-bold text-orange-600 text-base">{auction.currentPrice?.toLocaleString('vi-VN') || auction.startPrice.toLocaleString('vi-VN')} VNĐ</span>
+                                        <span className="font-bold text-blue-600 text-base">{auction.currentPrice?.toLocaleString('vi-VN') || auction.startPrice.toLocaleString('vi-VN')} VNĐ</span>
                                     </div>
                                 </div>
                                 

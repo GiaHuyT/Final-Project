@@ -178,7 +178,7 @@ export default function VendorRentalCarsPage() {
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">Cho thuê Xe</h1>
                     <p className="text-muted-foreground font-medium">Quản lý đội xe cho thuê và lịch trình của bạn.</p>
                 </div>
-                <Button onClick={() => setIsAddOpen(true)} className="rounded-xl bg-blue-600 hover:bg-blue-700 h-12 px-6 font-bold gap-2 shadow-lg shadow-blue-100 transition-all active:scale-95">
+                <Button variant="outline" onClick={() => setIsAddOpen(true)} className="rounded-xl border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 h-12 px-6 font-bold gap-2">
                     <Plus className="w-5 h-5" /> Thêm xe mới
                 </Button>
             </div>
@@ -229,7 +229,7 @@ export default function VendorRentalCarsPage() {
                                             <td className="px-10 py-6 align-middle text-center">
                                                 <Badge className={`rounded-full px-4 py-1 uppercase text-[9px] font-black shadow-sm border-2 ${
                                                     rental.status === 'Sẵn sàng' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                    rental.status === 'Đang thuê' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-orange-50 text-orange-700 border-orange-200'
+                                                    rental.status === 'Đang thuê' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-50 text-blue-700 border-blue-200'
                                                 }`}>
                                                     {rental.status}
                                                 </Badge>
@@ -253,13 +253,13 @@ export default function VendorRentalCarsPage() {
 
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-3xl">
-                    <DialogHeader className="bg-blue-600 px-10 py-8 text-white">
+                    <DialogHeader className="bg-blue-600 text-white px-10 py-8 text-white">
                         <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Thêm xe thuê mới</DialogTitle>
                     </DialogHeader>
                     <div className="p-10"><CarForm /></div>
                     <DialogFooter className="bg-gray-50 px-10 py-6">
                         <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">Hủy</Button>
-                        <Button onClick={handleAdd} disabled={isLoading} className="rounded-xl bg-blue-600 hover:bg-blue-700 px-8 font-black">Lưu thông tin</Button>
+                        <Button onClick={handleAdd} disabled={isLoading} className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 px-8 font-black">Lưu thông tin</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

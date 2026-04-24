@@ -353,7 +353,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
         <div className="space-y-8 py-6">
             {/* 1. Thông tin cơ bản */}
             <div className="space-y-4">
-                <h3 className="text-lg font-bold text-orange-600 border-l-4 border-orange-600 pl-3">1. Thông tin cơ bản</h3>
+                <h3 className="text-lg font-bold text-blue-600 border-l-4 border-blue-600 pl-3">1. Thông tin cơ bản</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <Label htmlFor="name" className="text-sm font-semibold text-gray-700">Tên xe hiển thị</Label>
@@ -454,7 +454,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                                 onClick={addVariant} 
                                 variant="outline" 
                                 size="sm" 
-                                className="text-orange-600 border-orange-200 hover:bg-orange-50 font-bold"
+                                className="text-blue-600 border-blue-200 hover:bg-blue-50 font-bold"
                                 disabled={formData.colorVariants.length >= 10}
                             >
                                 <Plus className="w-4 h-4 mr-1" /> Thêm mẫu mới
@@ -480,7 +480,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-200">
+                                                <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-blue-200">
                                                     {variantIndex + 1}
                                                 </div>
                                                 <Label className="text-base font-bold text-gray-800 tracking-tight">Mẫu số {variantIndex + 1}: {cv.color || 'Chưa chọn màu'}</Label>
@@ -551,7 +551,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
 
                 <div className="space-y-2 border-t border-gray-100 pt-6">
                     <Label htmlFor="description" className="text-sm font-semibold text-gray-700">Mô tả chi tiết sản phẩm</Label>
-                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} placeholder="Mô tả các đặc điểm nổi bật, lịch sử bảo dưỡng..." className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500/20 outline-none" />
+                    <textarea id="description" name="description" value={formData.description} onChange={handleChange} placeholder="Mô tả các đặc điểm nổi bật, lịch sử bảo dưỡng..." className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none" />
                 </div>
             </div> {/* End 1. Thông tin cơ bản section */}
 
@@ -707,7 +707,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
 
             <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <div className="flex items-center space-x-3">
-                    <input type="checkbox" id="status" name="status" checked={formData.status} onChange={handleChange} className="w-5 h-5 text-orange-600 border-gray-300 rounded" />
+                    <input type="checkbox" id="status" name="status" checked={formData.status} onChange={handleChange} className="w-5 h-5 text-blue-600 border-gray-300 rounded" />
                     <div>
                         <label htmlFor="status" className="text-sm font-bold text-gray-800">Hiển thị sản phẩm công khai</label>
                         <p className="text-[11px] text-gray-500">Người mua sẽ thấy sản phẩm này trên sàn đấu giá.</p>
@@ -742,7 +742,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                             <tr><td colSpan={8} className="px-6 py-4 text-center text-gray-500">Chưa có sản phẩm nào.</td></tr>
                         )}
                         {products.map((prod) => (
-                            <tr key={prod.id} className="bg-white border-b hover:bg-orange-50/30 transition-colors">
+                            <tr key={prod.id} className="bg-white border-b hover:bg-blue-50/30 transition-colors">
                                 <td className="px-6 py-4 font-medium text-gray-400">#{prod.id}</td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
@@ -759,7 +759,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                                         <span className="text-xs text-gray-500">{prod.variant || '---'}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 font-bold text-orange-600">{prod.price?.toLocaleString('vi-VN')}₫</td>
+                                <td className="px-6 py-4 font-bold text-blue-600">{prod.price?.toLocaleString('vi-VN')}₫</td>
                                 <td className="px-6 py-4 text-center">{prod.stock}</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${prod.status ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -782,7 +782,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
 
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent className="sm:max-w-[800px] border-none shadow-2xl p-0 overflow-hidden">
-                    <div className="bg-orange-600 px-6 py-4">
+                    <div className="bg-blue-600 text-white px-6 py-4">
                         <DialogHeader>
                             <DialogTitle className="text-white text-xl font-bold flex items-center gap-2">
                                 <Plus className="w-5 h-5 bg-white/20 p-1 rounded-md" />
@@ -795,7 +795,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                     </div>
                     <DialogFooter className="px-6 py-4 bg-gray-50 border-t">
                         <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="hover:bg-gray-200">Đóng</Button>
-                        <Button onClick={handleAdd} disabled={isLoading} className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-8 shadow-lg shadow-orange-200">
+                        <Button onClick={handleAdd} disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700 text-white font-bold px-8 shadow-lg shadow-blue-200">
                             {isLoading ? "Đang xử lý..." : "Thêm vào sàn bán"}
                         </Button>
                     </DialogFooter>
@@ -805,7 +805,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
             {/* Edit Product Modal */}
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="sm:max-w-[800px] border-none shadow-2xl p-0 overflow-hidden">
-                    <div className="bg-blue-600 px-6 py-4">
+                    <div className="bg-blue-600 text-white px-6 py-4">
                         <DialogHeader>
                             <DialogTitle className="text-white text-xl font-bold flex items-center gap-2">
                                 <Pencil className="w-5 h-5 bg-white/20 p-1 rounded-md" />
@@ -818,7 +818,7 @@ export default function ProductsTab({ products, onRefresh }: ProductsTabProps) {
                     </div>
                     <DialogFooter className="px-6 py-4 bg-gray-50 border-t">
                         <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="hover:bg-gray-200">Hủy bỏ</Button>
-                        <Button onClick={handleEdit} disabled={isLoading} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 shadow-lg shadow-blue-200">
+                        <Button onClick={handleEdit} disabled={isLoading} className="bg-blue-600 text-white hover:bg-blue-700 text-white font-bold px-8 shadow-lg shadow-blue-200">
                             {isLoading ? "Đang xử lý..." : "Lưu thay đổi"}
                         </Button>
                     </DialogFooter>

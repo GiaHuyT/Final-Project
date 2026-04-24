@@ -83,7 +83,7 @@ export default function VendorPublicProfilePage() {
                                     <span className="text-sm">Tham gia từ {new Date(vendor.createdAt).toLocaleDateString('vi-VN')}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Package className="w-4 h-4 text-orange-500" />
+                                    <Package className="w-4 h-4 text-blue-500" />
                                     <span className="text-sm">{vendor.products?.length || 0} Xe đang bán</span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -178,7 +178,7 @@ export default function VendorPublicProfilePage() {
                                                             {product.price.toLocaleString('vi-VN')} <span className="text-sm font-normal text-slate-500 tracking-normal">đ</span>
                                                         </p>
                                                     </div>
-                                                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                    <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-600 text-white group-hover:text-white transition-all">
                                                         <ArrowLeft className="w-5 h-5 rotate-180" />
                                                     </div>
                                                 </div>
@@ -212,7 +212,7 @@ export default function VendorPublicProfilePage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+                                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
                                         <Package className="w-6 h-6" />
                                     </div>
                                     <div>

@@ -227,11 +227,11 @@ export default function RentalCarsTab({ rentalCars, onRefresh }: RentalCarsTabPr
                                     <div className="text-xs text-gray-400">{rental.type}</div>
                                 </td>
                                 <td className="px-6 py-4 font-semibold">{rental.plate}</td>
-                                <td className="px-6 py-4 font-semibold text-orange-600">{(rental.price || 0).toLocaleString('vi-VN')}đ/ngày</td>
+                                <td className="px-6 py-4 font-semibold text-blue-600">{(rental.price || 0).toLocaleString('vi-VN')}đ/ngày</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 rounded-full text-xs font-medium 
                                         ${rental.status === 'Sẵn sàng' ? 'bg-green-100 text-green-700' :
-                                            rental.status === 'Đang thuê' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                                            rental.status === 'Đang thuê' ? 'bg-blue-100 text-blue-700' : 'bg-blue-100 text-blue-700'}`}>
                                         {rental.status}
                                     </span>
                                 </td>

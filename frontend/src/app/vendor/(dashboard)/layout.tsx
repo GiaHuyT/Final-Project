@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VendorSidebar } from '@/components/vendor/sidebar';
-import { VendorTopbar } from '@/components/vendor/topbar';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import Cookies from 'js-cookie';
@@ -47,18 +46,17 @@ export default function VendorLayout({
 
     if (isAuthorized === null || isAuthorized === false) {
         return (
-            <div className="flex h-screen items-center justify-center bg-gray-50/30">
-                <Loader2 className="h-10 w-10 animate-spin text-orange-500" />
+            <div className="flex h-screen items-center justify-center bg-slate-50">
+                <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
                 <span className="ml-3 text-sm text-slate-500 font-medium">Đang chuyển hướng...</span>
             </div>
         );
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50/30">
+        <div className="flex h-screen overflow-hidden bg-slate-50">
             <VendorSidebar />
             <div className="flex flex-1 flex-col overflow-hidden">
-                <VendorTopbar />
                 <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
                     {children}
                 </main>

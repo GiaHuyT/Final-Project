@@ -182,7 +182,7 @@ export default function VendorRevenueReportPage() {
 
       {loading ? (
         <div className="flex h-64 items-center justify-center bg-white rounded-xl shadow-sm border border-gray-100">
-          <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

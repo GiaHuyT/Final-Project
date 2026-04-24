@@ -31,7 +31,7 @@ export default function OrdersTab({ orders, onRefresh }: OrdersTabProps) {
                                 <td className="px-6 py-4 font-medium text-gray-900">#{ord.id}</td>
                                 <td className="px-6 py-4">{ord.customer?.username || 'Khách vãng lai'}</td>
                                 <td className="px-6 py-4">{new Date(ord.createdAt).toLocaleDateString('vi-VN')}</td>
-                                <td className="px-6 py-4 font-semibold text-orange-600">{ord.totalPrice.toLocaleString('vi-VN')}đ</td>
+                                <td className="px-6 py-4 font-semibold text-blue-600">{ord.totalPrice.toLocaleString('vi-VN')}đ</td>
                                 <td className="px-6 py-4">
                                     <select
                                         value={ord.status}

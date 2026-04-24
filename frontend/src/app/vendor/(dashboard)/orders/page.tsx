@@ -41,7 +41,7 @@ export default function VendorOrdersPage() {
             case 'SHIPPING': return 'bg-blue-50 text-blue-700 border-blue-200';
             case 'PROCESSING': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
             case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200';
-            default: return 'bg-orange-50 text-orange-700 border-orange-200';
+            default: return 'bg-blue-50 text-blue-700 border-blue-200';
         }
     };
 
@@ -64,14 +64,14 @@ export default function VendorOrdersPage() {
             <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 overflow-hidden">
                 <div className="px-10 py-8 border-b bg-gray-50/30">
                     <h2 className="text-xl font-black uppercase tracking-widest text-gray-800 flex items-center gap-3">
-                        <ShoppingBag className="w-6 h-6 text-orange-600" />
+                        <ShoppingBag className="w-6 h-6 text-blue-600" />
                         Danh sách đơn hàng mới nhất
                     </h2>
                 </div>
 
                 {loading ? (
                     <div className="flex h-96 items-center justify-center">
-                        <Loader2 className="h-14 w-14 animate-spin text-orange-600" />
+                        <Loader2 className="h-14 w-14 animate-spin text-blue-600" />
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -95,10 +95,10 @@ export default function VendorOrdersPage() {
                                     </tr>
                                 ) : (
                                     orders.map((ord) => (
-                                        <tr key={ord.id} className="hover:bg-orange-50/5 transition-colors group">
+                                        <tr key={ord.id} className="hover:bg-blue-50/5 transition-colors group">
                                             <td className="px-10 py-6 align-middle">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-2xl bg-orange-100/50 flex items-center justify-center text-orange-600 font-black text-xs border border-orange-200">
+                                                    <div className="w-10 h-10 rounded-2xl bg-blue-100/50 flex items-center justify-center text-blue-600 font-black text-xs border border-blue-200">
                                                         #{ord.id}
                                                     </div>
                                                 </div>
@@ -125,7 +125,7 @@ export default function VendorOrdersPage() {
                                                 <select
                                                     value={ord.status}
                                                     onChange={(e) => handleUpdateStatus(ord.id, e.target.value)}
-                                                    className="h-10 px-4 rounded-xl border border-gray-100 bg-white font-bold text-xs shadow-sm hover:border-orange-300 transition-all cursor-pointer outline-none focus:ring-4 focus:ring-orange-100"
+                                                    className="h-10 px-4 rounded-xl border border-gray-100 bg-white font-bold text-xs shadow-sm hover:border-blue-300 transition-all cursor-pointer outline-none focus:ring-4 focus:ring-blue-100"
                                                 >
                                                     <option value="PENDING">Chờ xử lý</option>
                                                     <option value="PROCESSING">Đang chuẩn bị</option>

@@ -154,10 +154,10 @@ export default function VendorRepairsPage() {
                     <p className="text-muted-foreground font-medium">Quản lý danh sách các gói sửa chữa và bảo dưỡng ô tô của bạn.</p>
                 </div>
                 <div className="flex gap-3">
-                    <Button onClick={() => window.location.href = '/vendor/repairs/capacity/add'} className="rounded-xl bg-orange-600 hover:bg-orange-700 h-12 px-6 font-bold gap-2 shadow-lg shadow-orange-100 transition-all active:scale-95 text-white">
+                    <Button variant="outline" onClick={() => window.location.href = '/vendor/repairs/capacity/add'} className="rounded-xl border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 h-12 px-6 font-bold gap-2">
                         <Wrench className="w-5 h-5" /> Thêm Năng lực Sửa chữa
                     </Button>
-                    <Button onClick={() => setIsAddOpen(true)} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 h-12 px-6 font-bold gap-2 shadow-lg shadow-emerald-100 transition-all active:scale-95">
+                    <Button variant="outline" onClick={() => setIsAddOpen(true)} className="rounded-xl border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 h-12 px-6 font-bold gap-2">
                         <Plus className="w-5 h-5" /> Thêm Dịch vụ mới
                     </Button>
                 </div>
@@ -201,7 +201,7 @@ export default function VendorRepairsPage() {
                                     <h3 className="font-black text-gray-900 text-xl mb-3 line-clamp-1">{repair.name}</h3>
                                     <p className="text-sm font-medium text-gray-400 mb-6 line-clamp-2 min-h-[40px] leading-relaxed">{repair.description || 'Chưa cung cấp mô tả chi tiết cho dịch vụ này.'}</p>
                                     <div className="flex justify-between items-center pt-6 border-t border-gray-50">
-                                        <div className="flex items-center gap-1 text-orange-400"><Star className="w-4 h-4 fill-current" /><span className="text-xs font-black text-gray-900">5.0</span></div>
+                                        <div className="flex items-center gap-1 text-blue-400"><Star className="w-4 h-4 fill-current" /><span className="text-xs font-black text-gray-900">5.0</span></div>
                                         <div className="font-black text-emerald-600 text-2xl">{(repair.price || 0).toLocaleString('vi-VN')} <span className="text-[10px] opacity-60 ml-1">VNĐ</span></div>
                                     </div>
                                 </div>
@@ -226,13 +226,13 @@ export default function VendorRepairsPage() {
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-3xl">
-                    <DialogHeader className="bg-blue-600 px-10 py-8 text-white">
+                    <DialogHeader className="bg-blue-600 text-white px-10 py-8 text-white">
                         <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Cập nhật dịch vụ</DialogTitle>
                     </DialogHeader>
                     <div className="p-10"><RepairForm /></div>
                     <DialogFooter className="bg-gray-50 px-10 py-6">
                         <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">Hủy bỏ</Button>
-                        <Button onClick={handleEdit} disabled={isLoading} className="rounded-xl bg-blue-600 hover:bg-blue-700 px-8 font-black">Cập nhật ngay</Button>
+                        <Button onClick={handleEdit} disabled={isLoading} className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 px-8 font-black">Cập nhật ngay</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

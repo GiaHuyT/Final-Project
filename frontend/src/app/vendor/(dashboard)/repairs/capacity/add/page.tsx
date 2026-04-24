@@ -129,7 +129,7 @@ export default function AddRepairCapacityPage() {
                     </div>
                     
                     <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
-                        <div className="p-3 bg-orange-100 text-orange-600 rounded-xl">
+                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
                             <Briefcase className="w-6 h-6" />
                         </div>
                         <h2 className="text-xl font-bold text-gray-800">Thông Tin Chung</h2>
@@ -170,7 +170,7 @@ export default function AddRepairCapacityPage() {
                                         name="status" 
                                         value={formData.status} 
                                         onChange={handleChange} 
-                                        className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700"
+                                        className="flex h-12 w-full rounded-xl border border-input bg-gray-50/50 px-3 py-2 text-base outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium text-gray-700"
                                     >
                                         <option value="Hoạt động">Công khai (Khách hàng có thể thấy)</option>
                                         <option value="Tạm ngưng">Bản nháp / Ẩn</option>
@@ -196,7 +196,7 @@ export default function AddRepairCapacityPage() {
                             <Label className="text-sm font-bold text-gray-700">Ảnh đại diện năng lực</Label>
                             <div 
                                 onClick={() => fileInputRef.current?.click()}
-                                className="relative h-64 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 hover:bg-gray-50 hover:border-orange-300 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
+                                className="relative h-64 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50 hover:bg-gray-50 hover:border-blue-300 transition-all cursor-pointer flex flex-col items-center justify-center overflow-hidden group"
                             >
                                 {formData.imageUrl ? (
                                     <>
@@ -206,9 +206,9 @@ export default function AddRepairCapacityPage() {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="text-center p-6 space-y-3 text-gray-400 group-hover:text-orange-500 transition-colors">
+                                    <div className="text-center p-6 space-y-3 text-gray-400 group-hover:text-blue-500 transition-colors">
                                         {isUploading ? (
-                                            <Loader2 className="w-10 h-10 animate-spin mx-auto text-orange-500" />
+                                            <Loader2 className="w-10 h-10 animate-spin mx-auto text-blue-500" />
                                         ) : (
                                             <>
                                                 <ImageIcon className="w-10 h-10 mx-auto" />
@@ -291,7 +291,7 @@ export default function AddRepairCapacityPage() {
                             name="description" 
                             value={formData.description} 
                             onChange={handleChange} 
-                            className="flex min-h-[200px] w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-4 text-base outline-none focus:ring-2 focus:ring-orange-500/50 transition-all font-medium text-gray-700 resize-none" 
+                            className="flex min-h-[200px] w-full rounded-2xl border border-gray-200 bg-gray-50/50 p-4 text-base outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium text-gray-700 resize-none" 
                             placeholder="Ví dụ: Xưởng trang bị máy chuẩn đoán lỗi ô tô thế hệ mới nhất, phòng sơn sấy chuẩn Italia..." 
                         />
                     </div>
@@ -310,7 +310,7 @@ export default function AddRepairCapacityPage() {
                     <Button 
                         type="submit" 
                         disabled={isLoading || isUploading} 
-                        className="h-14 px-10 rounded-xl font-black bg-orange-600 hover:bg-orange-700 shadow-xl shadow-orange-200 text-white gap-2 transition-all active:scale-95 text-lg"
+                        className="h-14 px-10 rounded-xl font-black bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-200 text-white gap-2 transition-all active:scale-95 text-lg"
                     >
                         {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
                         Lưu Thay Đổi

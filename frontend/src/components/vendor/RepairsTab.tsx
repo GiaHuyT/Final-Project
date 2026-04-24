@@ -207,7 +207,7 @@ export default function RepairsTab({ repairs, onRefresh }: RepairsTabProps) {
                                 <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${repair.status === 'Hoạt động' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                     {repair.status}
                                 </span>
-                                <span className="font-bold text-orange-600 text-lg">{(repair.price || 0).toLocaleString('vi-VN')}đ</span>
+                                <span className="font-bold text-blue-600 text-lg">{(repair.price || 0).toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
                     </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
 import { Pencil, Trash2, Image as ImageIcon, Plus, Loader2, X, Car, Settings, ShieldCheck, Zap, Info, Gauge, Fuel, Ruler, Activity, ChevronRight } from 'lucide-react';
@@ -28,6 +29,8 @@ export default function VendorProductsPage() {
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+    const [filter, setFilter] = useState('all'); // 'all', 'active', 'inactive'
+    const [sortBy, setSortBy] = useState('newest'); // 'newest', 'oldest', 'price_desc', 'price_asc'
 
     const [formData, setFormData] = useState({
         name: '',
@@ -263,7 +266,7 @@ export default function VendorProductsPage() {
                                 onClick={() => scrollToSection(step.id)}
                                 className="flex items-start gap-4 py-3 opacity-60 hover:opacity-100 hover:bg-slate-50 p-2 rounded-xl transition-all cursor-pointer group"
                             >
-                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">{step.num}</div>
+                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold shrink-0 group-hover:bg-blue-600 text-white group-hover:text-white transition-colors">{step.num}</div>
                                 <div>
                                     <span className="block text-sm font-bold text-slate-900 leading-tight">{step.title}</span>
                                     <span className="block text-[11px] text-slate-500 mt-0.5">{step.desc}</span>
@@ -626,11 +629,11 @@ export default function VendorProductsPage() {
             {/* Header Section with Asymmetric Layout */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="max-w-2xl">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Quản lý Kho hàng</p>
-                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">Quản lý sản phẩm</h1>
-                    <p className="mt-4 text-slate-500 max-w-md leading-relaxed">Quản lý kho tài sản xe hơi cao cấp. Theo dõi trạng thái đấu giá, số liệu hiệu suất và lịch sử giao dịch theo thời gian thực.</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Quản lý Kho xe</p>
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">Quản lý xe bán</h1>
+                    <p className="mt-4 text-slate-500 max-w-md leading-relaxed">Quản lý kho tài sản xe hơi cao cấp. Theo dõi trạng thái xe, số liệu hiệu suất và lịch sử giao dịch theo thời gian thực.</p>
                 </div>
-                <button onClick={() => { setIsAddOpen(true); setFormData(p => ({ ...p, colorVariants: [{ color: '', images: [] }] })); }} className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold flex items-center gap-3 shadow-lg hover:shadow-xl transition-all active:scale-95 shrink-0">
+                <button onClick={() => { setIsAddOpen(true); setFormData(p => ({ ...p, colorVariants: [{ color: '', images: [] }] })); }} className="bg-blue-50/50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:text-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 px-8 py-3.5 rounded-xl font-bold flex items-center gap-3 shrink-0">
                     <span className="material-symbols-outlined">add_circle</span>
                     <span>Thêm xe mới</span>
                 </button>
@@ -654,10 +657,10 @@ export default function VendorProductsPage() {
                     <h3 className="mt-4 text-3xl font-bold">{products.filter(p => p.status).length}</h3>
                     <p className="text-sm text-slate-500 font-medium">Đang mở bán</p>
                 </div>
-                <div className="bg-slate-50 p-6 rounded-xl border-l-4 border-orange-500">
+                <div className="bg-slate-50 p-6 rounded-xl border-l-4 border-blue-500">
                     <div className="flex justify-between items-start">
-                        <span className="material-symbols-outlined text-orange-500">pending_actions</span>
-                        <span className="text-xs font-bold text-orange-500">Tạm dừng</span>
+                        <span className="material-symbols-outlined text-blue-500">pending_actions</span>
+                        <span className="text-xs font-bold text-blue-500">Tạm dừng</span>
                     </div>
                     <h3 className="mt-4 text-3xl font-bold">{products.filter(p => !p.status).length}</h3>
                     <p className="text-sm text-slate-500 font-medium">Tạm ẩn</p>
@@ -667,15 +670,25 @@ export default function VendorProductsPage() {
             {/* Filter Bar */}
             <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-slate-200/50">
                 <div className="flex items-center gap-2">
-                    <button className="px-5 py-2 rounded-full bg-slate-900 text-white text-xs font-bold">Tất cả xe</button>
-                    <button className="px-5 py-2 rounded-full bg-slate-100 text-slate-500 text-xs font-bold hover:bg-slate-200 transition-colors">Đang bán</button>
-                    <button className="px-5 py-2 rounded-full bg-slate-100 text-slate-500 text-xs font-bold hover:bg-slate-200 transition-colors">Đã bán</button>
+                    <button onClick={() => setFilter('all')} className={cn("px-5 py-2 rounded-full text-xs font-bold transition-colors", filter === 'all' ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>Tất cả xe</button>
+                    <button onClick={() => setFilter('active')} className={cn("px-5 py-2 rounded-full text-xs font-bold transition-colors", filter === 'active' ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>Đang bán</button>
+                    <button onClick={() => setFilter('inactive')} className={cn("px-5 py-2 rounded-full text-xs font-bold transition-colors", filter === 'inactive' ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>Tạm ẩn / Đã bán</button>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
-                        <span className="material-symbols-outlined text-sm">sort</span>
-                        Mới nhất
-                    </button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex items-center gap-2 px-4 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                                <span className="material-symbols-outlined text-sm">sort</span>
+                                {sortBy === 'newest' ? 'Mới nhất' : sortBy === 'oldest' ? 'Cũ nhất' : sortBy === 'price_desc' ? 'Giá cao nhất' : 'Giá thấp nhất'}
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 font-medium text-sm rounded-xl">
+                            <DropdownMenuItem onClick={() => setSortBy('newest')} className={cn("rounded-lg cursor-pointer", sortBy === 'newest' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Mới nhất</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('oldest')} className={cn("rounded-lg cursor-pointer", sortBy === 'oldest' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Cũ nhất</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('price_desc')} className={cn("rounded-lg cursor-pointer", sortBy === 'price_desc' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Giá cao nhất</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('price_asc')} className={cn("rounded-lg cursor-pointer", sortBy === 'price_asc' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Giá thấp nhất</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 
@@ -683,12 +696,22 @@ export default function VendorProductsPage() {
                 <div className="flex h-[40vh] items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-blue-600" /></div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {products.map((product) => (
+                    {products.filter(p => {
+                        if (filter === 'active') return p.status === true;
+                        if (filter === 'inactive') return p.status === false;
+                        return true;
+                    }).sort((a, b) => {
+                        if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                        if (sortBy === 'oldest') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                        if (sortBy === 'price_desc') return b.price - a.price;
+                        if (sortBy === 'price_asc') return a.price - b.price;
+                        return 0;
+                    }).map((product) => (
                         <div key={product.id} className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 border border-slate-100">
                             <div className="relative h-64 overflow-hidden">
                                 <img src={product.imageUrl || '/images/static/car-placeholder.png'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={product.name} />
                                 <div className="absolute top-4 left-4">
-                                    <span className={cn("text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg", product.status ? "bg-blue-600 shadow-blue-600/20" : "bg-slate-600 shadow-slate-600/20")}>
+                                    <span className={cn("text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg", product.status ? "bg-blue-600 text-white shadow-blue-600/20" : "bg-slate-600 shadow-slate-600/20")}>
                                         {product.status ? 'Đang mở bán' : 'Tạm ẩn'}
                                     </span>
                                 </div>

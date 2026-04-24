@@ -322,7 +322,7 @@ export function Navbar() {
                                             )}
                                             {isVendor && (
                                                 <DropdownMenuItem asChild>
-                                                    <Link href="/vendor" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Store className="h-4 w-4" /> Quản lý cửa hàng</Link>
+                                                    <Link href="/vendor/profile" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Store className="h-4 w-4" /> Quản lý cửa hàng</Link>
                                                 </DropdownMenuItem>
                                             )}
                                             {isAdmin && (
