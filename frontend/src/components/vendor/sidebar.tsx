@@ -1,41 +1,88 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
     Store,
     Box,
-    Clock,
-    Truck,
     Wrench,
     Bell,
-    TrendingUp,
     LogOut,
     ChevronLeft,
+    ChevronRight,
     Menu,
     User,
-    Gavel
+    Settings,
+    Package,
+    Car,
+    Gavel,
+    Wallet,
+    HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
+import http from '@/lib/http';
 
 const menuItems = [
-    { icon: LayoutDashboard, label: 'Tổng quan', href: '/vendor' },
     { icon: Store, label: 'Hồ sơ nhà cung cấp', href: '/vendor/profile' },
     { icon: Box, label: 'Quản lý xe', href: '/vendor/products' },
-    { icon: Wrench, label: 'Sửa chữa lưu động', href: '/vendor/repairs' },
-    { icon: Wrench, label: 'Thêm năng lực sửa chữa', href: '/vendor/repairs/capacity/add' },
-    { icon: Bell, label: 'Thông báo', href: '/vendor/notifications' },
+    { icon: Package, label: 'Quản lý đơn hàng', href: '/vendor/orders' },
+    { icon: Car, label: 'Quản lý xe cho thuê', href: '/vendor/rental-cars' },
+    { icon: Gavel, label: 'Quản lý đấu giá', href: '/vendor/auctions' },
+    { icon: Wallet, label: 'Doanh thu', href: '/vendor/revenue' },
+    { icon: Bell, label: 'Thông báo', href: '/vendor/notifications', hasNotification: true },
+    { icon: HelpCircle, label: 'Trung tâm trợ giúp', href: '/vendor/help' },
 ];
 
 export function VendorSidebar() {
-    const [isCollapsed, setIsCollapsed] = React.useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(false);
     const router = useRouter();
     const pathname = usePathname();
+    const [user, setUser] = useState<any>(null);
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        const loadUser = () => {
+            const userStr = localStorage.getItem('user');
+            if (userStr && userStr !== 'undefined') {
+                try {
+                    const parsedUser = JSON.parse(userStr);
+                    setUser(parsedUser);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        };
+
+        loadUser();
+
+        const fetchUnreadCount = async () => {
+            try {
+                const res = await http.get('/notifications/unread-count');
+                setUnreadCount(res.data || 0);
+            } catch (error) {
+                console.error("Error fetching unread count:", error);
+            }
+        };
+
+        const token = Cookies.get('token');
+        if (token) {
+            fetchUnreadCount();
+        }
+
+        const handleUserUpdate = () => loadUser();
+        window.addEventListener('user-updated', handleUserUpdate);
+        window.addEventListener('notifications-updated', fetchUnreadCount);
+        return () => {
+            window.removeEventListener('user-updated', handleUserUpdate);
+            window.removeEventListener('notifications-updated', fetchUnreadCount);
+        };
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -44,44 +91,82 @@ export function VendorSidebar() {
         router.push('/auth/login');
     };
 
+    const isRouteActive = (href: string) => pathname === href;
+
     return (
         <div className={cn(
-            "relative flex flex-col border-r bg-card transition-all duration-300 ease-in-out h-screen sticky top-0",
-            isCollapsed ? "w-16" : "w-64"
+            "relative flex flex-col border-r border-slate-100 bg-white transition-all duration-300 ease-in-out h-screen sticky top-0 shrink-0",
+            isCollapsed ? "w-20" : "w-[320px]"
         )}>
-            <div className="flex h-16 items-center justify-between px-4 border-b">
-                {!isCollapsed && <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">Vendor Panel</span>}
+            {/* Collapse Toggle for Mobile/Tablet */}
+            <div className="absolute -right-3 top-6 hidden md:flex">
                 <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon"
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="h-8 w-8 text-gray-500"
+                    className="h-6 w-6 rounded-full border-slate-200 bg-white shadow-sm hover:bg-slate-50"
                 >
-                    {isCollapsed ? <Menu className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                    <ChevronRight className={cn("h-3 w-3 transition-transform", isCollapsed ? "" : "rotate-180")} />
                 </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto py-4">
-                <nav className="grid gap-1 px-2">
+            {/* Profile Section */}
+            <div className={cn("flex flex-col items-center pt-8 pb-4 transition-all", isCollapsed ? "px-2" : "px-4")}>
+                <div className="relative">
+                    <Avatar className={cn("border-4 border-white shadow-md transition-all", isCollapsed ? "h-14 w-14" : "h-32 w-32")}>
+                        <AvatarImage src={user?.avatar || ""} alt={user?.username || 'Vendor'} className="object-cover" />
+                        <AvatarFallback className="bg-blue-100 text-blue-700 text-3xl font-bold">
+                            {user?.username?.[0]?.toUpperCase() || "V"}
+                        </AvatarFallback>
+                    </Avatar>
+                </div>
+                {!isCollapsed && (
+                    <h2 className="text-[18px] font-bold text-slate-800 uppercase tracking-wide mt-4 text-center px-4 line-clamp-1">
+                        {user?.username || "VENDOR"}
+                    </h2>
+                )}
+            </div>
+
+            <div className="w-full h-px bg-slate-100 mb-2 mt-4"></div>
+
+            {/* Menu Items */}
+            <div className="flex-1 overflow-y-auto py-2 custom-scrollbar">
+                <nav className="grid gap-1 px-4">
                     {menuItems.map((item, index) => {
-                        const isActive = pathname === item.href;
+                        const active = isRouteActive(item.href);
                         return (
                             <Link
                                 key={index}
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all group relative h-10",
-                                    isActive 
-                                        ? "bg-orange-50 text-orange-600 font-medium" 
-                                        : "text-muted-foreground hover:text-orange-600 hover:bg-orange-50/50"
+                                    "flex items-center justify-between rounded-xl px-4 py-3.5 transition-all group relative",
+                                    active 
+                                        ? "bg-blue-50 text-blue-600" 
+                                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                                 )}
                             >
-                                <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-orange-600" : "text-gray-500 group-hover:text-orange-600")} />
-                                {!isCollapsed && <span>{item.label}</span>}
-                                {isCollapsed && (
-                                    <div className="absolute left-full ml-2 rounded-md bg-popover px-2 py-1 text-xs text-popover-foreground opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap border shadow-sm">
-                                        {item.label}
+                                <div className="flex items-center gap-4">
+                                    <div className="relative flex items-center justify-center w-6 h-6">
+                                        <item.icon className={cn("w-5 h-5", active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600")} strokeWidth={active ? 2.5 : 2} />
+                                        {item.hasNotification && unreadCount > 0 && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
+                                        )}
                                     </div>
+                                    {!isCollapsed && (
+                                        <span className={cn(
+                                            "text-[15px]",
+                                            active ? "font-bold" : "font-medium"
+                                        )}>
+                                            {item.label}
+                                        </span>
+                                    )}
+                                </div>
+                                
+                                {!isCollapsed && (
+                                    <ChevronRight className={cn(
+                                        "w-4 h-4 transition-colors",
+                                        active ? "text-blue-600" : "text-slate-300 group-hover:text-slate-400"
+                                    )} />
                                 )}
                             </Link>
                         );
@@ -89,23 +174,48 @@ export function VendorSidebar() {
                 </nav>
             </div>
 
-            <div className="mt-auto border-t p-4 space-y-2">
-                <Button variant="ghost" asChild className={cn(
-                    "w-full justify-start gap-3 text-muted-foreground hover:text-orange-600 hover:bg-orange-50 h-10",
-                    isCollapsed && "px-2"
-                )}>
-                    <Link href="/profile">
-                        <User className="h-5 w-5" />
-                        {!isCollapsed && <span>Cá nhân</span>}
-                    </Link>
-                </Button>
-                <Button variant="ghost" className={cn(
-                    "w-full justify-start gap-3 text-destructive hover:text-destructive hover:bg-destructive/10 h-10",
-                    isCollapsed && "px-2"
-                )} onClick={handleLogout}>
-                    <LogOut className="h-5 w-5" />
-                    {!isCollapsed && <span>Đăng xuất</span>}
-                </Button>
+            <div className="w-full h-px bg-slate-100 mt-2"></div>
+
+            {/* Bottom Actions */}
+            <div className="mt-auto py-4 px-4 space-y-1 border-t border-slate-100">
+                <Link
+                    href="/profile"
+                    className="flex items-center justify-between rounded-xl px-4 py-3 transition-all group text-blue-600 hover:bg-blue-50"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center">
+                            <User className="h-4 w-4 text-blue-600" strokeWidth={2.5} />
+                        </div>
+                        {!isCollapsed && <span className="text-[15px] font-bold">Về trang cá nhân</span>}
+                    </div>
+                    {!isCollapsed && <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-blue-300" />}
+                </Link>
+
+                <Link
+                    href="/vendor/settings"
+                    className="flex items-center justify-between rounded-xl px-4 py-3 transition-all group text-slate-600 hover:bg-slate-50"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-7 h-7 flex items-center justify-center">
+                            <Settings className="w-5 h-5 text-slate-400 group-hover:text-slate-600" strokeWidth={2} />
+                        </div>
+                        {!isCollapsed && <span className="text-[15px] font-medium">Cài đặt</span>}
+                    </div>
+                    {!isCollapsed && <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-400" />}
+                </Link>
+
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center justify-between rounded-xl px-4 py-3 transition-all group text-red-600 hover:bg-red-50"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center">
+                            <span className="text-white text-[12px] font-bold">N</span>
+                        </div>
+                        {!isCollapsed && <span className="text-[15px] font-bold">Đăng xuất</span>}
+                    </div>
+                    {!isCollapsed && <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-300" />}
+                </button>
             </div>
         </div>
     );
