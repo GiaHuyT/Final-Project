@@ -23,7 +23,7 @@ export const ChatButton = () => {
   }, []);
 
   // Hide chat button on auth pages
-  if (pathname?.startsWith('/auth/login') || pathname?.startsWith('/auth/register')) {
+  if (pathname?.startsWith('/auth')) {
     return null;
   }
 
