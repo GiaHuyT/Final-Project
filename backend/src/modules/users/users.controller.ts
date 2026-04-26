@@ -1,12 +1,12 @@
 import { Controller, Get, Patch, Body, Req, UseGuards, Post, UseInterceptors, UploadedFile, BadRequestException, Param, Delete, Query } from '@nestjs/common';
 import { IsString, IsOptional, IsEmail, MinLength, Allow } from 'class-validator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { join } from 'path';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 import { Public } from '../../core/decorators/public.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiProperty } from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 class UpdateProfileDto {
   @ApiProperty({ example: 'Gia Huy', required: false })
@@ -69,7 +69,10 @@ class CreateUserDto {
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) { }
 
   @Public()
   @Get('vendor/:id')
@@ -137,14 +140,6 @@ export class UsersController {
   @Post('avatar')
   @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './public/uploads/avatars',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = extname(file.originalname);
-        cb(null, `avatar-${uniqueSuffix}${ext}`);
-      },
-    }),
     fileFilter: (req, file, cb) => {
       if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
         return cb(new BadRequestException('Only image files are allowed!'), false);
@@ -152,7 +147,7 @@ export class UsersController {
       cb(null, true);
     },
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB
+      fileSize: 5 * 1024 * 1024, // 5MB
     },
   }))
   @ApiOperation({ summary: 'Upload avatar' })
@@ -160,10 +155,10 @@ export class UsersController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const avatarUrl = `${protocol}://${host}/uploads/avatars/${file.filename}`;
-    return { avatarUrl };
+    
+    // Upload thẳng lên Cloudinary từ buffer (RAM)
+    const result = await this.cloudinaryService.uploadFile(file, 'final-project/avatars');
+    return { avatarUrl: result.secure_url };
   }
   @Post('verify-document')
   @ApiBearerAuth()
