@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 import { Public } from '../../core/decorators/public.decorator';
 
 import { CategoriesService } from './categories.service';
@@ -13,8 +14,8 @@ export class CategoriesController {
 
     @Public()
     @Get()
+    @UseInterceptors(CacheInterceptor)
     @ApiOperation({ summary: 'Lấy tất cả danh mục' })
-
     findAll() {
         return this.categoriesService.findAll();
     }

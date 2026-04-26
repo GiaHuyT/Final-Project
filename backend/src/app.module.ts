@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
+import { CloudinaryModule } from './modules/cloudinary/cloudinary.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { PrismaModule } from 'prisma/prisma.module';
@@ -34,6 +36,11 @@ import { DriverRentalModule } from './modules/driver-rental/driver-rental.module
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), // load env
     ScheduleModule.forRoot(),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60000, // Mặc định cache 60 giây (1 phút)
+      max: 100,   // Số lượng item tối đa trong cache
+    }),
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -58,6 +65,7 @@ import { DriverRentalModule } from './modules/driver-rental/driver-rental.module
     ContactsModule,
     MaintenanceModule,
     DriverRentalModule,
+    CloudinaryModule,
   ],
   controllers: [],
   providers: [
