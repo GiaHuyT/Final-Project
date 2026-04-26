@@ -72,7 +72,7 @@ export default function ContactUsPage() {
   };
 
   return (
-    <div className="bg-surface text-on-surface font-body min-h-screen pt-16">
+    <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
       {/* Hero Header */}
       <section className="bg-slate-900 py-20 relative overflow-hidden">
         <div className="absolute inset-0 z-0">

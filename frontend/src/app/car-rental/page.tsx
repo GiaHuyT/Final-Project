@@ -55,7 +55,7 @@ export default function CarRentalPage() {
   );
 
   return (
-    <div className="bg-surface text-on-surface font-body min-h-screen pt-16">
+    <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
       <section className="relative h-[450px] flex items-center overflow-hidden bg-slate-900 border-b border-white/10">
         <div className="absolute inset-0 z-0 bg-slate-900">
           <img

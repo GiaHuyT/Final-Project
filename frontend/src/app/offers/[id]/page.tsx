@@ -19,7 +19,7 @@ export default function OfferDetailPage({ params }: { params: { id: string } }) 
   };
 
   return (
-    <div className="bg-surface text-on-surface font-body min-h-screen pt-16">
+    <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
       
       {/* Article Hero */}
       <section className="relative h-[50vh] md:h-[60vh] bg-slate-900 w-full overflow-hidden">

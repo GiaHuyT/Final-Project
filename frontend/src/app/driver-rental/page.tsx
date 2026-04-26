@@ -61,7 +61,7 @@ export default function DriverRentalPage() {
   ];
 
   return (
-    <div className="bg-surface text-on-surface font-body min-h-screen pt-16">
+    <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
       {/* Hero Section */}
       <section className="relative h-[650px] flex items-center overflow-hidden bg-slate-900">
         <div className="absolute inset-0 z-0">

@@ -28,7 +28,7 @@ export default function CartPage() {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-[70vh] flex flex-col items-center justify-center bg-slate-50 pt-16">
+            <div className="min-h-[70vh] flex flex-col items-center justify-center bg-slate-50 pt-24">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
                     <ShoppingCart className="w-10 h-10 text-slate-300" />
                 </div>

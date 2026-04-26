@@ -235,8 +235,10 @@ export function Navbar() {
 
     return (
         <nav className="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-xl shadow-sm">
-            <div className="flex justify-between items-center h-16 px-6 lg:px-12 max-w-screen-2xl mx-auto">
-                <Link href="/" className="text-2xl font-black tracking-tighter text-slate-900 font-headline">AutoBid</Link>
+            <div className="flex justify-between items-center py-4 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+                <Link href="/" className="flex items-center gap-2">
+                    <img src="/images/logo.png" alt="Logo" className="h-28 w-auto object-contain rounded" />
+                </Link>
                 <div className="hidden md:flex items-center space-x-8 tracking-tight font-semibold text-sm">
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/auctions">Đấu giá</Link>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/categories">Các mẫu xe</Link>
@@ -312,7 +314,7 @@ export function Navbar() {
                                 {(() => {
                                     const isAdmin = user?.roles?.some((r: string) => r.toUpperCase() === 'ADMIN') || user?.role?.toUpperCase() === 'ADMIN';
                                     const isVendor = user?.roles?.some((r: string) => r.toUpperCase() === 'VENDOR') || user?.role?.toUpperCase() === 'VENDOR';
-                                    
+
                                     return (
                                         <>
                                             {!isAdmin && (

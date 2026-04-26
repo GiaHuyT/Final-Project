@@ -75,7 +75,6 @@ export default function LoginPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/20"></div>
                 <div className="absolute top-12 left-12">
-                    <Link href="/" className="text-3xl font-black tracking-tighter text-white">AutoBid</Link>
                 </div>
                 <div className="absolute bottom-20 left-12 max-w-xl text-white z-10">
                     <h1 className="text-6xl font-extrabold tracking-tighter leading-[0.9] mb-6 uppercase">

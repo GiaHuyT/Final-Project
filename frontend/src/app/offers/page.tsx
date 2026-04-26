@@ -68,7 +68,7 @@ export default function OffersPage() {
   ];
 
   return (
-    <div className="bg-surface text-on-surface font-body min-h-screen pt-16">
+    <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
       
       {/* Sub-Navigation (Like Mazda) */}
       <div className="w-full bg-white border-b border-slate-200">

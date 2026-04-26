@@ -68,7 +68,7 @@ export default function RepairDetailPage() {
     const VehicleTypes = data.vehicleTypes?.split(',') || [];
 
     return (
-        <div className="bg-slate-50 text-slate-900 font-body min-h-screen pt-16">
+        <div className="bg-slate-50 text-slate-900 font-body min-h-screen pt-24">
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* Breadcrumb */}
                 <nav className="flex text-sm text-slate-500 mb-8 items-center gap-1 flex-wrap">
