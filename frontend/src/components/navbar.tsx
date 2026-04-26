@@ -234,8 +234,10 @@ export function Navbar() {
     }
 
     return (
-        <nav className="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-xl shadow-sm">
-            <div className="flex justify-between items-center py-4 px-6 lg:px-12 max-w-screen-2xl mx-auto">
+        <>
+            <div className="h-[144px] w-full shrink-0"></div>
+            <nav className="fixed top-0 w-full z-50 bg-white/60 backdrop-blur-xl shadow-sm">
+                <div className="flex justify-between items-center py-4 px-6 lg:px-12 max-w-screen-2xl mx-auto">
                 <Link href="/" className="flex items-center gap-2">
                     <img src="/images/logo.png" alt="Logo" className="h-28 w-auto object-contain rounded" />
                 </Link>
@@ -349,5 +351,6 @@ export function Navbar() {
                 </div>
             </div>
         </nav>
+        </>
     );
 }
