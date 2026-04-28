@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { MaintenanceService } from './maintenance.service';
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto';
+import { UpdateMaintenanceDto } from './dto/update-maintenance.dto';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 
 @Controller('maintenance')
@@ -20,7 +21,7 @@ export class MaintenanceController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Request() req, @Param('id') id: string, @Body() updateDto: any) {
+  update(@Request() req, @Param('id') id: string, @Body() updateDto: UpdateMaintenanceDto) {
     return this.maintenanceService.update(+id, req.user.id, updateDto);
   }
 

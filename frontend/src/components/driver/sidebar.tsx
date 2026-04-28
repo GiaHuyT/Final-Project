@@ -15,7 +15,8 @@ import {
     Settings,
     LogOut,
     Menu,
-    HelpCircle
+    HelpCircle,
+    Navigation
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -27,6 +28,7 @@ import http from '@/lib/http';
 
 const menuItems = [
     { label: 'Hồ sơ tài xế', href: '/driver/profile', icon: User, hasNotification: false },
+    { label: 'Tìm kiếm cuốc xe', href: '/driver/find-rides', icon: Navigation, hasNotification: false },
     { label: 'Đăng ký khu vực', href: '/driver/destinations', icon: MapPin, hasNotification: false },
     { label: 'Lịch làm việc', href: '/driver/schedule', icon: Calendar, hasNotification: false },
     { label: 'Hiệu suất hoạt động', href: '/driver', icon: Activity, hasNotification: false },

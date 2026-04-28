@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { toast } from 'react-hot-toast';
-import { Loader2, User, CreditCard, MapPin, Briefcase, FileText, Phone, Mail, Calendar, ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, User, CreditCard, MapPin, Briefcase, FileText, Phone, Mail, Calendar, ShieldCheck, CheckCircle2, XCircle, Clock, Camera, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const profileSchema = z.object({
@@ -188,9 +188,24 @@ export default function DriverProfilePage() {
                                         type="button"
                                         onClick={handleAvatarClick}
                                         className="absolute bottom-0 right-0 h-8 w-8 bg-emerald-600 rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                                        title="Thay đổi ảnh đại diện"
                                     >
-                                        <User className="h-4 w-4" />
+                                        <Camera className="h-4 w-4" />
                                     </button>
+                                    {previewAvatarUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPreviewAvatarUrl(null);
+                                                setAvatarFile('REMOVE');
+                                                if (fileInputRef.current) fileInputRef.current.value = "";
+                                            }}
+                                            className="absolute top-0 right-0 h-7 w-7 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-red-600 transition-colors shadow-sm opacity-0 group-hover:opacity-100"
+                                            title="Xóa ảnh đại diện"
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </button>
+                                    )}
                                 </div>
                                 <h2 className="text-xl font-bold text-slate-800">{watchedUsername || userNameDisplay}</h2>
                                 <div className="flex items-center gap-1.5 mt-2 text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-xs font-bold">
