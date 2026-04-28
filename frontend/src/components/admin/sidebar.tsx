@@ -89,7 +89,9 @@ export function AdminSidebar() {
           {menuItems.map((item, index) => {
             const hasSubItems = !!item.subItems;
             const isOpen = openMenus.includes(item.label);
-            const isActive = item.href ? pathname === item.href : item.subItems?.some((si: any) => pathname === si.href);
+            const isActive = item.href 
+              ? (item.href === '/admin' ? pathname === '/admin' : pathname.startsWith(item.href))
+              : item.subItems?.some((si: any) => pathname.startsWith(si.href));
 
             if (hasSubItems) {
               return (
@@ -97,9 +99,10 @@ export function AdminSidebar() {
                   <button
                     onClick={() => !isCollapsed && toggleSubMenu(item.label)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-accent w-full",
-                      isActive && "text-primary bg-accent",
-                      "group relative"
+                      "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full group relative",
+                      isActive 
+                        ? "bg-blue-50 text-blue-600 font-bold" 
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                     )}
                   >
                     <item.icon className="h-5 w-5 shrink-0" />
@@ -123,8 +126,10 @@ export function AdminSidebar() {
                           key={siIndex}
                           href={subItem.href}
                           className={cn(
-                            "flex items-center gap-2 text-sm py-1.5 px-3 rounded-md text-muted-foreground hover:text-primary hover:bg-accent transition-all",
-                            pathname === subItem.href && "text-primary font-medium bg-accent/50"
+                            "flex items-center gap-2 text-sm py-1.5 px-3 rounded-md transition-all",
+                            pathname.startsWith(subItem.href)
+                              ? "text-blue-600 font-bold bg-blue-50/50"
+                              : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                           )}
                         >
                           {subItem.icon && <subItem.icon className="h-4 w-4" />}
@@ -142,9 +147,10 @@ export function AdminSidebar() {
                 key={index}
                 href={item.href || '#'}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-accent",
-                  pathname === item.href && "text-primary bg-accent",
-                  "group relative"
+                  "flex items-center gap-3 rounded-lg px-3 py-2 transition-all group relative",
+                  isActive 
+                    ? "bg-blue-50 text-blue-600 font-bold" 
+                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 )}
               >
                 <item.icon className="h-5 w-5 shrink-0" />

@@ -736,7 +736,7 @@ export function ProductsTab() {
                     {filteredProducts.map((product) => (
                         <div key={product.id} className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 border border-slate-100 relative">
                             <div className="relative h-64 overflow-hidden">
-                                <img src={product.imageUrl || '/images/static/car-placeholder.png'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={product.name} />
+                                <img src={product.imageUrl || '/images/static/car-placeholder.png'} onError={(e) => { e.currentTarget.src = '/images/static/car-placeholder.png'; }} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={product.name} />
                                 <div className="absolute top-4 left-4 flex flex-col gap-2">
                                     <span className={cn("text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg max-w-max", product.status ? "bg-blue-600 shadow-blue-600/20" : "bg-slate-600 shadow-slate-600/20")}>
                                         {product.status ? 'Đang mở bán' : 'Tạm ẩn'}

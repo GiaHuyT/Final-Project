@@ -343,6 +343,24 @@ export class UsersService {
       if (data.phonenumber !== undefined) {
         updateData.phonenumber = data.phonenumber === "" ? null : data.phonenumber;
       }
+      
+      if (data.roles !== undefined) {
+        updateData.roles = data.roles;
+        
+        if (data.roles.includes('VENDOR')) {
+          updateData.isApprovedVendor = true;
+          updateData.vendorRequestPending = false;
+        } else {
+          updateData.isApprovedVendor = false;
+        }
+
+        if (data.roles.includes('DRIVER')) {
+          updateData.isApprovedDriver = true;
+          updateData.driverRequestPending = false;
+        } else {
+          updateData.isApprovedDriver = false;
+        }
+      }
 
       if (data.password && typeof data.password === 'string' && data.password !== "") {
         updateData.password = await bcrypt.hash(data.password, 10);
@@ -457,6 +475,59 @@ export class UsersService {
 
     return {
       ...vendor,
+      averageRating,
+      totalRatings
+    };
+  }
+
+  async findDriverPublicProfile(id: number) {
+    const driver = await (this.prisma.user as any).findFirst({
+      where: {
+        id: Number(id),
+        roles: { has: 'DRIVER' }
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        avatar: true,
+        createdAt: true,
+        serviceProfiles: {
+          select: {
+            driverRentalServices: {
+              select: {
+                experienceYears: true,
+                pricePerKm: true,
+                operatingCities: true,
+                hasServiceExperience: true,
+                licenseType: true,
+                bio: true,
+                languages: true,
+                status: true
+              }
+            }
+          }
+        }
+      },
+    });
+
+    if (!driver) {
+      throw new BadRequestException('Không tìm thấy tài xế hoặc tài khoản chưa được xác minh.');
+    }
+
+    const allReviews = await this.prisma.review.findMany({
+      where: { targetId: Number(id) }
+    });
+
+    const ratingRecords = allReviews.filter(r => r.rating > 0);
+    const totalRatings = ratingRecords.length;
+    const averageRating = totalRatings > 0
+      ? Number((ratingRecords.reduce((acc, curr) => acc + curr.rating, 0) / totalRatings).toFixed(1))
+      : 0.0;
+
+    return {
+      ...driver,
+      driverProfile: driver.serviceProfiles?.[0]?.driverRentalServices?.[0] || null,
       averageRating,
       totalRatings
     };

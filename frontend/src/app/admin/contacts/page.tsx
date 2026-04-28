@@ -7,18 +7,72 @@ import toast from "react-hot-toast";
 import { getSocket } from "@/lib/socket";
 
 export default function AdminContactsPage() {
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const mockContacts = [
+    {
+      id: 1,
+      name: "Nguyễn Văn A",
+      email: "nguyenvana@gmail.com",
+      phone: "0901234567",
+      subject: "vendor_support",
+      message: "Tôi muốn đăng ký làm nhà cung cấp dịch vụ thuê xe tự lái. Quy trình xác duyệt hồ sơ như thế nào?",
+      status: "PENDING",
+      createdAt: new Date(Date.now() - 3600000).toISOString()
+    },
+    {
+      id: 2,
+      name: "Trần Thị B",
+      email: "tranthib@yahoo.com",
+      phone: "0987654321",
+      subject: "account",
+      message: "Tôi không thể đăng nhập vào tài khoản của mình. Hệ thống báo lỗi email không tồn tại dù tôi đã đăng ký.",
+      status: "RESOLVED",
+      createdAt: new Date(Date.now() - 86400000).toISOString()
+    },
+    {
+      id: 3,
+      name: "Lê Văn C",
+      email: "levanc@hotmail.com",
+      phone: "0912345678",
+      subject: "report",
+      message: "Nhà cung cấp Gara AutoPro phục vụ rất kém, tự ý hủy lịch bảo dưỡng mà không thông báo. Đề nghị ban quản trị xem xét.",
+      status: "PENDING",
+      createdAt: new Date(Date.now() - 172800000).toISOString()
+    },
+    {
+      id: 4,
+      name: "Phạm Hữu D",
+      email: "phamhuud@gmail.com",
+      phone: "0933445566",
+      subject: "feedback",
+      message: "Giao diện website rất đẹp và dễ sử dụng. Nên cân nhắc thêm tính năng thanh toán trực tuyến qua Momo hoặc ZaloPay.",
+      status: "RESOLVED",
+      createdAt: new Date(Date.now() - 259200000).toISOString()
+    },
+    {
+      id: 5,
+      name: "Hoàng Minh E",
+      email: "hoangminhe@vn",
+      phone: "0944556677",
+      subject: "maintenance",
+      message: "Tôi muốn hỏi chi tiết về gói bảo dưỡng xe máy cấp 1. Gói này có bao gồm thay nước làm mát và kiểm tra bộ ly hợp không?",
+      status: "PENDING",
+      createdAt: new Date(Date.now() - 43200000).toISOString()
+    }
+  ];
+
+  const [contacts, setContacts] = useState<any[]>(mockContacts);
+  const [loading, setLoading] = useState(false);
 
   const fetchContacts = async () => {
-    try {
-      const { data } = await http.get('/contacts');
-      setContacts(data);
-    } catch (error) {
-      console.error("Failed to load contacts:", error);
-    } finally {
-      setLoading(false);
-    }
+    // API logic commented out to strictly use mock data for testing UI
+    // try {
+    //   const { data } = await http.get('/contacts');
+    //   setContacts(data);
+    // } catch (error) {
+    //   console.error("Failed to load contacts:", error);
+    // } finally {
+    //   setLoading(false);
+    // }
   };
 
   useEffect(() => {

@@ -62,16 +62,23 @@ interface User {
     createdAt: string;
 }
 
-export function UsersTab() {
+export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boolean) => void }) {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [roleFilter, setRoleFilter] = useState<string>("ALL");
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [isViewOpen, setIsViewOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [showEditPassword, setShowEditPassword] = useState(false);
     const [showAddPassword, setShowAddPassword] = useState(false);
+
+    useEffect(() => {
+        if (onSubViewChange) {
+            onSubViewChange(isViewOpen || isEditOpen || isAddOpen);
+        }
+    }, [isViewOpen, isEditOpen, isAddOpen, onSubViewChange]);
     
     const [editData, setEditData] = useState({
         username: "",
@@ -210,10 +217,14 @@ export function UsersTab() {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (user.email && user.email.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        const matchesRole = roleFilter === "ALL" || (user.roles && user.roles.includes(roleFilter));
+        
+        return matchesSearch && matchesRole;
+    });
 
     if (isViewOpen && selectedUser) {
         return (
@@ -493,15 +504,30 @@ export function UsersTab() {
                             <CardTitle className="text-2xl font-black text-gray-900 uppercase tracking-tighter">Danh sách thành viên</CardTitle>
                             <CardDescription className="font-medium text-gray-500">Quản lý toàn bộ tài khoản người dùng trong hệ thống.</CardDescription>
                         </div>
-                        <div className="relative w-full md:w-80 group">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-gray-900" />
-                            <Input
-                                type="search"
-                                placeholder="Tìm kiếm nhanh..."
-                                className="pl-11 h-12 rounded-2xl bg-white focus:ring-4 focus:ring-gray-200 border-gray-200 font-bold transition-all shadow-sm"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+                        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                            <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                <SelectTrigger className="w-full md:w-[160px] h-12 rounded-2xl border-gray-200 focus:ring-4 focus:ring-gray-200 font-bold bg-white">
+                                    <SelectValue placeholder="Tất cả vai trò" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl border-gray-100 shadow-xl font-bold">
+                                    <SelectItem value="ALL">Tất cả vai trò</SelectItem>
+                                    <SelectItem value="ADMIN">ADMIN</SelectItem>
+                                    <SelectItem value="VENDOR">VENDOR</SelectItem>
+                                    <SelectItem value="DRIVER">DRIVER</SelectItem>
+                                    <SelectItem value="CUSTOMER">CUSTOMER</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <div className="relative w-full md:w-80 group">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 transition-colors group-focus-within:text-gray-900" />
+                                <Input
+                                    type="search"
+                                    placeholder="Tìm kiếm tên, email..."
+                                    className="pl-11 h-12 rounded-2xl bg-white focus:ring-4 focus:ring-gray-200 border-gray-200 font-bold transition-all shadow-sm"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
                 </CardHeader>

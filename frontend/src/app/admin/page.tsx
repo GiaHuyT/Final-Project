@@ -18,19 +18,20 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+            const response = await http.get('/dashboard/stats');
+            setStats(response.data);
+        } catch (error) {
+            console.error("Lỗi khi tải thống kê:", error);
+            toast.error("Không thể tải dữ liệu thống kê");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                setLoading(true);
-                const response = await http.get('/dashboard/stats');
-                setStats(response.data);
-            } catch (error) {
-                console.error("Lỗi khi tải thống kê:", error);
-                toast.error("Không thể tải dữ liệu thống kê");
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchStats();
     }, []);
 
@@ -53,35 +54,52 @@ export default function AdminDashboard() {
             {/* Hero Metrics (Asymmetric Bento Grid) */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 {/* Revenue Highlight */}
-                <div className="md:col-span-7 bg-white border border-slate-100 p-8 rounded-xl flex flex-col justify-between relative overflow-hidden group shadow-sm">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100 rounded-full blur-3xl -mr-20 -mt-20"></div>
+                <div className="md:col-span-7 bg-white p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group shadow-xl shadow-blue-900/5 border border-slate-100">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 transition-all duration-700 group-hover:bg-blue-100 group-hover:scale-110"></div>
+                    <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-50 rounded-full blur-3xl -ml-10 -mb-10 transition-all duration-700 group-hover:bg-indigo-100"></div>
                     <div className="relative z-10">
                         <div className="flex justify-between items-start mb-6">
                             <div>
-                                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Tổng doanh thu hệ thống</span>
-                                <h2 className="text-4xl md:text-5xl font-extrabold tracking-tighter mt-1 text-slate-900">
-                                    {(stats?.totalRevenue || 0).toLocaleString('vi-VN')} ₫
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
+                                    <span className="text-[11px] uppercase tracking-widest font-black text-slate-500">Tổng doanh thu hệ thống</span>
+                                </div>
+                                <h2 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900 drop-shadow-sm">
+                                    {(stats?.totalRevenue || 0).toLocaleString('vi-VN')} <span className="text-3xl font-bold text-slate-400">₫</span>
                                 </h2>
                             </div>
-                            <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1">
-                                <span className="material-symbols-outlined text-sm">trending_up</span> Cập nhật
-                            </div>
+                            <button onClick={fetchStats} className="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-full text-xs font-bold flex items-center gap-2 transition-all active:scale-95 cursor-pointer border border-slate-200 shadow-sm">
+                                <span className="material-symbols-outlined text-sm">sync</span> 
+                                Cập nhật
+                            </button>
                         </div>
                         {/* Mini Revenue Chart Projection Wrapper */}
-                        <div className="flex items-end gap-1 h-32 mt-8">
-                            {[40, 55, 45, 70, 60, 85, 95].map((h, i) => (
-                                <div key={i} className={`w-full rounded-t-sm ${i >= 5 ? 'bg-blue-600' : 'bg-slate-100'}`} style={{ height: `${h}%` }}></div>
+                        <div className="flex items-end gap-2.5 h-28 mt-10">
+                            {[30, 45, 35, 60, 50, 75, 100].map((h, i) => (
+                                <div key={i} className="w-full relative group/bar cursor-crosshair" style={{ height: `${h}%` }}>
+                                    <div className={`absolute bottom-0 w-full rounded-t-xl transition-all duration-500 ease-out group-hover/bar:scale-y-110 origin-bottom ${i >= 5 ? 'bg-gradient-to-t from-blue-600 to-blue-500 shadow-md shadow-blue-500/20' : 'bg-slate-100 hover:bg-slate-200'}`} style={{ height: '100%' }}></div>
+                                </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
                 {/* Growth Module */}
-                <div className="md:col-span-5 bg-slate-50 border border-slate-100 p-8 rounded-xl flex flex-col justify-between">
-                    <div>
-                        <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500">Tổng người dùng</span>
-                        <h2 className="text-4xl font-extrabold tracking-tighter mt-1 text-slate-900">{stats?.totalUsers || 0}</h2>
-                        <p className="text-sm text-slate-500 mt-2">Thành viên và nhà cung cấp hoạt động trên nền tảng.</p>
+                <div className="md:col-span-5 bg-gradient-to-br from-emerald-50 to-teal-50 p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden shadow-xl shadow-emerald-900/5 border border-emerald-100 group">
+                    <div className="absolute top-1/2 right-0 w-48 h-48 bg-white rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 transition-transform duration-700 group-hover:scale-125"></div>
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                        <div>
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-white rounded-xl shadow-sm border border-emerald-100">
+                                    <span className="material-symbols-outlined text-emerald-600">group</span>
+                                </div>
+                                <span className="text-[11px] uppercase tracking-widest font-black text-emerald-700">Tổng người dùng</span>
+                            </div>
+                            <h2 className="text-5xl md:text-6xl font-black tracking-tighter mt-4 text-emerald-950">{stats?.totalUsers || 0}</h2>
+                        </div>
+                        <div className="mt-8 p-5 bg-white/60 rounded-2xl backdrop-blur-md border border-white shadow-sm">
+                            <p className="text-sm text-emerald-800 font-medium leading-relaxed">Thành viên và nhà cung cấp đang hoạt động ổn định trên nền tảng.</p>
+                        </div>
                     </div>
                 </div>
             </div>

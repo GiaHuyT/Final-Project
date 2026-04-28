@@ -31,7 +31,149 @@ export function DriverApprovalsTab() {
     try {
       setLoading(true);
       const res = await http.get('/driver-rental/public');
-      setDriverServices(res.data);
+      const hasPending = res.data && res.data.some((s: any) => s.status === 'Chờ duyệt');
+      if (!hasPending) {
+          setDriverServices([
+              ...(res.data || []),
+              {
+                  id: 881,
+                  name: "Nguyễn Văn Tuấn",
+                  phoneNumber: "0933445566",
+                  idCardNumber: "001092123456",
+                  email: "tuan.nguyen92@gmail.com",
+                  bankName: "Techcombank",
+                  bankAccountNumber: "1903456789011",
+                  bankAccountName: "NGUYEN VAN TUAN",
+                  experienceYears: 5,
+                  licenseType: "B2, C",
+                  licenseNumber: "790123456789",
+                  pricePerKm: 12000,
+                  status: "Chờ duyệt",
+                  avatarUrl: "https://i.pravatar.cc/150?img=15",
+                  idCardFrontUrl: "https://placehold.co/600x400/1e293b/ffffff?text=CCCD+Mat+Truoc",
+                  idCardBackUrl: "https://placehold.co/600x400/1e293b/ffffff?text=CCCD+Mat+Sau",
+                  licenseFrontUrl: "https://placehold.co/600x400/1e293b/ffffff?text=GPLX+Mat+Truoc",
+                  licenseBackUrl: "https://placehold.co/600x400/1e293b/ffffff?text=GPLX+Mat+Sau",
+                  criminalRecordUrl: "https://placehold.co/600x400/1e293b/ffffff?text=Ly+Lich+Tu+Phap",
+                  profile: {
+                      user: {
+                          username: "tuandriver",
+                          email: "tuan.nguyen92@gmail.com"
+                      }
+                  }
+              },
+              {
+                  id: 882,
+                  name: "Trần Thị Lan",
+                  phoneNumber: "0977889900",
+                  idCardNumber: "079195654321",
+                  email: "lan.tran.drive@gmail.com",
+                  bankName: "Vietcombank",
+                  bankAccountNumber: "0011002233445",
+                  bankAccountName: "TRAN THI LAN",
+                  experienceYears: 3,
+                  licenseType: "B2",
+                  licenseNumber: "790987654321",
+                  pricePerKm: 10000,
+                  status: "Chờ duyệt",
+                  avatarUrl: "https://i.pravatar.cc/150?img=44",
+                  idCardFrontUrl: "https://placehold.co/600x400/0f172a/ffffff?text=CCCD+Mat+Truoc",
+                  idCardBackUrl: "https://placehold.co/600x400/0f172a/ffffff?text=CCCD+Mat+Sau",
+                  licenseFrontUrl: "https://placehold.co/600x400/0f172a/ffffff?text=GPLX+Mat+Truoc",
+                  licenseBackUrl: "https://placehold.co/600x400/0f172a/ffffff?text=GPLX+Mat+Sau",
+                  criminalRecordUrl: "https://placehold.co/600x400/0f172a/ffffff?text=Ly+Lich+Tu+Phap",
+                  profile: {
+                      user: {
+                          username: "lantran",
+                          email: "lan.tran.drive@gmail.com"
+                      }
+                  }
+              },
+              {
+                  id: 883,
+                  name: "Lê Hoàng Minh",
+                  phoneNumber: "0911223344",
+                  idCardNumber: "001090001122",
+                  email: "lehoangminh.driver@gmail.com",
+                  bankName: "MB Bank",
+                  bankAccountNumber: "998877665544",
+                  bankAccountName: "LE HOANG MINH",
+                  experienceYears: 8,
+                  licenseType: "D, E",
+                  licenseNumber: "790445566778",
+                  pricePerKm: 15000,
+                  status: "Chờ duyệt",
+                  avatarUrl: "https://i.pravatar.cc/150?img=12",
+                  idCardFrontUrl: "https://placehold.co/600x400/065f46/ffffff?text=CCCD+Mat+Truoc",
+                  idCardBackUrl: "https://placehold.co/600x400/065f46/ffffff?text=CCCD+Mat+Sau",
+                  licenseFrontUrl: "https://placehold.co/600x400/065f46/ffffff?text=GPLX+Mat+Truoc",
+                  licenseBackUrl: "https://placehold.co/600x400/065f46/ffffff?text=GPLX+Mat+Sau",
+                  criminalRecordUrl: "https://placehold.co/600x400/065f46/ffffff?text=Ly+Lich+Tu+Phap",
+                  profile: {
+                      user: {
+                          username: "minh_le88",
+                          email: "lehoangminh.driver@gmail.com"
+                      }
+                  }
+              },
+              {
+                  id: 884,
+                  name: "Phạm Đức Tài",
+                  phoneNumber: "0966554433",
+                  idCardNumber: "034091223344",
+                  email: "taipham.auto@vn",
+                  bankName: "ACB",
+                  bankAccountNumber: "12345678",
+                  bankAccountName: "PHAM DUC TAI",
+                  experienceYears: 2,
+                  licenseType: "B2",
+                  licenseNumber: "790223344556",
+                  pricePerKm: 9000,
+                  status: "Chờ duyệt",
+                  avatarUrl: "https://i.pravatar.cc/150?img=59",
+                  idCardFrontUrl: "https://placehold.co/600x400/7c2d12/ffffff?text=CCCD+Mat+Truoc",
+                  idCardBackUrl: "https://placehold.co/600x400/7c2d12/ffffff?text=CCCD+Mat+Sau",
+                  licenseFrontUrl: "https://placehold.co/600x400/7c2d12/ffffff?text=GPLX+Mat+Truoc",
+                  licenseBackUrl: "https://placehold.co/600x400/7c2d12/ffffff?text=GPLX+Mat+Sau",
+                  criminalRecordUrl: "https://placehold.co/600x400/7c2d12/ffffff?text=Ly+Lich+Tu+Phap",
+                  profile: {
+                      user: {
+                          username: "taipham99",
+                          email: "taipham.auto@vn"
+                      }
+                  }
+              },
+              {
+                  id: 885,
+                  name: "Đỗ Xuân Bách",
+                  phoneNumber: "0908112233",
+                  idCardNumber: "079088112233",
+                  email: "bach.do.xuan@gmail.com",
+                  bankName: "VPBank",
+                  bankAccountNumber: "4455667788",
+                  bankAccountName: "DO XUAN BACH",
+                  experienceYears: 10,
+                  licenseType: "FC",
+                  licenseNumber: "790112233445",
+                  pricePerKm: 20000,
+                  status: "Chờ duyệt",
+                  avatarUrl: "https://i.pravatar.cc/150?img=68",
+                  idCardFrontUrl: "https://placehold.co/600x400/312e81/ffffff?text=CCCD+Mat+Truoc",
+                  idCardBackUrl: "https://placehold.co/600x400/312e81/ffffff?text=CCCD+Mat+Sau",
+                  licenseFrontUrl: "https://placehold.co/600x400/312e81/ffffff?text=GPLX+Mat+Truoc",
+                  licenseBackUrl: "https://placehold.co/600x400/312e81/ffffff?text=GPLX+Mat+Sau",
+                  criminalRecordUrl: "https://placehold.co/600x400/312e81/ffffff?text=Ly+Lich+Tu+Phap",
+                  profile: {
+                      user: {
+                          username: "bach_dox",
+                          email: "bach.do.xuan@gmail.com"
+                      }
+                  }
+              }
+          ]);
+      } else {
+          setDriverServices(res.data);
+      }
     } catch (error) {
       toast.error('Không thể tải danh sách dịch vụ');
     } finally {

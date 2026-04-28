@@ -1,7 +1,8 @@
 import { Controller, Get, Patch, Body, Req, UseGuards, Post, UseInterceptors, UploadedFile, BadRequestException, Param, Delete, Query } from '@nestjs/common';
-import { IsString, IsOptional, IsEmail, MinLength, Allow } from 'class-validator';
+import { IsString, IsOptional, IsEmail, MinLength, Allow, IsArray } from 'class-validator';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { join } from 'path';
+import { join, extname } from 'path';
+import * as fs from 'fs';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 import { Public } from '../../core/decorators/public.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiProperty } from '@nestjs/swagger';
@@ -37,10 +38,10 @@ class UpdateUserDto extends UpdateProfileDto {
   @MinLength(6)
   password?: string;
 
-  @ApiProperty({ example: 'ADMIN', required: false })
-  @IsString()
+  @ApiProperty({ example: ['ADMIN', 'CUSTOMER'], required: false })
+  @IsArray()
   @IsOptional()
-  role?: string;
+  roles?: string[];
 }
 
 class CreateUserDto {
@@ -61,9 +62,10 @@ class CreateUserDto {
   @MinLength(6)
   password: string;
 
-  @ApiProperty({ example: 'CUSTOMER' })
-  @IsString()
-  role: string;
+  @ApiProperty({ example: ['CUSTOMER'] })
+  @IsArray()
+  @IsOptional()
+  roles: string[];
 }
 
 @ApiTags('Users')
@@ -79,6 +81,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Lấy thông tin hồ sơ công khai của nhà cung cấp' })
   findVendorById(@Param('id') id: string) {
     return this.usersService.findVendorPublicProfile(+id);
+  }
+
+  @Public()
+  @Get('driver/:id/profile')
+  @ApiOperation({ summary: 'Lấy thông tin hồ sơ công khai của tài xế' })
+  findDriverById(@Param('id') id: string) {
+    return this.usersService.findDriverPublicProfile(+id);
   }
 
   @Public()
@@ -156,9 +165,28 @@ export class UsersController {
       throw new BadRequestException('File is required');
     }
     
-    // Upload thẳng lên Cloudinary từ buffer (RAM)
-    const result = await this.cloudinaryService.uploadFile(file, 'final-project/avatars');
-    return { avatarUrl: result.secure_url };
+    try {
+      // Thử upload lên Cloudinary trước
+      const result = await this.cloudinaryService.uploadFile(file, 'final-project/avatars');
+      return { avatarUrl: result.secure_url };
+    } catch (error) {
+      // Nếu Cloudinary lỗi (sai API key, hết hạn mức...), lưu trực tiếp vào Local Storage
+      console.error('Cloudinary upload failed, falling back to local storage:', error.message);
+      
+      const uploadDir = join(process.cwd(), 'public', 'images', 'avatars');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const filename = `avatar-${uniqueSuffix}${extname(file.originalname || '.jpg')}`;
+      const filePath = join(uploadDir, filename);
+      
+      fs.writeFileSync(filePath, file.buffer);
+      
+      // Trả về URL local (Frontend dùng http://127.0.0.1:3000/images/avatars/...)
+      return { avatarUrl: `http://127.0.0.1:3000/images/avatars/${filename}` };
+    }
   }
   @Post('verify-document')
   @ApiBearerAuth()

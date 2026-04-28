@@ -14,28 +14,73 @@ import Link from 'next/link';
 export default function VendorRentalCarsPage() {
     const [rentalCars, setRentalCars] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isEditOpen, setIsEditOpen] = useState(false);
-    const [selectedCar, setSelectedCar] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Form states
-    const [formData, setFormData] = useState({
-        name: '',
-        type: '',
-        plate: '',
-        price: '',
-        description: '',
-        status: 'Sẵn sàng',
-        imageUrl: '',
-    });
-
     const fetchRentalCars = async () => {
+        const mockData = [
+            {
+                id: 1,
+                name: "Honda Vision 2023",
+                type: "Xe máy tay ga",
+                plate: "29A-123.45",
+                price: 150000,
+                description: "Xe mới bảo dưỡng, chạy êm, tiết kiệm xăng.",
+                status: "Sẵn sàng",
+                imageUrl: "/images/mock/honda_vision.png"
+            },
+            {
+                id: 2,
+                name: "Toyota Vios 2022",
+                type: "Ô tô 4 chỗ",
+                plate: "30G-567.89",
+                price: 800000,
+                description: "Xe gia đình, sạch sẽ, bảo hiểm 2 chiều đầy đủ.",
+                status: "Sẵn sàng",
+                imageUrl: "/images/mock/toyota_vios.png"
+            },
+            {
+                id: 3,
+                name: "Kia Sorento 2021",
+                type: "Ô tô 7 chỗ",
+                plate: "51K-999.99",
+                price: 1200000,
+                description: "Xe rộng rãi, thích hợp du lịch gia đình.",
+                status: "Đang thuê",
+                imageUrl: "/images/mock/kia_sorento.png"
+            },
+            {
+                id: 4,
+                name: "Yamaha Exciter 155",
+                type: "Xe máy số",
+                plate: "60B-888.88",
+                price: 200000,
+                description: "Xe côn tay mạnh mẽ, phù hợp đi phượt.",
+                status: "Sẵn sàng",
+                imageUrl: "/images/mock/yamaha_exciter.png"
+            },
+            {
+                id: 5,
+                name: "Mazda 3 2023",
+                type: "Ô tô 4 chỗ",
+                plate: "15A-111.22",
+                price: 900000,
+                description: "Thiết kế trẻ trung, công nghệ an toàn cao cấp.",
+                status: "Bảo dưỡng",
+                imageUrl: "/images/mock/mazda_3.png"
+            }
+        ];
+
         try {
             setLoading(true);
             const { data } = await http.get('/rental-cars/public');
-            setRentalCars(data || []);
+            if (data && data.length > 0) {
+                setRentalCars(data);
+            } else {
+                setRentalCars(mockData);
+            }
         } catch (error: any) {
-            toast.error('Không thể tải danh sách xe thuê');
+            toast.error('Sử dụng dữ liệu mẫu do không kết nối được API');
+            setRentalCars(mockData);
         } finally {
             setLoading(false);
         }
@@ -45,56 +90,6 @@ export default function VendorRentalCarsPage() {
         fetchRentalCars();
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        const data = new FormData();
-        data.append('file', file);
-        setIsLoading(true);
-        try {
-            const res = await http.post('/users/avatar', data, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            setFormData(prev => ({ ...prev, imageUrl: res.data.avatarUrl }));
-            toast.success('Tải ảnh thành công');
-        } catch (error) {
-            toast.error('Có lỗi xảy ra khi tải ảnh');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const openEdit = (car: any) => {
-        setSelectedCar(car);
-        setFormData({
-            name: car.name || '',
-            type: car.type || '',
-            plate: car.plate || '',
-            price: car.price?.toString() || '',
-            description: car.description || '',
-            status: car.status || 'Sẵn sàng',
-            imageUrl: car.imageUrl || '',
-        });
-        setIsEditOpen(true);
-    };
-
-    const handleEdit = async () => {
-        setIsLoading(true);
-        try {
-            await http.patch(`/rental-cars/${selectedCar.id}`, {
-                ...formData,
-                price: parseFloat(formData.price),
-            });
-            toast.success('Cập nhật thông tin xe thành công');
-            setIsEditOpen(false);
-            fetchRentalCars();
-        } catch (error) { toast.error('Có lỗi xảy ra'); } finally { setIsLoading(false); }
-    };
 
     const handleDelete = async (id: number) => {
         if (!confirm('Bạn có chắc chắn muốn xóa xe này?')) return;
@@ -105,57 +100,6 @@ export default function VendorRentalCarsPage() {
         } catch (error) { toast.error('Không thể xóa xe.'); }
     };
 
-    const CarForm = () => (
-        <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto px-1">
-            <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-bold">Tên xe</Label>
-                <Input id="name" name="name" value={formData.name} onChange={handleChange} className="rounded-xl h-11" placeholder="VD: Honda Vision 2023" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="type" className="text-sm font-bold">Loại xe</Label>
-                    <select id="type" name="type" value={formData.type} onChange={handleChange} className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
-                        <option value="">-- Chọn loại --</option>
-                        <option value="Xe máy tay ga">Xe máy tay ga</option>
-                        <option value="Xe máy số">Xe máy số</option>
-                        <option value="Ô tô 4 chỗ">Ô tô 4 chỗ</option>
-                        <option value="Ô tô 7 chỗ">Ô tô 7 chỗ</option>
-                    </select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="plate" className="text-sm font-bold">Biển số</Label>
-                    <Input id="plate" name="plate" value={formData.plate} onChange={handleChange} className="rounded-xl h-11" placeholder="VD: 29A-123.45" />
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="price" className="text-sm font-bold">Giá thuê/ngày</Label>
-                    <Input id="price" name="price" type="number" value={formData.price} onChange={handleChange} className="rounded-xl h-11" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="status" className="text-sm font-bold">Trạng thái</Label>
-                    <select id="status" name="status" value={formData.status} onChange={handleChange} className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm">
-                        <option value="Sẵn sàng">Sẵn sàng</option>
-                        <option value="Đang thuê">Đang thuê</option>
-                        <option value="Bảo dưỡng">Bảo dưỡng</option>
-                    </select>
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label className="text-sm font-bold">Hình ảnh xe</Label>
-                <div className="flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50">
-                    <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-md border border-gray-100">
-                        {formData.imageUrl ? <img src={formData.imageUrl} className="object-cover w-full h-full" /> : <div className="w-full h-full flex items-center justify-center text-gray-300"><ImageIcon /></div>}
-                    </div>
-                    <Input type="file" onChange={handleFileChange} accept="image/*" className="flex-1 rounded-xl h-11 border-none bg-white shadow-sm" />
-                </div>
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-bold">Mô tả thêm</Label>
-                <textarea id="description" name="description" value={formData.description} onChange={handleChange} className="flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3 py-2 text-sm" />
-            </div>
-        </div>
-    );
 
     return (
         <div className="container mx-auto py-6 space-y-8">
@@ -223,9 +167,11 @@ export default function VendorRentalCarsPage() {
                                                 </Badge>
                                             </td>
                                             <td className="px-10 py-6 align-middle text-right space-x-2">
-                                                <Button size="icon" variant="outline" onClick={() => openEdit(rental)} className="w-9 h-9 rounded-xl hover:bg-blue-50 hover:text-blue-600 border-gray-100">
-                                                    <Pencil className="w-4 h-4" />
-                                                </Button>
+                                                <Link href={`/admin/rental-cars/${rental.id}/edit`}>
+                                                    <Button size="icon" variant="outline" className="w-9 h-9 rounded-xl hover:bg-blue-50 hover:text-blue-600 border-gray-100">
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Button>
+                                                </Link>
                                                 <Button size="icon" variant="outline" onClick={() => handleDelete(rental.id)} className="w-9 h-9 rounded-xl hover:bg-red-50 hover:text-red-600 border-gray-100">
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
@@ -239,18 +185,7 @@ export default function VendorRentalCarsPage() {
                 )}
             </div>
 
-            <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-3xl">
-                    <DialogHeader className="bg-emerald-600 px-10 py-8 text-white">
-                        <DialogTitle className="text-2xl font-black uppercase tracking-tighter">Cập nhật xe</DialogTitle>
-                    </DialogHeader>
-                    <div className="p-10"><CarForm /></div>
-                    <DialogFooter className="bg-gray-50 px-10 py-6">
-                        <Button variant="ghost" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">Hủy</Button>
-                        <Button onClick={handleEdit} disabled={isLoading} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 px-8 font-black text-white">Cập nhật ngay</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+
         </div>
     );
 }

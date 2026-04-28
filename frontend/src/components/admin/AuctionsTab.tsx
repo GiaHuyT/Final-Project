@@ -45,6 +45,7 @@ interface Auction {
     startTime: string;
     endTime: string;
     status: string;
+    type: string;
     vendor: { username: string, email: string };
     _count: { bids: number };
 }
@@ -53,6 +54,7 @@ export function AuctionsTab() {
     const [auctions, setAuctions] = useState<Auction[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [filter, setFilter] = useState("ALL");
 
     const fetchAuctions = async () => {
         try {
@@ -80,10 +82,18 @@ export function AuctionsTab() {
         }
     };
 
-    const filteredAuctions = auctions.filter(auction =>
-        auction.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        auction.vendor?.username?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredAuctions = auctions.filter(auction => {
+        const matchesSearch = auction.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            auction.vendor?.username?.toLowerCase().includes(searchQuery.toLowerCase());
+            
+        let matchesFilter = true;
+        if (filter === 'ONLINE') matchesFilter = auction.type === 'LIVESTREAM';
+        if (filter === 'OFFLINE') matchesFilter = auction.type === 'OFFLINE';
+        if (filter === 'EXPIRED') matchesFilter = auction.status === 'COMPLETED' || auction.status === 'FINISHED' || auction.status === 'ENDED';
+        if (filter === 'CANCELLED') matchesFilter = auction.status === 'CANCELLED';
+        
+        return matchesSearch && matchesFilter;
+    });
 
     const now = new Date().getTime();
     const stats = {
@@ -170,6 +180,15 @@ export function AuctionsTab() {
                             />
                         </div>
                     </div>
+                    
+                    {/* Add Filter Row here */}
+                    <div className="flex gap-2 mt-6 overflow-x-auto pb-2">
+                        <Button variant={filter === 'ALL' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ALL')} className={filter === 'ALL' ? 'bg-blue-600 rounded-xl' : 'rounded-xl'}>Tất cả</Button>
+                        <Button variant={filter === 'ONLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ONLINE')} className={filter === 'ONLINE' ? 'bg-rose-500 hover:bg-rose-600 border-rose-500 rounded-xl' : 'border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl'}>🔴 Online (Live)</Button>
+                        <Button variant={filter === 'OFFLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('OFFLINE')} className={filter === 'OFFLINE' ? 'bg-indigo-500 hover:bg-indigo-600 border-indigo-500 rounded-xl' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded-xl'}>📦 Offline</Button>
+                        <Button variant={filter === 'EXPIRED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('EXPIRED')} className={filter === 'EXPIRED' ? 'bg-slate-600 rounded-xl' : 'rounded-xl'}>Hết hạn</Button>
+                        <Button variant={filter === 'CANCELLED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('CANCELLED')} className={filter === 'CANCELLED' ? 'bg-red-500 rounded-xl' : 'border-red-200 text-red-600 hover:bg-red-50 rounded-xl'}>Đã hủy</Button>
+                    </div>
                 </CardHeader>
                 <CardContent className="p-0">
                     {loading ? (
@@ -249,14 +268,12 @@ export function AuctionsTab() {
                                                                 ? new Date(auction.startTime).getTime() > new Date().getTime() 
                                                                     ? 'bg-orange-50 text-orange-700 border-orange-200'
                                                                     : 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                                                : auction.status === 'PENDING'
-                                                                    ? 'bg-orange-50 text-orange-700 border-orange-200'
-                                                                    : 'bg-gray-50 text-gray-600 border-gray-200'
+                                                                : 'bg-gray-50 text-gray-600 border-gray-200'
                                                         }`}
                                                     >
                                                         {auction.status === 'ACTIVE' 
-                                                            ? (new Date(auction.startTime).getTime() > new Date().getTime() ? 'Upcoming' : 'Live Now')
-                                                            : auction.status === 'PENDING' ? 'Waiting Admin' : 'Finished'}
+                                                            ? (new Date(auction.startTime).getTime() > new Date().getTime() ? 'Sắp diễn ra' : 'Đang diễn ra')
+                                                            : 'Đã kết thúc'}
                                                     </Badge>
                                                 </td>
                                                 <td className="px-10 py-6 align-middle text-right">
@@ -277,18 +294,6 @@ export function AuctionsTab() {
                                                                 <History className="h-4 w-4" />
                                                                 Lịch sử đặt giá
                                                             </DropdownMenuItem>
-                                                            {auction.status === 'PENDING' && (
-                                                                <>
-                                                                    <DropdownMenuSeparator className="my-2" />
-                                                                    <DropdownMenuItem
-                                                                        className="gap-3 rounded-xl px-4 py-3 bg-emerald-600 text-white focus:bg-emerald-700 focus:text-white cursor-pointer font-black text-xs uppercase tracking-tighter shadow-lg shadow-emerald-100"
-                                                                        onClick={() => handleUpdateStatus(auction.id, 'ACTIVE')}
-                                                                    >
-                                                                        <CheckCircle2 className="h-4 w-4" />
-                                                                        Duyệt & Public
-                                                                    </DropdownMenuItem>
-                                                                </>
-                                                            )}
                                                             <DropdownMenuSeparator className="my-2" />
                                                             <DropdownMenuItem
                                                                 className="gap-3 text-red-600 rounded-xl px-4 py-3 focus:bg-red-50 focus:text-red-600 cursor-pointer font-black text-xs uppercase tracking-tighter"
