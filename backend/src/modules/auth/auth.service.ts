@@ -180,17 +180,43 @@ export class AuthService {
         to: user.email,
         subject: 'Khôi phục mật khẩu của bạn',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-            <h2 style="color: #2563eb; text-align: center;">Khôi phục mật khẩu</h2>
-            <p>Chào bạn,</p>
-            <p>Bạn nhận được email này vì chúng tôi đã nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn.</p>
-            <p style="text-align: center; margin: 30px 0;">
-              <a href="${resetLink}" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Đổi mật khẩu mới</a>
-            </p>
-            <p>Link này sẽ hết hạn sau 1 giờ.</p>
-            <p>Nếu bạn không yêu cầu đổi mật khẩu, vui lòng bỏ qua email này.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #666; text-align: center;">Đây là email tự động, vui lòng không trả lời.</p>
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; margin: 0;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+              
+              <!-- Header -->
+              <div style="background-color: #0f172a; padding: 40px 20px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">Auto<span style="color: #2563eb;">Bid</span></h1>
+                <p style="color: #94a3b8; margin-top: 10px; font-size: 14px; letter-spacing: 1px; text-transform: uppercase;">Khôi Phục Đặc Quyền</p>
+              </div>
+              
+              <!-- Body -->
+              <div style="padding: 40px 30px;">
+                <h2 style="color: #0f172a; font-size: 22px; margin-top: 0; font-weight: 700;">Yêu cầu đặt lại mật khẩu</h2>
+                <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                  Chào bạn,<br><br>
+                  Chúng tôi đã nhận được yêu cầu khôi phục mật khẩu cho tài khoản của bạn trên hệ thống AutoBid. Để tiếp tục hành trình và bảo vệ tài sản của bạn, vui lòng thiết lập mật khẩu mới bằng cách nhấn vào nút dưới đây.
+                </p>
+                
+                <div style="text-align: center; margin: 40px 0;">
+                  <a href="${resetLink}" style="background-color: #2563eb; color: #ffffff; padding: 16px 36px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);">Thiết Lập Mật Khẩu Mới</a>
+                </div>
+                
+                <div style="background-color: #f1f5f9; padding: 15px; border-radius: 8px; border-left: 4px solid #eab308; margin-bottom: 30px;">
+                  <p style="color: #64748b; font-size: 14px; margin: 0; line-height: 1.5;">
+                    <strong>Lưu ý:</strong> Liên kết này chỉ có hiệu lực trong vòng <strong>1 giờ</strong>. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email và tài khoản của bạn vẫn được an toàn.
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Footer -->
+              <div style="background-color: #f8fafc; padding: 25px; text-align: center; border-top: 1px solid #e2e8f0;">
+                <p style="color: #94a3b8; font-size: 13px; margin: 0; line-height: 1.5;">
+                  © 2026 AutoBid. Độc quyền & Bảo mật.<br>
+                  Đây là email tự động từ hệ thống, vui lòng không trả lời.
+                </p>
+              </div>
+
+            </div>
           </div>
         `,
       });

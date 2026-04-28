@@ -89,120 +89,100 @@ function ResetPasswordForm() {
     }
 
     return (
-        <main className="min-h-screen flex relative bg-slate-50 font-sans">
-            {/* Split Layout - Left side background */}
-            <div className="hidden lg:block lg:w-3/5 relative h-screen sticky top-0">
-                <img 
-                    alt="Sleek Porsche in a dark modern garage" 
-                    className="absolute inset-0 w-full h-full object-cover" 
-                    src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2669&auto=format&fit=crop" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/20"></div>
-                <div className="absolute bottom-20 left-12 max-w-xl text-white z-10">
-                    <h1 className="text-6xl font-extrabold tracking-tighter leading-[0.9] mb-6 uppercase">
-                        Khởi động <br /> <span className="italic font-light text-blue-500">Hành trình mới.</span>
-                    </h1>
-                    <p className="text-xl text-white/80 font-medium leading-relaxed mb-8">
-                        Thiết lập lại lớp bảo mật để tiếp tục trải nghiệm các dịch vụ đặc quyền của AutoBid.
-                    </p>
-                </div>
+        <main className="min-h-screen flex items-center justify-center relative font-sans p-6">
+            {/* Full Background Image */}
+            <div className="absolute inset-0 z-0">
+                <img alt="Reset Password Background" className="w-full h-full object-cover" src="/reset_bg.png" />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
             </div>
 
-            {/* Right side form */}
-            <div className="w-full lg:w-2/5 flex flex-col justify-center items-center px-6 md:px-12 py-24 bg-white relative">
-                {/* Mobile Background Image */}
-                <div className="lg:hidden absolute inset-0 z-0">
-                    <img alt="Porsche" className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2669&auto=format&fit=crop" />
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
+            {/* Centered Box */}
+            <div className="w-full max-w-md bg-white/95 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-2xl border border-white/20 z-10">
+                <div className="mb-8 text-center">
+                    <h2 className="text-3xl font-black tracking-tight text-slate-900 mb-3 uppercase">Khởi động <span className="text-blue-600">Hành trình</span></h2>
+                    <p className="text-slate-500 text-sm font-medium">Thiết lập mật khẩu mới để bảo vệ tài khoản của bạn.</p>
                 </div>
 
-                <div className="w-full max-w-md bg-white/90 lg:bg-transparent backdrop-blur-xl lg:backdrop-blur-none p-8 md:p-12 rounded-3xl lg:rounded-none shadow-2xl lg:shadow-none border border-white/20 lg:border-none z-10">
-                    <div className="mb-10 text-center lg:text-left">
-                        <h2 className="text-4xl font-black tracking-tight text-slate-900 mb-3">Tạo Mật Khẩu</h2>
-                        <p className="text-slate-500 text-sm font-medium">Thiết lập mật khẩu mới để bảo vệ tài khoản của bạn.</p>
-                    </div>
-
-                    {success ? (
-                        <div className="text-center space-y-6">
-                            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <span className="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
-                            </div>
-                            <h3 className="text-xl font-bold text-slate-900">Thành Công!</h3>
-                            <p className="text-slate-500 text-sm font-medium leading-relaxed">
-                                Mật khẩu của bạn đã được cập nhật thành công. Đang tự động chuyển hướng đến trang Đăng nhập...
-                            </p>
+                {success ? (
+                    <div className="text-center space-y-6">
+                        <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="material-symbols-outlined text-emerald-600 text-3xl">check_circle</span>
                         </div>
-                    ) : (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Mật khẩu mới</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">lock</span>
-                                    </div>
-                                    <input 
-                                        className={`w-full pl-12 pr-12 py-4 bg-slate-50 border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.password ? "border-red-500 focus:border-red-500" : "border-transparent focus:border-blue-600"}`}
-                                        placeholder="••••••••" 
-                                        type={showPassword ? "text" : "password"}
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors"
-                                    >
-                                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                    </button>
+                        <h3 className="text-xl font-bold text-slate-900">Thành Công!</h3>
+                        <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                            Mật khẩu của bạn đã được cập nhật thành công. Đang tự động chuyển hướng đến trang Đăng nhập...
+                        </p>
+                    </div>
+                ) : (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Mật khẩu mới</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">lock</span>
                                 </div>
-                                {errors.password && (
-                                    <p className="text-red-500 text-xs font-bold pl-1 mt-1">{errors.password}</p>
-                                )}
+                                <input 
+                                    className={`w-full pl-12 pr-12 py-4 bg-white border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none shadow-sm [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.password ? "border-red-500 focus:border-red-500" : "border-slate-100 focus:border-blue-600"}`}
+                                    placeholder="••••••••" 
+                                    type={showPassword ? "text" : "password"}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
+                            {errors.password && (
+                                <p className="text-red-500 text-xs font-bold pl-1 mt-1">{errors.password}</p>
+                            )}
+                        </div>
 
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Xác nhận mật khẩu</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">lock</span>
-                                    </div>
-                                    <input 
-                                        className={`w-full pl-12 pr-12 py-4 bg-slate-50 border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.confirmPassword ? "border-red-500 focus:border-red-500" : "border-transparent focus:border-blue-600"}`}
-                                        placeholder="••••••••" 
-                                        type={showConfirmPassword ? "text" : "password"}
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors"
-                                    >
-                                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                    </button>
+                        <div className="space-y-2">
+                            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Xác nhận mật khẩu</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">lock</span>
                                 </div>
-                                {errors.confirmPassword && (
-                                    <p className="text-red-500 text-xs font-bold pl-1 mt-1">{errors.confirmPassword}</p>
-                                )}
+                                <input 
+                                    className={`w-full pl-12 pr-12 py-4 bg-white border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none shadow-sm [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.confirmPassword ? "border-red-500 focus:border-red-500" : "border-slate-100 focus:border-blue-600"}`}
+                                    placeholder="••••••••" 
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-blue-600 transition-colors"
+                                >
+                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
                             </div>
+                            {errors.confirmPassword && (
+                                <p className="text-red-500 text-xs font-bold pl-1 mt-1">{errors.confirmPassword}</p>
+                            )}
+                        </div>
 
-                            <button 
-                                className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-600/20 flex justify-center items-center gap-2" 
-                                type="submit"
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <>
-                                        Lưu Mật Khẩu
-                                        <span className="material-symbols-outlined text-base">check</span>
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    )}
-                </div>
+                        <button 
+                            className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-600/20 flex justify-center items-center gap-2" 
+                            type="submit"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Lưu Mật Khẩu
+                                    <span className="material-symbols-outlined text-base">check</span>
+                                </>
+                            )}
+                        </button>
+                    </form>
+                )}
             </div>
         </main>
     );

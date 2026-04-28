@@ -4,7 +4,7 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import http from "@/lib/http";
 import { toast } from "react-hot-toast";
-import { Loader2, Car, Gavel, Bell, User, ArrowRight, Store, ShieldCheck, ChevronRight, ChevronDown, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
+import { Loader2, Car, Gavel, Bell, User, ArrowRight, Store, ShieldCheck, ChevronRight, ChevronDown, Image as ImageIcon, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     Dialog,
@@ -24,6 +24,7 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [isRegModalOpen, setIsRegModalOpen] = useState(false);
     const [isDriverRegModalOpen, setIsDriverRegModalOpen] = useState(false);
+    const [isVipModalOpen, setIsVipModalOpen] = useState(false);
     const [driverFormData, setDriverFormData] = useState({
         // 1. Cá nhân
         name: '', dob: '', idCardNumber: '', phoneNumber: '', email: '', currentAddress: '',
@@ -981,6 +982,96 @@ export default function ProfilePage() {
                             </DialogContent>
                         </Dialog>
 
+                        {/* VIP Details Modal */}
+                        <Dialog open={isVipModalOpen} onOpenChange={setIsVipModalOpen}>
+                            <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+                                <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
+                                    <span className="material-symbols-outlined text-5xl mb-4 relative z-10 opacity-90 text-yellow-500">workspace_premium</span>
+                                    <DialogTitle className="text-2xl font-black mb-2 relative z-10 text-white">Đặc quyền Thành viên</DialogTitle>
+                                    <DialogDescription className="text-slate-300 font-medium relative z-10">Tích lũy chi tiêu trên hệ thống để thăng hạng và nhận các đặc quyền hấp dẫn.</DialogDescription>
+                                </div>
+                                <div className="p-8 space-y-6 bg-white max-h-[60vh] overflow-y-auto scrollbar-hide">
+                                    <div className="space-y-4">
+                                        <div className="flex gap-4 items-start p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                            <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-700 shrink-0">CB</div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="font-black text-slate-900">Thành viên Cơ bản</h4>
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-500 mb-2">Mặc định khi đăng ký</p>
+                                                <ul className="text-xs text-slate-600 space-y-1 font-medium">
+                                                    <li>• Mua bán, đấu giá cơ bản</li>
+                                                    <li>• Thêm vào danh sách yêu thích</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4 items-start p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                                            <div className="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center font-black text-blue-700 shrink-0">V1</div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="font-black text-blue-900">Thành viên VIP 1</h4>
+                                                    <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">10 Tỷ VNĐ</span>
+                                                </div>
+                                                <p className="text-sm font-medium text-blue-600 mb-2">Chi tiêu trên 10.000.000.000 VNĐ</p>
+                                                <ul className="text-xs text-blue-800 space-y-1.5 font-medium mt-3">
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Chuyên viên hỗ trợ cá nhân (1-1) 24/7</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Huy hiệu VIP 1 nổi bật trên hồ sơ</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Miễn phí định giá xe cơ bản trực tuyến</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Tặng 2 voucher rửa xe cao cấp mỗi tháng</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Ưu tiên đẩy tin bán xe lên trang chủ</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4 items-start p-4 rounded-2xl bg-amber-50 border border-amber-100">
+                                            <div className="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center font-black text-amber-700 shrink-0">V2</div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="font-black text-amber-900">Thành viên VIP 2</h4>
+                                                    <span className="text-[10px] bg-amber-600 text-white px-2 py-0.5 rounded-full font-bold">50 Tỷ VNĐ</span>
+                                                </div>
+                                                <p className="text-sm font-medium text-amber-600 mb-2">Chi tiêu trên 50.000.000.000 VNĐ</p>
+                                                <ul className="text-xs text-amber-800 space-y-1.5 font-medium mt-3">
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Toàn bộ đặc quyền của VIP 1</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tiền 0.5% mọi giao dịch (Tối đa 50tr)</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Miễn phí test đâm đụng, ngập nước (2 lần/năm)</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Tặng gói bảo dưỡng định kỳ (Trị giá 5 triệu)</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Miễn phí gọi cứu hộ kéo xe toàn quốc 24/7</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Quyền truy cập VIP Lounge tại các Showroom</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-4 items-start p-4 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100">
+                                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-black text-white shrink-0">V3</div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h4 className="font-black text-indigo-900">Thành viên VIP 3</h4>
+                                                    <span className="text-[10px] bg-purple-600 text-white px-2 py-0.5 rounded-full font-bold">100 Tỷ VNĐ</span>
+                                                </div>
+                                                <p className="text-sm font-medium text-indigo-600 mb-2">Chi tiêu trên 100.000.000.000 VNĐ</p>
+                                                <ul className="text-xs text-indigo-800 space-y-1.5 font-medium mt-3">
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Toàn bộ đặc quyền của VIP 2</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Hoàn tiền 1% không giới hạn mọi giao dịch</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Vé mời danh dự tham dự đấu giá siêu xe kín</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Đội ngũ tài xế hạng sang miễn phí (4 lần/tháng)</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Tặng gói phủ Ceramic cao cấp bảo vệ sơn hàng năm</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Xe siêu sang đón tiễn sân bay (12 lượt/năm)</li>
+                                                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Thẻ hội viên VIP Golf Club liên kết</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="pt-2">
+                                        <Button onClick={() => setIsVipModalOpen(false)} className="w-full bg-slate-900 hover:bg-black text-white h-12 rounded-xl font-bold">Đã hiểu</Button>
+                                    </div>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+
 
                         {/* Personal Info Bento Section */}
                         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1029,7 +1120,7 @@ export default function ProfilePage() {
                                         {getRoleDescription(user?.role)}
                                     </p>
                                 </div>
-                                <div className="mt-8 flex items-center gap-2 text-sm font-bold text-white cursor-pointer hover:text-blue-300 transition-colors w-max relative z-10">
+                                <div onClick={() => setIsVipModalOpen(true)} className="mt-8 flex items-center gap-2 text-sm font-bold text-white cursor-pointer hover:text-blue-300 transition-colors w-max relative z-10">
                                     Chi tiết đặc quyền <ArrowRight className="w-4 h-4" />
                                 </div>
                             </div>
