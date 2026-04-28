@@ -30,7 +30,36 @@ export default function Home() {
     const fetchData = async () => {
       try {
         const res = await http.get('/products?type=AUCTION&status=ACTIVE');
-        setAuctions(res.data.slice(0, 3));
+        
+        const mockAuctions = [
+          {
+            id: 'mock-1',
+            name: '2023 Porsche 911 GT3 RS',
+            imageUrl: '/images/static/category-exotic.png',
+            price: 250000,
+            mileage: 1200
+          },
+          {
+            id: 'mock-2',
+            name: '2022 Lamborghini Aventador SVJ',
+            imageUrl: '/images/static/category-sedan.png',
+            price: 550000,
+            mileage: 800
+          },
+          {
+            id: 'mock-3',
+            name: '2024 McLaren 765LT Spider',
+            imageUrl: '/images/static/category-suv.png',
+            price: 420000,
+            mileage: 150
+          }
+        ];
+
+        if (res.data && res.data.length > 0) {
+          setAuctions(res.data.slice(0, 3));
+        } else {
+          setAuctions(mockAuctions);
+        }
 
         const token = localStorage.getItem('token');
         if (token) {
@@ -273,6 +302,43 @@ export default function Home() {
               <div className="flex-1 w-full md:w-auto h-[400px] relative rounded-3xl overflow-hidden shadow-2xl">
                 <img alt="Luxury Car Showroom" className="w-full h-full object-cover" src="/images/static/showroom.png" />
 
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Driver CTA Section */}
+        <section className="py-12 pb-24">
+          <div className="max-w-7xl mx-auto px-6 lg:px-12">
+            <div className="relative bg-surface-container-low shadow-lg rounded-[2rem] overflow-hidden p-12 md:p-24 flex flex-col md:flex-row-reverse items-center gap-12">
+              <div className="relative z-10 flex-1">
+                <span className="text-tertiary-fixed-dim font-label text-xs uppercase tracking-[0.2em] font-bold mb-4 block">Dịch vụ tài xế</span>
+                <h2 className="font-headline text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tighter mb-8 leading-tight">
+                  TRỞ THÀNH TÀI XẾ ĐỘC QUYỀN.
+                </h2>
+                <ul className="space-y-4 mb-10">
+                  <li className="flex items-center gap-3 text-slate-600">
+                    <span className="material-symbols-outlined text-primary">check_circle</span>
+                    Lái những siêu xe hàng đầu thế giới
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-600">
+                    <span className="material-symbols-outlined text-primary">check_circle</span>
+                    Lịch trình làm việc linh hoạt, tự do
+                  </li>
+                  <li className="flex items-center gap-3 text-slate-600">
+                    <span className="material-symbols-outlined text-primary">check_circle</span>
+                    Thu nhập hấp dẫn và đãi ngộ đẳng cấp
+                  </li>
+                </ul>
+                <Link 
+                  href="/driver-rental"
+                  className="inline-block bg-primary text-white hover:bg-slate-800 px-10 py-5 rounded-full font-headline font-black text-sm tracking-widest active:scale-95 transition-all"
+                >
+                  ĐĂNG KÝ LÁI XE
+                </Link>
+              </div>
+              <div className="flex-1 w-full md:w-auto h-[400px] relative rounded-3xl overflow-hidden shadow-2xl">
+                <img alt="Exclusive Driver" className="w-full h-full object-cover" src="/images/static/driver-cta.png" />
               </div>
             </div>
           </div>

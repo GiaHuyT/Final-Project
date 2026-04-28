@@ -20,7 +20,7 @@ export default function OffersPage() {
       id: 2,
       title: "CHÀO ĐÓN GIÁNG SINH & NĂM MỚI – AUTOBID ƯU ĐÃI LỚN NHẤT NĂM",
       date: "10/12/2025",
-      image: "https://images.unsplash.com/photo-1512413913426-3023e9c1db16?auto=format&fit=crop&q=80",
+      image: "/images/static/offer_christmas.png",
       description: "Hòa chung không khí lễ hội cuối năm, AutoBid áp dụng mức giảm phí dịch vụ nền tảng lên đến 50% cho tất cả các giao dịch. Đồng thời tặng kèm gói phủ Ceramic cao cấp trị giá 25 triệu cho 100 khách hàng chốt xe đầu tiên.",
     },
     {
@@ -41,14 +41,14 @@ export default function OffersPage() {
       id: 5,
       title: "CHƯƠNG TRÌNH THU CŨ ĐỔI MỚI - LÊN ĐỜI XE SANG DỄ DÀNG",
       date: "05/09/2025",
-      image: "https://images.unsplash.com/photo-1550524514-ceb609db2465?auto=format&fit=crop&q=80",
+      image: "/images/static/offer_trade_in.png",
       description: "Chương trình hỗ trợ thu mua xe sang cũ với giá cao hơn thị trường 5%, đồng thời trợ giá trực tiếp thêm lên đến 100 triệu đồng khi quý khách tham gia đấu giá sở hữu xe mới tại nền tảng AutoBid.",
     },
     {
       id: 6,
       title: "THÁNG 8 TUNG ƯU ĐÃI: TẶNG 1 NĂM SẠC ĐIỆN MIỄN PHÍ TẠI NHÀ",
       date: "12/08/2025",
-      image: "https://images.unsplash.com/photo-1593941707882-a5bba14938cb?auto=format&fit=crop&q=80",
+      image: "/images/static/offer_ev_charging.png",
       description: "Nhằm thúc đẩy xu hướng xe xanh, khách hàng trúng đấu giá các dòng xe thuần điện (EV) như Porsche Taycan, Audi e-tron sẽ nhận ngay đặc quyền 1 năm sạc điện miễn phí và lắp đặt Wallbox chuẩn Châu Âu trọn gói.",
     },
     {
@@ -147,6 +147,7 @@ export default function OffersPage() {
                     src={item.image} 
                     alt={item.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => { e.currentTarget.src = "/images/static/car-placeholder.png"; }}
                   />
                   <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
                 </div>

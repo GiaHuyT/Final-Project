@@ -333,6 +333,9 @@ export default function CarModelsPage() {
                                                 src={product.imageUrl || "/images/static/car-placeholder.png"}
                                                 alt={product.name}
                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                                onError={(e) => {
+                                                    e.currentTarget.src = "/images/static/car-placeholder.png";
+                                                }}
                                             />
                                             <div className="absolute top-6 left-6 flex flex-col gap-2">
                                                 <span className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 border border-white/50 shadow-sm w-fit">

@@ -229,7 +229,7 @@ export function Navbar() {
         window.location.reload();
     };
 
-    if (pathname?.startsWith('/auth') || pathname?.startsWith('/driver') || pathname?.startsWith('/vendor') || pathname?.startsWith('/admin')) {
+    if (pathname?.startsWith('/auth') || pathname === '/driver' || pathname?.startsWith('/driver/') || pathname?.startsWith('/vendor') || pathname?.startsWith('/admin')) {
         return null;
     }
 
@@ -253,7 +253,7 @@ export function Navbar() {
                             <Link href="/maintenance" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><Wrench className="h-4 w-4" /> Dịch vụ bảo dưỡng</Link>
                             <Link href="/repairs" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Dịch vụ sửa chữa</Link>
                             <Link href="/car-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><Car className="h-4 w-4" /> Dịch vụ thuê xe</Link>
-                            <Link href="/driver-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><UserCircle className="h-4 w-4" /> Dịch vụ lái thuê</Link>
+                            <Link href="/driver-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><UserCircle className="h-4 w-4" /> Dịch vụ thuê tài xế</Link>
                         </div>
                     </div>
                     <Link className="text-slate-600 hover:text-slate-900 transition-colors" href="/compare">So sánh</Link>
@@ -322,11 +322,6 @@ export function Navbar() {
                                             {!isAdmin && (
                                                 <DropdownMenuItem asChild>
                                                     <Link href="/profile" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><User className="h-4 w-4" /> Tài khoản của tôi</Link>
-                                                </DropdownMenuItem>
-                                            )}
-                                            {isVendor && (
-                                                <DropdownMenuItem asChild>
-                                                    <Link href="/vendor/profile" className="cursor-pointer font-semibold text-sm font-body flex items-center gap-2"><Store className="h-4 w-4" /> Quản lý cửa hàng</Link>
                                                 </DropdownMenuItem>
                                             )}
                                             {isAdmin && (

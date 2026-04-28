@@ -60,10 +60,10 @@ export default function CarRentalPage() {
         <div className="absolute inset-0 z-0 bg-slate-900">
           <img
             alt="Dịch vụ thuê xe cao cấp"
-            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
-            src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80"
+            className="w-full h-full object-cover opacity-80"
+            src="/images/static/rental_banner_garage_sharp.png"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/40 to-transparent"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 w-full mt-8">

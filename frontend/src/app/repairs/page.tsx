@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Wrench, MapPin, CalendarClock, ShieldCheck, CheckCircle2,
-  Search, Star, Clock, Phone, Car, Settings
+  Search, Star, Clock, Phone, Car, Settings, MessageSquare
 } from "lucide-react";
+import toast from "react-hot-toast";
 import http from "@/lib/http";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -61,14 +62,14 @@ export default function RepairsPage() {
 
   return (
     <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
-      <section className="relative h-[450px] flex items-center overflow-hidden bg-slate-900 border-b border-white/10">
+      <section className="relative py-20 min-h-[500px] flex items-center overflow-hidden bg-slate-900 border-b border-white/10">
         <div className="absolute inset-0 z-0 bg-slate-900">
           <img
             alt="Dịch vụ sửa chữa chuyên nghiệp"
-            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
-            src="https://images.unsplash.com/photo-1599256621730-535171e28e50?auto=format&fit=crop&q=80"
+            className="w-full h-full object-cover opacity-80"
+            src="/images/static/mobile_repair_banner.png"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/80 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-900/40 to-transparent"></div>
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-12 w-full mt-8">
@@ -85,13 +86,13 @@ export default function RepairsPage() {
             </p>
 
             {/* Search Bar */}
-            <div className="relative max-w-xl group">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-primary transition-colors" />
+            <div className="relative max-w-xl group mt-8">
+              <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none z-10">
+                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-red-600 transition-colors" />
               </div>
               <input
                 type="text"
-                className="block w-full pl-11 pr-4 py-4 bg-white/10 border border-white/20 rounded-full text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:bg-slate-900/50 transition-all backdrop-blur-md"
+                className="block w-full pl-12 pr-6 py-4 bg-white border-2 border-transparent rounded-full text-slate-900 font-medium placeholder-slate-500 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all shadow-2xl"
                 placeholder="Tìm theo chuyên môn, hãng xe (vd: Điện ô tô, Mercedes)..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -188,15 +189,24 @@ export default function RepairsPage() {
                       </div>
                     </div>
 
-                    <div className="pt-4 flex gap-3 mt-auto">
+                    <div className="pt-4 flex gap-2 mt-auto">
                       <button
                         onClick={(e) => {
                           e.preventDefault();
                           window.dispatchEvent(new CustomEvent('open-chat', { detail: { vendorId: item.profile?.user?.id } }));
                         }}
-                        className="flex-1 bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors text-sm text-center shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                        className="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors text-xs text-center shadow-md flex items-center justify-center gap-1.5"
                       >
-                        <MapPin className="w-4 h-4" /> Gửi định vị / Nhắn tin
+                        <MessageSquare className="w-3.5 h-3.5" /> Nhắn tin
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toast("Tính năng Gửi vị trí đang được phát triển!", { icon: "📍" });
+                        }}
+                        className="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl hover:bg-red-700 transition-colors text-xs text-center shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-1.5"
+                      >
+                        <MapPin className="w-3.5 h-3.5" /> Gửi định vị
                       </button>
                       {(item.contactPhone || item.profile?.user?.phonenumber) && (
                         <a
