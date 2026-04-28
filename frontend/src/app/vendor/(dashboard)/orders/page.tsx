@@ -3,11 +3,21 @@
 import { useEffect, useState } from 'react';
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
-import { Loader2, ShoppingBag, Clock, CheckCircle, Truck, XCircle, ChevronRight } from 'lucide-react';
+import { Loader2, ShoppingBag, Clock, CheckCircle, Truck, XCircle, ChevronRight, Eye } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export default function VendorOrdersPage() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchOrders = async () => {
         try {
@@ -121,7 +131,7 @@ export default function VendorOrdersPage() {
                                                     {ord.status}
                                                 </span>
                                             </td>
-                                            <td className="px-10 py-6 align-middle text-right">
+                                            <td className="px-10 py-6 align-middle text-right flex items-center justify-end gap-3">
                                                 <select
                                                     value={ord.status}
                                                     onChange={(e) => handleUpdateStatus(ord.id, e.target.value)}
@@ -133,6 +143,17 @@ export default function VendorOrdersPage() {
                                                     <option value="COMPLETED">Đã hoàn thành</option>
                                                     <option value="CANCELLED">Hủy bỏ đơn</option>
                                                 </select>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setSelectedOrder(ord);
+                                                        setIsModalOpen(true);
+                                                    }}
+                                                    className="h-10 px-4 rounded-xl font-bold text-xs flex items-center gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                                                >
+                                                    <Eye className="w-4 h-4" /> Chi tiết
+                                                </Button>
                                             </td>
                                         </tr>
                                     ))
@@ -142,6 +163,54 @@ export default function VendorOrdersPage() {
                     </div>
                 )}
             </div>
+
+            {/* Chi tiết đơn hàng Modal */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="sm:max-w-[700px] rounded-3xl p-0 overflow-hidden border-none shadow-2xl">
+                    <div className="bg-gradient-to-br from-blue-900 to-indigo-900 p-8 text-white relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full translate-x-1/2 -translate-y-1/2 blur-2xl"></div>
+                        <ShoppingBag className="w-10 h-10 mb-4 relative z-10 opacity-90 text-blue-300" />
+                        <DialogTitle className="text-2xl font-black mb-2 relative z-10 text-white">Chi tiết Đơn hàng #{selectedOrder?.id}</DialogTitle>
+                        <DialogDescription className="text-blue-100 font-medium relative z-10">
+                            Khách hàng: <span className="font-bold text-white">{selectedOrder?.customer?.username || 'Khách vãng lai'}</span>
+                        </DialogDescription>
+                    </div>
+                    
+                    <div className="p-8 bg-white max-h-[60vh] overflow-y-auto scrollbar-hide">
+                        <div className="space-y-6">
+                            {selectedOrder?.items?.map((item: any) => (
+                                <div key={item.id} className="flex gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <div className="w-24 h-24 shrink-0 rounded-xl bg-gray-200 overflow-hidden">
+                                        <img src={item.product?.imageUrl || 'https://via.placeholder.com/150'} alt={item.product?.name} className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex flex-col justify-between py-1">
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 line-clamp-2">{item.product?.name}</h4>
+                                            <p className="text-sm font-medium text-gray-500 mt-1">Phân loại: {item.product?.condition || 'Xe mới'}</p>
+                                        </div>
+                                        <div className="flex items-center gap-4 mt-2">
+                                            <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md">Số lượng: {item.quantity}</span>
+                                            <span className="font-black text-blue-600">
+                                                {item.price.toLocaleString('vi-VN')} đ
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            
+                            <div className="border-t border-gray-100 pt-6 mt-6">
+                                <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200">
+                                    <span className="font-bold text-gray-500 uppercase tracking-widest text-xs">Tổng doanh thu</span>
+                                    <span className="text-xl font-black text-blue-600">
+                                        {selectedOrder?.totalPrice.toLocaleString('vi-VN')} <span className="text-sm text-blue-400">VNĐ</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
         </div>
     );
 }

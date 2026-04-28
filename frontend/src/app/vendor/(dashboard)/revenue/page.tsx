@@ -185,7 +185,7 @@ export default function VendorRevenueReportPage() {
           <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* Revenue Chart */}
           <Card className="shadow-sm border-gray-100 overflow-hidden">
             <CardHeader className="flex flex-row items-start justify-between pb-6 border-b border-gray-50 bg-gray-50/50">
@@ -204,7 +204,7 @@ export default function VendorRevenueReportPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="h-[320px] w-full">
+              <div className="h-[75vh] min-h-[500px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data.revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -240,74 +240,10 @@ export default function VendorRevenueReportPage() {
                       name="Doanh thu"
                       fill="#3B82F6"
                       radius={[4, 4, 0, 0]}
-                      maxBarSize={40}
+                      maxBarSize={80}
                     />
                   </BarChart>
                 </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Delivery Chart */}
-          <Card className="shadow-sm border-gray-100 overflow-hidden">
-            <CardHeader className="pb-6 border-b border-gray-50 bg-gray-50/50">
-              <CardTitle className="text-sm font-bold uppercase text-gray-700 tracking-wider">
-                Thông tin giao hàng
-              </CardTitle>
-              <div className="text-xs font-normal text-gray-500 mt-1">
-                {groupBy === 'day' && `Từ ${startDate.split('-').reverse().join('/')} đến ${endDate.split('-').reverse().join('/')}`}
-                {groupBy === 'month' && `Từ tháng ${startDate.substring(0, 7).split('-').reverse().join('/')} đến tháng ${endDate.substring(0, 7).split('-').reverse().join('/')}`}
-                {groupBy === 'year' && `Từ năm ${startDate.split('-')[0]} đến năm ${endDate.split('-')[0]}`}
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <div className="h-[320px] w-full flex items-center justify-center relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data.deliveryData.length > 0 ? data.deliveryData : [{ status: 'Chưa có đơn hàng', count: 1 }]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={80}
-                      outerRadius={110}
-                      paddingAngle={4}
-                      dataKey="count"
-                      nameKey="status"
-                      label={(props: any) => `${props.status || props.name} (${data.deliveryData.length > 0 ? props.count || props.value : 0})`}
-                      labelLine={false}
-                      stroke="none"
-                    >
-                      {(data.deliveryData.length > 0 ? data.deliveryData : [{ status: 'Chưa có đơn hàng', count: 1 }]).map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={data.deliveryData.length > 0 ? COLORS[index % COLORS.length] : '#E5E7EB'} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: any, name: any) => [data.deliveryData.length > 0 ? `${value} đơn hàng` : '0 đơn hàng', 'Số lượng']}
-                      contentStyle={{
-                        borderRadius: '12px',
-                        border: '1px solid #F3F4F6',
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
-                        padding: '12px'
-                      }}
-                      itemStyle={{ color: '#374151', fontWeight: '500' }}
-                    />
-                    {data.deliveryData.length > 0 && (
-                      <Legend
-                        iconType="circle"
-                        layout="horizontal"
-                        verticalAlign="bottom"
-                        align="center"
-                        wrapperStyle={{ paddingTop: '20px' }}
-                      />
-                    )}
-                  </PieChart>
-                </ResponsiveContainer>
-
-                {data.deliveryData.length === 0 && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-10">
-                    <span className="text-gray-400 font-medium">Trống</span>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>

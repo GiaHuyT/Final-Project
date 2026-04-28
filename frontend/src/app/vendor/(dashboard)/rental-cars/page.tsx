@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import http from '@/lib/http';
 import { toast } from 'react-hot-toast';
-import { Pencil, Trash2, Image as ImageIcon, Loader2, Car, Plus, Info } from 'lucide-react';
+import { Pencil, Trash2, Image as ImageIcon, Loader2, Car, Plus, Info, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function VendorRentalCarsPage() {
     const [rentalCars, setRentalCars] = useState<any[]>([]);
@@ -17,6 +19,8 @@ export default function VendorRentalCarsPage() {
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedCar, setSelectedCar] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [filter, setFilter] = useState('all'); // 'all', 'ready', 'rented'
+    const [sortBy, setSortBy] = useState('newest');
 
     // Form states
     const [formData, setFormData] = useState({
@@ -172,84 +176,126 @@ export default function VendorRentalCarsPage() {
     );
 
     return (
-        <div className="container mx-auto py-6 space-y-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">Cho thuê Xe</h1>
-                    <p className="text-muted-foreground font-medium">Quản lý đội xe cho thuê và lịch trình của bạn.</p>
+        <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+            {/* Header Section with Asymmetric Layout */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="max-w-2xl">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600 mb-2">Cho thuê Xe</p>
+                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">Quản lý xe cho thuê</h1>
+                    <p className="mt-4 text-slate-500 max-w-md leading-relaxed">Quản lý đội xe cho thuê và lịch trình của bạn. Theo dõi trạng thái hoạt động theo thời gian thực.</p>
                 </div>
-                <Button variant="outline" onClick={() => setIsAddOpen(true)} className="rounded-xl border-blue-200 text-blue-600 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 h-12 px-6 font-bold gap-2">
-                    <Plus className="w-5 h-5" /> Thêm xe mới
-                </Button>
+                <button onClick={() => setIsAddOpen(true)} className="bg-blue-50/50 border border-blue-200 text-blue-600 hover:bg-blue-100 hover:text-blue-700 shadow-md shadow-blue-100 transition-all active:scale-95 px-8 py-3.5 rounded-xl font-bold flex items-center gap-3 shrink-0">
+                    <span className="material-symbols-outlined">add_circle</span>
+                    <span>Thêm xe mới</span>
+                </button>
             </div>
 
-            <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-gray-200/50 border border-gray-100/50 overflow-hidden">
-                <div className="px-10 py-8 border-b bg-gray-50/30">
-                    <h2 className="text-xl font-black uppercase tracking-widest text-gray-800 flex items-center gap-3">
-                        <Car className="w-6 h-6 text-blue-600" />
-                        Đội xe hiện tại
-                    </h2>
-                </div>
-
-                {loading ? (
-                    <div className="flex h-96 items-center justify-center"><Loader2 className="h-14 w-14 animate-spin text-blue-600" /></div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-100/50 text-gray-400 text-[10px] uppercase font-black tracking-widest">
-                                <tr>
-                                    <th className="px-10 py-6">Hình ảnh</th>
-                                    <th className="px-10 py-6">xe / phân loại</th>
-                                    <th className="px-10 py-6">Biển số</th>
-                                    <th className="px-10 py-6 text-center">Giá thuê</th>
-                                    <th className="px-10 py-6 text-center">Trạng thái</th>
-                                    <th className="px-10 py-6 text-right">Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {rentalCars.length === 0 ? (
-                                    <tr><td colSpan={6} className="px-10 py-24 text-center text-gray-400 font-bold italic">Chưa có xe nào trong đội.</td></tr>
-                                ) : (
-                                    rentalCars.map((rental) => (
-                                        <tr key={rental.id} className="hover:bg-blue-50/5 transition-colors group">
-                                            <td className="px-10 py-6 align-middle">
-                                                <div className="w-16 h-12 rounded-xl overflow-hidden shadow-sm border border-gray-100 group-hover:scale-110 transition-transform duration-300">
-                                                    <img src={rental.imageUrl || '/images/static/car-placeholder.png'} className="w-full h-full object-cover" />
-
-                                                </div>
-                                            </td>
-                                            <td className="px-10 py-6 align-middle">
-                                                <div className="font-black text-gray-900 text-base">{rental.name}</div>
-                                                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{rental.type}</div>
-                                            </td>
-                                            <td className="px-10 py-6 align-middle font-black text-gray-600 tracking-tighter uppercase">{rental.plate}</td>
-                                            <td className="px-10 py-6 align-middle text-center">
-                                                <div className="font-black text-blue-600">{(rental.price || 0).toLocaleString('vi-VN')} <span className="text-[10px] opacity-60">đ/ngày</span></div>
-                                            </td>
-                                            <td className="px-10 py-6 align-middle text-center">
-                                                <Badge className={`rounded-full px-4 py-1 uppercase text-[9px] font-black shadow-sm border-2 ${
-                                                    rental.status === 'Sẵn sàng' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                                    rental.status === 'Đang thuê' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-blue-50 text-blue-700 border-blue-200'
-                                                }`}>
-                                                    {rental.status}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-10 py-6 align-middle text-right space-x-2">
-                                                <Button size="icon" variant="outline" onClick={() => openEdit(rental)} className="w-9 h-9 rounded-xl hover:bg-blue-50 hover:text-blue-600 border-gray-100">
-                                                    <Pencil className="w-4 h-4" />
-                                                </Button>
-                                                <Button size="icon" variant="outline" onClick={() => handleDelete(rental.id)} className="w-9 h-9 rounded-xl hover:bg-red-50 hover:text-red-600 border-gray-100">
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+            {/* Stats Tonal Layering Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-slate-50 p-6 rounded-xl border-l-4 border-blue-600">
+                    <div className="flex justify-between items-start">
+                        <span className="material-symbols-outlined text-blue-600">directions_car</span>
+                        <span className="text-xs font-bold text-blue-600">Tổng quan</span>
                     </div>
-                )}
+                    <h3 className="mt-4 text-3xl font-bold">{rentalCars.length}</h3>
+                    <p className="text-sm text-slate-500 font-medium">Tổng số xe cho thuê</p>
+                </div>
+                <div className="bg-slate-50 p-6 rounded-xl border-l-4 border-emerald-600">
+                    <div className="flex justify-between items-start">
+                        <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+                        <span className="text-xs font-bold text-emerald-600">Sẵn sàng</span>
+                    </div>
+                    <h3 className="mt-4 text-3xl font-bold">{rentalCars.filter(p => p.status === 'Sẵn sàng').length}</h3>
+                    <p className="text-sm text-slate-500 font-medium">Sẵn sàng giao khách</p>
+                </div>
+                <div className="bg-slate-50 p-6 rounded-xl border-l-4 border-amber-500">
+                    <div className="flex justify-between items-start">
+                        <span className="material-symbols-outlined text-amber-500">key</span>
+                        <span className="text-xs font-bold text-amber-500">Đang thuê / Khác</span>
+                    </div>
+                    <h3 className="mt-4 text-3xl font-bold">{rentalCars.filter(p => p.status !== 'Sẵn sàng').length}</h3>
+                    <p className="text-sm text-slate-500 font-medium">Xe đang phục vụ khách</p>
+                </div>
             </div>
+
+            {/* Filter Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-slate-200/50">
+                <div className="flex items-center gap-2">
+                    <button onClick={() => setFilter('all')} className={cn("px-5 py-2 rounded-full text-xs font-bold transition-colors", filter === 'all' ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>Tất cả xe</button>
+                    <button onClick={() => setFilter('ready')} className={cn("px-5 py-2 rounded-full text-xs font-bold transition-colors", filter === 'ready' ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>Sẵn sàng</button>
+                    <button onClick={() => setFilter('rented')} className={cn("px-5 py-2 rounded-full text-xs font-bold transition-colors", filter === 'rented' ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200")}>Đang thuê / Khác</button>
+                </div>
+                <div className="flex items-center gap-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="flex items-center gap-2 px-4 py-2 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                                <span className="material-symbols-outlined text-sm">sort</span>
+                                {sortBy === 'newest' ? 'Mới nhất' : sortBy === 'oldest' ? 'Cũ nhất' : sortBy === 'price_desc' ? 'Giá cao nhất' : 'Giá thấp nhất'}
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 font-medium text-sm rounded-xl">
+                            <DropdownMenuItem onClick={() => setSortBy('newest')} className={cn("rounded-lg cursor-pointer", sortBy === 'newest' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Mới nhất</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('oldest')} className={cn("rounded-lg cursor-pointer", sortBy === 'oldest' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Cũ nhất</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('price_desc')} className={cn("rounded-lg cursor-pointer", sortBy === 'price_desc' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Giá cao nhất</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('price_asc')} className={cn("rounded-lg cursor-pointer", sortBy === 'price_asc' ? "bg-blue-50 text-blue-600 font-bold" : "text-slate-600")}>Giá thấp nhất</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="flex h-[40vh] items-center justify-center"><Loader2 className="h-16 w-16 animate-spin text-blue-600" /></div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {rentalCars.filter(p => {
+                        if (filter === 'ready') return p.status === 'Sẵn sàng';
+                        if (filter === 'rented') return p.status !== 'Sẵn sàng';
+                        return true;
+                    }).sort((a, b) => {
+                        if (sortBy === 'newest') return new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime();
+                        if (sortBy === 'oldest') return new Date(a.createdAt || Date.now()).getTime() - new Date(b.createdAt || Date.now()).getTime();
+                        if (sortBy === 'price_desc') return b.price - a.price;
+                        if (sortBy === 'price_asc') return a.price - b.price;
+                        return 0;
+                    }).map((rental) => (
+                        <div key={rental.id} className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 border border-slate-100">
+                            <div className="relative h-64 overflow-hidden">
+                                <img src={rental.imageUrl || '/images/static/car-placeholder.png'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={rental.name} />
+                                <div className="absolute top-4 left-4">
+                                    <span className={cn("text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg", rental.status === 'Sẵn sàng' ? "bg-emerald-600 text-white shadow-emerald-600/20" : rental.status === 'Đang thuê' ? "bg-amber-500 shadow-amber-500/20" : "bg-slate-600 shadow-slate-600/20")}>
+                                        {rental.status}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="p-6 flex-1 flex flex-col">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h3 className="text-xl font-bold tracking-tight line-clamp-1">{rental.name}</h3>
+                                </div>
+                                <p className="text-sm font-bold text-slate-500 mb-4 line-clamp-1">{rental.type}</p>
+                                
+                                <div className="flex gap-4 mb-6">
+                                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                                        <span className="material-symbols-outlined text-base">pin</span>
+                                        <span className="uppercase tracking-widest">{rental.plate}</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-auto pt-4 border-t border-slate-50 flex justify-between items-center">
+                                    <span className="text-slate-900 font-bold text-lg">{(rental.price || 0).toLocaleString('vi-VN')} <span className="text-[10px] text-slate-400 align-top ml-0.5">VNĐ / Ngày</span></span>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => openEdit(rental)} className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 w-8 h-8 rounded flex items-center justify-center transition-colors">
+                                            <span className="material-symbols-outlined text-[20px]">edit</span>
+                                        </button>
+                                        <button onClick={() => handleDelete(rental.id)} className="text-slate-400 hover:text-red-600 hover:bg-red-50 w-8 h-8 rounded flex items-center justify-center transition-colors">
+                                            <span className="material-symbols-outlined text-[20px]">delete</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogContent className="max-w-xl rounded-[2.5rem] p-0 overflow-hidden border-none shadow-3xl">
