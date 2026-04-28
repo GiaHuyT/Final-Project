@@ -15,10 +15,22 @@ export class AuctionsController {
     return this.auctionsService.create(req.user.id, createAuctionDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Put(':id')
+  async update(@Request() req, @Param('id') id: string, @Body() updateAuctionDto: Partial<CreateAuctionDto>) {
+    return this.auctionsService.update(+id, req.user.id, updateAuctionDto);
+  }
+
   @Public()
   @Get()
   async findAll(@Query('status') status?: string) {
     return this.auctionsService.findAll(status);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('vendor/me')
+  async findMyAuctions(@Request() req) {
+    return this.auctionsService.findByVendorId(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)

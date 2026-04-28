@@ -12,6 +12,34 @@ import Cookies from 'js-cookie';
 import { toast } from 'react-hot-toast';
 import http from '@/lib/http';
 
+const getEmbedUrl = (url: string) => {
+    if (!url) return '';
+    try {
+        let videoId = '';
+        if (url.includes('youtube.com/watch?v=')) {
+            videoId = new URL(url).searchParams.get('v') || '';
+        } else if (url.includes('youtube.com/live/')) {
+            videoId = url.split('youtube.com/live/')[1].split('?')[0];
+        } else if (url.includes('youtu.be/')) {
+            videoId = url.split('youtu.be/')[1].split('?')[0];
+        } else if (url.includes('youtube.com/embed/')) {
+            return url;
+        }
+
+        if (videoId) {
+            return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
+        }
+        
+        if (url.includes('facebook.com')) {
+            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
+        }
+        
+        return url.replace("watch?v=", "embed/");
+    } catch (e) {
+        return url.replace("watch?v=", "embed/");
+    }
+};
+
 export default function AuctionDetailPage() {
     const params = useParams();
     const router = useRouter();
@@ -119,11 +147,14 @@ export default function AuctionDetailPage() {
         return () => clearInterval(timer);
     }, [endTime, auction]);
 
-    // Polling for transition from ACTIVE -> WAITING_PAYMENT
+    // Polling for transitions (ACTIVE -> WAITING_PAYMENT -> COMPLETED)
     useEffect(() => {
         let pollTimer: any;
-        if (isEnded && auction?.status === 'ACTIVE') {
+        if (auction?.status === 'ACTIVE' && isEnded) {
             // After time ends locally, the cron job might take a few seconds to update DB
+            pollTimer = setInterval(fetchAuctionDetail, 3000);
+        } else if (auction?.status === 'WAITING_PAYMENT') {
+            // Poll to detect when the winner completes the PayOS transaction
             pollTimer = setInterval(fetchAuctionDetail, 3000);
         }
         return () => clearInterval(pollTimer);
@@ -212,19 +243,20 @@ export default function AuctionDetailPage() {
     const handleGeneratePayment = async () => {
         try {
             setIsGeneratingPayment(true);
+            const amount = Math.max(2000, Math.round(currentPrice * 0.00001)); // Cọc 0.001%, tối thiểu 2000đ cho PayOS
             const res = await http.post(`/transactions/auction/${auction.id}`, {
-                amount: Math.round(currentPrice * 0.00001), // Cọc 0.001%
+                amount,
                 description: `Coc xe dau gia ${auction.id}`
             });
             const data = res.data;
             if (data.checkoutUrl) {
-                // Hiển thị iframe trực tiếp thay vì chuyển hướng
-                setPaymentUrl(data.checkoutUrl);
+                // Chuyển hướng trực tiếp sang PayOS
+                window.location.href = data.checkoutUrl;
             } else {
                 toast.error("Không thể tạo link thanh toán");
             }
-        } catch (error) {
-            toast.error("Lỗi khi kết nối PayOS");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Lỗi khi kết nối PayOS");
         } finally {
             setIsGeneratingPayment(false);
         }
@@ -246,7 +278,7 @@ export default function AuctionDetailPage() {
                                 <div className="aspect-video relative w-full bg-slate-900 flex items-center justify-center">
                                     {auction.streamUrl ? (
                                         <iframe
-                                            src={auction.streamUrl.replace("watch?v=", "embed/")}
+                                            src={getEmbedUrl(auction.streamUrl)}
                                             className="w-full h-full absolute inset-0"
                                             allowFullScreen
                                         />
@@ -263,11 +295,14 @@ export default function AuctionDetailPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="aspect-video bg-slate-200 relative items-center justify-center flex">
+                                <div className="aspect-video bg-slate-200 relative items-center justify-center flex overflow-hidden rounded-2xl">
                                     <img
                                         src={auction.items?.[0]?.product?.images?.[0]?.url || 'https://images.unsplash.com/photo-1550524458-9a9b08f8aeeb?q=80&w=1200'}
                                         alt="Car Image"
                                         className="object-cover w-full h-full"
+                                        onError={(e) => {
+                                            e.currentTarget.src = "/images/static/car-placeholder.png";
+                                        }}
                                     />
                                 </div>
                             )}
@@ -294,7 +329,11 @@ export default function AuctionDetailPage() {
                                     <h3 className="font-semibold text-slate-800 mb-3">Xe đấu giá trong phiên này:</h3>
                                     {auction.items.map((item: any) => (
                                         <div key={item.id} className="flex gap-4 items-center bg-slate-50 p-3 rounded-lg border">
-                                            <img src={item.product?.images?.[0]?.url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=200'} className="w-16 h-12 object-cover rounded" />
+                                            <img 
+                                                src={item.product?.images?.[0]?.url || 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=200'} 
+                                                className="w-16 h-12 object-cover rounded" 
+                                                onError={(e) => { e.currentTarget.src = "/images/static/car-placeholder.png"; }}
+                                            />
                                             <div>
                                                 <p className="font-bold text-slate-800">{item.product?.name}</p>
                                                 <p className="text-xs text-slate-500">Mã SP: #{item.product?.id}</p>
@@ -304,6 +343,121 @@ export default function AuctionDetailPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Detailed Specs for the first item */}
+                        {auction.items?.[0]?.product && (() => {
+                            const product = auction.items[0].product;
+                            return (
+                                <div className="bg-white p-6 rounded-2xl shadow-sm border space-y-12 mt-6">
+                                    {product.condition === 'Xe cũ' && (
+                                    <div>
+                                    <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-slate-100 mb-8">Tình trạng phương tiện</h2>
+                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Odo (Đã đi)</p>
+                                            <p className="font-headline font-bold text-lg">{product.mileage ? `${product.mileage.toLocaleString('vi-VN')} km` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Biển số</p>
+                                            <p className="font-headline font-bold text-lg">{product.licensePlate || '—'}</p>
+                                        </div>
+                                        <div className="col-span-2 lg:col-span-3">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Mô tả tình trạng</p>
+                                            <p className="font-headline font-bold text-lg">{product.conditionDetail || '—'}</p>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    )}
+
+                                    <div>
+                                    <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-slate-100 mb-8">Thông số Động cơ & Vận hành</h2>
+                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Động cơ & Nhiên liệu</p>
+                                            <p className="font-headline font-bold text-lg">{product.engineCapacity ? `${product.engineCapacity}L` : ''} {product.fuelType || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Công suất tối đa</p>
+                                            <p className="font-headline font-bold text-lg">{product.maxPower ? `${product.maxPower} hp` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Mô-men xoắn</p>
+                                            <p className="font-headline font-bold text-lg">{product.maxTorque ? `${product.maxTorque} Nm` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Hộp số</p>
+                                            <p className="font-headline font-bold text-lg">{product.transmission || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Hệ dẫn động</p>
+                                            <p className="font-headline font-bold text-lg">{product.driveType || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Tiêu thụ nhiên liệu</p>
+                                            <p className="font-headline font-bold text-lg">{product.avgFuelConsumption ? `${product.avgFuelConsumption} L/100km` : '—'}</p>
+                                        </div>
+                                    </div>
+                                    </div>
+
+                                    <div>
+                                    <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-slate-100 mb-8">Kích thước & Trọng lượng</h2>
+                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">D x R x C (mm)</p>
+                                            <p className="font-headline font-bold text-lg">{product.length || '—'} x {product.width || '—'} x {product.height || '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Chiều dài cơ sở</p>
+                                            <p className="font-headline font-bold text-lg">{product.wheelbase ? `${product.wheelbase} mm` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Khoảng sáng gầm</p>
+                                            <p className="font-headline font-bold text-lg">{product.groundClearance ? `${product.groundClearance} mm` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Trọng lượng không tải</p>
+                                            <p className="font-headline font-bold text-lg">{product.curbWeight ? `${product.curbWeight} kg` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Dung tích bình xăng</p>
+                                            <p className="font-headline font-bold text-lg">{product.fuelTankCapacity ? `${product.fuelTankCapacity} L` : '—'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Kiểu dáng (Body Type)</p>
+                                            <p className="font-headline font-bold text-lg">{product.bodyType || '—'}</p>
+                                        </div>
+                                    </div>
+                                    </div>
+
+                                    <div>
+                                    <h2 className="font-headline text-3xl font-bold tracking-tight pb-4 border-b border-slate-100 mb-8">Tiện nghi & An toàn</h2>
+                                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-10">
+                                        <div>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Số túi khí</p>
+                                            <p className="font-headline font-bold text-lg">{product.airbags || '—'}</p>
+                                        </div>
+                                        <div className="col-span-2 lg:col-span-3">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Trang bị nổi bật</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {product.autoConditioning && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Điều hòa tự động</span>}
+                                                {product.infotainment && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Màn hình giải trí</span>}
+                                                {product.appleCarplay && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Apple CarPlay/Android Auto</span>}
+                                                {product.electricSeats && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Ghế chỉnh điện</span>}
+                                                {product.camera360 && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Camera 360</span>}
+                                                {product.abs && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Phanh ABS</span>}
+                                                {product.esp && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Cân bằng ESP</span>}
+                                                {product.ba && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Hỗ trợ phanh BA</span>}
+                                                {product.rearSensor && <span className="px-3 py-1.5 bg-slate-100 rounded-full text-xs font-bold text-slate-700">Cảm biến lùi</span>}
+                                                {(!product.autoConditioning && !product.infotainment && !product.appleCarplay && !product.electricSeats && !product.camera360 && !product.abs && !product.esp && !product.ba && !product.rearSensor) && (
+                                                    <span className="text-sm font-medium text-slate-500">Không có thông tin trang bị tiêu chuẩn.</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Phần Bidding Box */}
@@ -327,29 +481,47 @@ export default function AuctionDetailPage() {
                                         <h3 className="font-bold text-amber-900 text-lg mb-1">ĐÃ CHỐT ĐẤU GIÁ</h3>
                                         <p className="text-sm text-amber-700 mb-4">Đang đợi người có mức cược cao nhất nộp tiền đặt cọc 0,001% (Trong vòng 5 phút).</p>
 
-                                        {isWinner ? (
-                                            paymentUrl ? (
-                                                <div className="mt-4 border border-amber-200 rounded-xl overflow-hidden shadow-lg h-[500px] w-full bg-white">
-                                                    <iframe src={paymentUrl} className="w-full h-full border-none" />
-                                                </div>
-                                            ) : (
-                                                <Button
-                                                    onClick={handleGeneratePayment}
-                                                    disabled={isGeneratingPayment}
-                                                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold h-12 shadow-lg"
-                                                >
-                                                    {isGeneratingPayment ? 'Đang tạo mã QR PayOS...' : `THANH TOÁN CỌC ${Math.round(currentPrice * 0.00001).toLocaleString('vi-VN')}đ NGAY!`}
-                                                </Button>
-                                            )
+                                        {currentUser?.id === auction.vendorId ? (
+                                            <div className="bg-white p-3 rounded-lg border border-amber-100 mt-4 text-left">
+                                                <p className="text-sm text-slate-500 mb-1">Đang đợi thanh toán từ:</p>
+                                                <p className="font-bold text-amber-700 text-lg">{auction.winner?.username || 'Không xác định'}</p>
+                                                <p className="text-xs text-slate-500">{auction.winner?.email}</p>
+                                            </div>
+                                        ) : isWinner ? (
+                                            <Button
+                                                onClick={handleGeneratePayment}
+                                                disabled={isGeneratingPayment}
+                                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold h-12 shadow-lg mt-4"
+                                            >
+                                                {isGeneratingPayment ? 'Đang tạo link thanh toán...' : `THANH TOÁN CỌC ${Math.max(2000, Math.round(currentPrice * 0.00001)).toLocaleString('vi-VN')}đ NGAY!`}
+                                            </Button>
                                         ) : (
                                             <p className="text-xs bg-white py-2 rounded-lg text-slate-600">Bạn đứng hạng dưới. Vui lòng chờ xem Top 1 có bùng kèo không để tiếp tục đọ sức!</p>
                                         )}
                                     </div>
                                 ) : auction.status === 'COMPLETED' ? (
-                                    <div className="bg-emerald-50 border-emerald-200 border rounded-xl p-5 text-center">
+                                    <div className="bg-emerald-50 border-emerald-200 border rounded-xl p-5 text-center space-y-3">
                                         <ShieldCheck className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-                                        <h3 className="font-bold text-emerald-900 text-lg mb-1">PHIÊN NÀY ĐÃ BÁN</h3>
-                                        <p className="text-sm text-emerald-700 font-semibold mt-2">Cọc đã được thu siêu tốc bằng PayOS.</p>
+                                        <h3 className="font-bold text-emerald-900 text-lg mb-1">PHIÊN ĐẤU GIÁ ĐÃ KẾT THÚC</h3>
+                                        
+                                        {currentUser?.id === auction.vendorId ? (
+                                            <div className="bg-white p-3 rounded-lg border border-emerald-100 text-left mt-4">
+                                                <p className="text-sm text-slate-500 mb-1">Người chiến thắng (Đã đặt cọc):</p>
+                                                <p className="font-bold text-emerald-700 text-lg">{auction.winner?.username || 'Không xác định'}</p>
+                                                <p className="text-xs text-slate-500">{auction.winner?.email}</p>
+                                            </div>
+                                        ) : isWinner ? (
+                                            <div className="bg-emerald-500 text-white p-4 rounded-xl shadow-lg mt-4">
+                                                <h4 className="font-bold text-xl mb-1">🎉 CHÚC MỪNG BẠN! 🎉</h4>
+                                                <p className="text-sm">Bạn đã là người chiến thắng trong phiên đấu giá này.</p>
+                                                <p className="text-xs mt-2 opacity-80">Tiền cọc đã được thanh toán thành công.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-white p-4 rounded-xl border border-emerald-100 mt-4">
+                                                <p className="text-slate-700 text-sm">Rất tiếc, bạn đã không giành chiến thắng trong phiên này.</p>
+                                                <p className="font-bold text-slate-900 mt-1">Chúc bạn may mắn lần sau! 🍀</p>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <>
@@ -379,7 +551,7 @@ export default function AuctionDetailPage() {
                                                                 ĐĂNG KÝ THAM GIA ĐẤU GIÁ
                                                             </Button>
                                                         );
-                                                    } else if (reg.status === 'PENDING') {
+                                                    } else if (reg.status === 'PENDING' || reg.status === 'REGISTERED') {
                                                         return (
                                                             <Button disabled className="w-full bg-orange-100 text-orange-700 hover:bg-orange-100 font-bold opacity-80 h-12 cursor-not-allowed border border-orange-200">
                                                                 ĐANG CHỜ CHỦ PHIÊN DUYỆT...

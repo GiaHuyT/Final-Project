@@ -32,7 +32,7 @@ export class AuctionsService {
                 startTime: dto.startTime,
                 endTime: dto.endTime,
                 vendorId,
-                status: 'PENDING',
+                status: 'ACTIVE',
                 items: {
                     create: dto.items.map(i => ({
                         productId: i.productId,
@@ -59,6 +59,79 @@ export class AuctionsService {
                 _count: { select: { bids: true } }
             },
             orderBy: { startTime: 'desc' }
+        });
+    }
+
+    async findByVendorId(vendorId: number) {
+        return this.prisma.auction.findMany({
+            where: { vendorId },
+            include: {
+                vendor: { select: { username: true, email: true } },
+                items: { include: { product: true } },
+                registrations: { select: { userId: true, status: true } },
+                _count: { select: { bids: true } }
+            },
+            orderBy: { startTime: 'desc' }
+        });
+    }
+
+    async update(id: number, vendorId: number, dto: Partial<CreateAuctionDto>) {
+        const auction = await this.prisma.auction.findUnique({ where: { id } });
+        if (!auction) throw new NotFoundException('Không tìm thấy phiên đấu giá.');
+        if (auction.vendorId !== vendorId) throw new BadRequestException('Bạn không có quyền chỉnh sửa phiên đấu giá này.');
+
+        // Kiểm tra thời gian: Chỉ được sửa trước khi bắt đầu 5 phút
+        const now = new Date();
+        const startTime = new Date(auction.startTime);
+        const timeDiff = startTime.getTime() - now.getTime(); // thời gian còn lại đến khi bắt đầu (ms)
+
+        if (timeDiff < 5 * 60 * 1000) {
+            throw new BadRequestException('Chỉ được chỉnh sửa thông tin trước khi phiên đấu giá bắt đầu 5 phút.');
+        }
+
+        // Nếu có cập nhật items
+        if (dto.items && dto.items.length > 0) {
+            // Xóa items cũ
+            await this.prisma.auctionItem.deleteMany({ where: { auctionId: id } });
+            // Cập nhật thông tin và tạo items mới
+            return this.prisma.auction.update({
+                where: { id },
+                data: {
+                    title: dto.title,
+                    description: dto.description,
+                    startPrice: dto.startPrice,
+                    currentPrice: dto.startPrice,
+                    bidStep: dto.bidStep,
+                    type: dto.type,
+                    streamUrl: dto.streamUrl,
+                    startTime: dto.startTime,
+                    endTime: dto.endTime,
+                    items: {
+                        create: dto.items.map(i => ({
+                            productId: i.productId,
+                            orderIndex: i.orderIndex || 0
+                        }))
+                    }
+                },
+                include: { items: { include: { product: true } } }
+            });
+        }
+
+        // Nếu không cập nhật items
+        return this.prisma.auction.update({
+            where: { id },
+            data: {
+                title: dto.title,
+                description: dto.description,
+                startPrice: dto.startPrice,
+                currentPrice: dto.startPrice,
+                bidStep: dto.bidStep,
+                type: dto.type,
+                streamUrl: dto.streamUrl,
+                startTime: dto.startTime,
+                endTime: dto.endTime,
+            },
+            include: { items: { include: { product: true } } }
         });
     }
 
@@ -154,7 +227,7 @@ export class AuctionsService {
         }
 
         const registration = await this.prisma.auctionRegistration.create({
-            data: { auctionId, userId }
+            data: { auctionId, userId, status: 'PENDING' }
         });
 
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
@@ -224,7 +297,7 @@ export class AuctionsService {
         });
         if (!auction || !auction.winnerId || !auction.currentPrice) return null;
 
-        const depositAmount = Math.round(auction.currentPrice * 0.00001);
+        const depositAmount = Math.max(2000, Math.round(auction.currentPrice * 0.00001));
 
         return this.transactionsService.createTransactionForAuction(
             auction.id,

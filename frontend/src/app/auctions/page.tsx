@@ -265,11 +265,24 @@ export default function AuctionListingPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                {filteredAuctions.map((auction) => {
+                {filteredAuctions.map((auction, index) => {
                   const timeLeft = getTimeLeft(auction.startTime, auction.endTime, auction.status);
                   const isEnded = timeLeft === "ĐÃ KẾT THÚC";
                   const isPending = timeLeft.startsWith("Bắt đầu");
-                  const coverImage = auction.items?.[0]?.product?.images?.[0]?.url || "/images/static/car-placeholder.png";
+                  
+                  const placeholders = [
+                    "/images/static/category-sedan.png",
+                    "/images/static/category-suv.png",
+                    "/images/static/category-exotic.png",
+                    "/images/static/category-electric.png",
+                    "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?auto=format&fit=crop&q=80&w=800",
+                    "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&q=80&w=800",
+                    "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&q=80&w=800",
+                    "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=800"
+                  ];
+                  const fallbackImage = placeholders[index % placeholders.length];
+                  const coverImage = auction.items?.[0]?.product?.images?.[0]?.url || fallbackImage;
+                  
                   const myReg = auction.registrations?.find((r: any) => r.userId === user?.id);
 
                   return (
@@ -290,16 +303,16 @@ export default function AuctionListingPage() {
                         <h3 className="font-headline text-xl font-bold text-on-surface line-clamp-2 mb-3 h-14" title={auction.title}>{auction.title}</h3>
                         
                         <div className="mt-auto space-y-4">
-                            <div className="bg-surface-container-low p-4 rounded-xl flex justify-between items-center border border-outline/5 border-b-[2px] border-b-primary">
-                                <div>
-                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Giá hiện tại</p>
-                                <p className="text-2xl font-black text-primary">
-                                    {(auction.currentPrice || auction.startPrice).toLocaleString('vi-VN')} đ
-                                </p>
+                            <div className="bg-surface-container-low p-4 rounded-xl flex items-center justify-between gap-4 border border-outline/5 border-b-[2px] border-b-primary">
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Giá hiện tại</p>
+                                    <p className="text-xl font-black text-primary truncate" title={`${(auction.currentPrice || auction.startPrice).toLocaleString('vi-VN')} đ`}>
+                                        {(auction.currentPrice || auction.startPrice).toLocaleString('vi-VN')} đ
+                                    </p>
                                 </div>
-                                <div className="text-right">
-                                <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Bắt đầu lúc</p>
-                                <p className="text-sm font-semibold text-on-surface">{format(new Date(auction.startTime), "dd/MM HH:mm")}</p>
+                                <div className="text-right shrink-0">
+                                    <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Bắt đầu lúc</p>
+                                    <p className="text-sm font-semibold text-on-surface whitespace-nowrap">{format(new Date(auction.startTime), "dd/MM HH:mm")}</p>
                                 </div>
                             </div>
 
@@ -327,10 +340,10 @@ export default function AuctionListingPage() {
                                             e.preventDefault();
                                             handleRegisterClick(auction);
                                         }}
-                                        disabled={myReg?.status === 'PENDING' || myReg?.status === 'REJECTED' || processingAction === auction.id}
+                                        disabled={myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED' || myReg?.status === 'REJECTED' || processingAction === auction.id}
                                         className={`block w-full text-center py-3 flex items-center justify-center rounded-full font-headline font-bold text-sm tracking-widest transition-all ${
                                             myReg?.status === 'APPROVED' ? 'bg-primary text-on-primary hover:opacity-90' :
-                                            myReg?.status === 'PENDING' ? 'bg-orange-500 text-white opacity-80 cursor-not-allowed' :
+                                            (myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED') ? 'bg-orange-500 text-white opacity-80 cursor-not-allowed' :
                                             myReg?.status === 'REJECTED' ? 'bg-error text-white opacity-80 cursor-not-allowed' :
                                             'bg-primary text-on-primary hover:opacity-90 active:scale-95'
                                         }`}
@@ -338,7 +351,7 @@ export default function AuctionListingPage() {
                                         {processingAction === auction.id ? (
                                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                                         ) : myReg?.status === 'APPROVED' ? "THAM GIA NGAY" :
-                                          myReg?.status === 'PENDING' ? "ĐANG CHỜ" :
+                                          (myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED') ? "ĐANG CHỜ" :
                                           myReg?.status === 'REJECTED' ? "BỊ TỪ CHỐI" :
                                           "ĐĂNG KÝ"}
                                     </button>

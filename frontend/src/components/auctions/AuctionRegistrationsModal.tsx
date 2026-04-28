@@ -137,7 +137,7 @@ export default function AuctionRegistrationsModal({
                           {format(new Date(reg.createdAt), "HH:mm dd/MM/yyyy")}
                         </td>
                         <td className="px-6 py-4">
-                          {reg.status === "PENDING" && (
+                          {(reg.status === "PENDING" || reg.status === "REGISTERED") && (
                             <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none">
                               <Clock className="w-3 h-3 mr-1" /> Chờ
                             </Badge>
@@ -154,7 +154,7 @@ export default function AuctionRegistrationsModal({
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {reg.status === "PENDING" && (
+                          {(reg.status === "PENDING" || reg.status === "REGISTERED") && (
                             <div className="flex items-center justify-end gap-2">
                               <Button
                                 onClick={() => handleAction(reg.id, "approve")}
@@ -173,7 +173,7 @@ export default function AuctionRegistrationsModal({
                               </Button>
                             </div>
                           )}
-                          {reg.status !== "PENDING" && (
+                          {reg.status !== "PENDING" && reg.status !== "REGISTERED" && (
                             <span className="text-xs text-slate-400 italic">Đã xử lý</span>
                           )}
                         </td>

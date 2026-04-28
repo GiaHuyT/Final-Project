@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Gavel, Calendar, Edit, Eye, Clock, Users } from 'lucide-react';
+import { Plus, Gavel, Calendar, Edit, Eye, Clock, Users, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import http from '@/lib/http';
 import AuctionRegistrationsModal from '@/components/auctions/AuctionRegistrationsModal';
 
@@ -13,7 +14,9 @@ function AuctionCountdown({ startTime, status }: { startTime: string; status: st
     const [timeLeft, setTimeLeft] = useState<string>('');
 
     useEffect(() => {
-        if (status !== 'PENDING') return;
+        const startMs = new Date(startTime).getTime();
+        if (status !== 'ACTIVE' && status !== 'PENDING') return;
+        if (status === 'ACTIVE' && startMs <= new Date().getTime()) return;
 
         const tick = () => {
             const now = new Date().getTime();
@@ -35,7 +38,8 @@ function AuctionCountdown({ startTime, status }: { startTime: string; status: st
         return () => clearInterval(timer);
     }, [startTime, status]);
 
-    if (status !== 'PENDING' || !timeLeft) return null;
+    if (!timeLeft) return null;
+    if (status !== 'PENDING' && status !== 'ACTIVE') return null;
 
     return (
         <span className="font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md ml-auto">
@@ -49,17 +53,33 @@ export default function VendorAuctionsPage() {
     const [loading, setLoading] = useState(true);
     const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
     const [selectedAuctionId, setSelectedAuctionId] = useState<number | null>(null);
+    const [filter, setFilter] = useState<string>('ALL');
 
     const fetchAuctions = async () => {
         try {
             setLoading(true);
-            const res = await http.get('/auctions');
-            const data = res.data;
+            let data = [];
+            try {
+                const res = await http.get('/auctions/vendor/me');
+                if (res.data && Array.isArray(res.data)) {
+                    data = res.data;
+                } else if (res.data && Array.isArray(res.data.data)) {
+                    data = res.data.data;
+                }
+            } catch (err) {
+                // Fallback to fetch all if backend endpoint not registered yet
+                const res = await http.get('/auctions');
+                data = res.data || [];
+            }
             
             const userObj = JSON.parse(localStorage.getItem('user') || '{}');
+            // If data contains all auctions, filter it manually as fallback
             if (data && Array.isArray(data)) {
-                const myAuctions = data.filter(a => a.vendorId === userObj.id);
-                setAuctions(myAuctions);
+                // If the first item belongs to another vendor, or we suspect it's all auctions
+                // Safe check: filter if vendorId is present
+                const myAuctions = data.filter((a: any) => a.vendorId === userObj.id || a.vendor?.id === userObj.id || String(a.vendorId) === String(userObj.id));
+                // If it's from vendor/me, it might already be filtered. But filtering again is safe.
+                setAuctions(myAuctions.length > 0 ? myAuctions : data.filter((a: any) => String(a.vendorId) === String(userObj.id)));
             }
         } catch (error) {
             console.error("Error fetching auctions:", error);
@@ -77,9 +97,12 @@ export default function VendorAuctionsPage() {
         setIsRegistrationsModalOpen(true);
     };
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: string, startTime?: string) => {
+        if (status === 'ACTIVE' && startTime && new Date(startTime).getTime() > new Date().getTime()) {
+            return <Badge variant="outline" className="bg-amber-100 text-amber-700">Sắp diễn ra</Badge>;
+        }
         switch (status) {
-            case 'PENDING': return <Badge variant="outline" className="bg-slate-100 text-slate-700">Chờ mở</Badge>;
+            case 'PENDING': return <Badge variant="outline" className="bg-amber-100 text-amber-700">Sắp diễn ra</Badge>;
             case 'ACTIVE': return <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-600">Đang diễn ra</Badge>;
             case 'WAITING_PAYMENT': return <Badge className="bg-amber-500 hover:bg-amber-600"><Clock className="w-3 h-3 mr-1" />Chờ cọc</Badge>;
             case 'COMPLETED': return <Badge variant="secondary" className="bg-sky-100 text-sky-700">Thành công</Badge>;
@@ -87,6 +110,14 @@ export default function VendorAuctionsPage() {
             default: return <Badge variant="outline">{status}</Badge>;
         }
     };
+
+    const filteredAuctions = auctions.filter((auction) => {
+        if (filter === 'ONLINE') return auction.type === 'LIVESTREAM';
+        if (filter === 'OFFLINE') return auction.type === 'OFFLINE';
+        if (filter === 'EXPIRED') return auction.status === 'COMPLETED' || auction.status === 'FINISHED' || auction.status === 'ENDED';
+        if (filter === 'CANCELLED') return auction.status === 'CANCELLED';
+        return true;
+    });
 
     return (
         <div className="space-y-6">
@@ -106,6 +137,14 @@ export default function VendorAuctionsPage() {
                 </Link>
             </div>
 
+            <div className="flex gap-2 pb-2 overflow-x-auto">
+                <Button variant={filter === 'ALL' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ALL')} className={filter === 'ALL' ? 'bg-blue-600' : ''}>Tất cả</Button>
+                <Button variant={filter === 'ONLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ONLINE')} className={filter === 'ONLINE' ? 'bg-rose-500 hover:bg-rose-600 border-rose-500' : 'border-rose-200 text-rose-600 hover:bg-rose-50'}>🔴 Online (Live)</Button>
+                <Button variant={filter === 'OFFLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('OFFLINE')} className={filter === 'OFFLINE' ? 'bg-indigo-500 hover:bg-indigo-600 border-indigo-500' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50'}>📦 Offline</Button>
+                <Button variant={filter === 'EXPIRED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('EXPIRED')} className={filter === 'EXPIRED' ? 'bg-slate-600' : ''}>Hết hạn</Button>
+                <Button variant={filter === 'CANCELLED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('CANCELLED')} className={filter === 'CANCELLED' ? 'bg-red-500' : 'border-red-200 text-red-600 hover:bg-red-50'}>Đã hủy</Button>
+            </div>
+
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[1, 2, 3].map(i => (
@@ -118,7 +157,7 @@ export default function VendorAuctionsPage() {
                         </Card>
                     ))}
                 </div>
-            ) : auctions.length === 0 ? (
+            ) : filteredAuctions.length === 0 ? (
                 <Card className="flex flex-col items-center justify-center py-16 text-center border-dashed border-2">
                     <Gavel className="w-12 h-12 text-slate-300 mb-4" />
                     <h3 className="text-lg font-semibold text-slate-700">Chưa có phiên đấu giá nào</h3>
@@ -129,19 +168,30 @@ export default function VendorAuctionsPage() {
                 </Card>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {auctions.map((auction) => (
+                    {filteredAuctions.map((auction) => (
                         <Card key={auction.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                            <div className="relative h-48 bg-slate-200">
+                                {auction.items?.[0]?.product?.imageUrl ? (
+                                    <img src={auction.items[0].product.imageUrl} alt={auction.title} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-300">
+                                        <ImageIcon className="w-12 h-12 opacity-50" />
+                                    </div>
+                                )}
+                                <div className="absolute top-3 left-3 flex flex-col gap-2">
+                                    <Badge variant="outline" className={cn("shadow-sm font-bold", auction.type === 'LIVESTREAM' ? "border-rose-200 text-white bg-rose-500" : "border-indigo-200 text-white bg-indigo-500")}>
+                                        {auction.type === 'LIVESTREAM' ? '🔴 Livestream' : '📦 Offline'}
+                                    </Badge>
+                                </div>
+                                <div className="absolute top-3 right-3">
+                                    {getStatusBadge(auction.status, auction.startTime)}
+                                </div>
+                            </div>
                             <div className="bg-slate-50 p-4 border-b flex justify-between items-start">
                                 <div>
                                     <h3 className="font-bold text-lg text-slate-800 line-clamp-1" title={auction.title}>
                                         {auction.title}
                                     </h3>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <Badge variant="outline" className={auction.type === 'LIVESTREAM' ? "border-rose-200 text-rose-600 bg-rose-50" : "border-indigo-200 text-indigo-600 bg-indigo-50"}>
-                                            {auction.type === 'LIVESTREAM' ? '🔴 Livestream' : '📦 Offline'}
-                                        </Badge>
-                                        {getStatusBadge(auction.status)}
-                                    </div>
                                 </div>
                             </div>
                             <CardContent className="p-4 space-y-3 relative">
@@ -191,7 +241,7 @@ export default function VendorAuctionsPage() {
                                             )}
                                         </Button>
                                     </div>
-                                    {auction.status === 'PENDING' && (
+                                    {(auction.status === 'PENDING' || (auction.status === 'ACTIVE' && new Date(auction.startTime).getTime() > new Date().getTime())) && (
                                         <div className="flex justify-end gap-2">
                                             <Link href={`/vendor/auctions/${auction.id}/edit`}>
                                                 <Button variant="ghost" size="sm" className="px-2 border">
