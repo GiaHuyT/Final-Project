@@ -44,6 +44,10 @@ model User {
   messages          Message[]
   cart              Cart?
   auctionRegistrations AuctionRegistration[]
+  
+  // Rides
+  customerRides     DriverBooking[]  @relation("CustomerRides")
+  driverRides       DriverBooking[]  @relation("DriverRides")
 }
 
 enum Role {
@@ -411,6 +415,39 @@ model DriverRentalService {
   // 9. Thông tin thêm (Optional)
   bio             String?
   languages       String[] @default([])
+}
+
+model DriverBooking {
+  id              Int      @id @default(autoincrement())
+  
+  customerId      Int
+  customer        User     @relation("CustomerRides", fields: [customerId], references: [id])
+  
+  driverId        Int?
+  driver          User?    @relation("DriverRides", fields: [driverId], references: [id])
+  
+  pickupAddress   String
+  pickupLat       Float
+  pickupLng       Float
+  
+  dropoffAddress  String
+  dropoffLat      Float
+  dropoffLng      Float
+  
+  distanceKm      Float
+  totalPrice      Float
+  
+  carType         String?
+  carBrand        String?
+  transmission    String?
+  licensePlate    String?
+  contactPhone    String?
+  requiredLicense String?
+  
+  status          String   @default("PENDING") // PENDING, ACCEPTED, IN_PROGRESS, COMPLETED, CANCELLED
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // --- NHÓM GIAO DỊCH & TƯƠNG TÁC ---

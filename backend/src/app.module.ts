@@ -31,6 +31,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { DriverRentalModule } from './modules/driver-rental/driver-rental.module';
+import { DriverBookingModule } from './modules/driver-booking/driver-booking.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { DriverRentalModule } from './modules/driver-rental/driver-rental.module
     ContactsModule,
     MaintenanceModule,
     DriverRentalModule,
+    DriverBookingModule,
     CloudinaryModule,
   ],
   controllers: [],

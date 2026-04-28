@@ -19,6 +19,9 @@ async function main() {
   await prisma.auction.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.driverBooking.deleteMany();
+  await prisma.driverRentalService.deleteMany();
+  await prisma.maintenanceService.deleteMany();
   await prisma.repairCapacity.deleteMany();
   await prisma.repairService.deleteMany();
   await prisma.rentalCar.deleteMany();
@@ -82,10 +85,30 @@ async function main() {
     },
   });
 
-  const customer = await prisma.user.create({
+  const customer1 = await prisma.user.create({
     data: {
       username: 'customer1',
       email: 'customer1@example.com',
+      password: hashedPassword,
+      roles: [Role.CUSTOMER, Role.VENDOR],
+      isApprovedVendor: true,
+    },
+  });
+
+  const customer2 = await prisma.user.create({
+    data: {
+      username: 'customer2',
+      email: 'customer2@example.com',
+      password: hashedPassword,
+      roles: [Role.CUSTOMER],
+
+    },
+  });
+
+  const customer3 = await prisma.user.create({
+    data: {
+      username: 'customer3',
+      email: 'customer3@example.com',
       password: hashedPassword,
       roles: [Role.CUSTOMER],
 
@@ -178,7 +201,7 @@ async function main() {
 
   // 4. Tạo Sản phẩm mẫu cho các Vendor
   console.log('Đang tạo 60+ sản phẩm mẫu...');
-  const vendors = [vendor1, vendor2, vendor3];
+  const vendors = [vendor1, vendor2, vendor3, customer1];
   const products = [];
   let productIndex = 0;
 
@@ -250,6 +273,65 @@ async function main() {
     data: products,
   });
 
+  console.log('Đang tạo danh sách xe riêng cho vendor 2...');
+  const vendor2SpecificProducts = [
+    {
+      name: 'Mercedes-Benz G63 AMG 2023',
+      description: 'Ông vua địa hình, nhập khẩu nguyên chiếc. Bản full option.',
+      price: 13000000000,
+      stock: 1,
+      vendorId: vendor2.id,
+      categoryId: defaultCategory.id,
+      brand: 'Mercedes-Benz',
+      modelName: 'G-Class',
+      variant: 'G63',
+      year: 2023,
+      condition: 'Xe mới',
+      imageUrl: 'https://images.unsplash.com/photo-1520031441872-265e4ff70366?q=80&w=800',
+      fuelType: 'Xăng', engineCapacity: '4.0', maxPower: '585', maxTorque: '850', transmission: '9AT', driveType: 'AWD',
+      bodyType: 'SUV',
+    },
+    {
+      name: 'Porsche Panamera 4S 2022',
+      description: 'Sedan thể thao sang trọng, odo 10,000km, màu xám xi măng.',
+      price: 6500000000,
+      stock: 1,
+      vendorId: vendor2.id,
+      categoryId: defaultCategory.id,
+      brand: 'Porsche',
+      modelName: 'Panamera',
+      variant: '4S',
+      year: 2022,
+      condition: 'Xe cũ',
+      mileage: 10000,
+      conditionDetail: 'Cam kết không đâm đụng, ngập nước.',
+      licensePlate: '51K-888.88',
+      imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800',
+      fuelType: 'Xăng', engineCapacity: '2.9', maxPower: '440', maxTorque: '550', transmission: '8PDK', driveType: 'AWD',
+      bodyType: 'Sedan',
+    },
+    {
+      name: 'Lexus LX600 VIP 2024',
+      description: 'Chuyên cơ mặt đất bản 4 chỗ VIP.',
+      price: 11000000000,
+      stock: 2,
+      vendorId: vendor2.id,
+      categoryId: defaultCategory.id,
+      brand: 'Lexus',
+      modelName: 'LX',
+      variant: '600 VIP',
+      year: 2024,
+      condition: 'Xe mới',
+      imageUrl: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=800',
+      fuelType: 'Xăng', engineCapacity: '3.5', maxPower: '409', maxTorque: '650', transmission: '10AT', driveType: '4WD',
+      bodyType: 'SUV',
+    }
+  ];
+
+  await prisma.product.createMany({
+    data: vendor2SpecificProducts,
+  });
+
   console.log('Đang tạo hồ sơ năng lực sửa chữa mẫu...');
 
   // Tạo Profile cho vendor1
@@ -276,6 +358,42 @@ async function main() {
   });
 
 
+
+  console.log('Đang tạo dữ liệu Đơn hàng mẫu (Orders) cho Báo cáo doanh thu...');
+  const allProducts = await prisma.product.findMany();
+  if (allProducts.length > 0) {
+    const statuses = ['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED', 'DELIVERED', 'DELIVERED'];
+    
+    // Tạo 100 đơn hàng mẫu trải dài trong 7 ngày qua để làm đẹp Biểu đồ doanh thu
+    for (let i = 0; i < 100; i++) {
+      const randomDaysAgo = Math.floor(Math.random() * 7); // 0 đến 6 ngày trước
+      const orderDate = new Date();
+      orderDate.setDate(orderDate.getDate() - randomDaysAgo);
+      orderDate.setHours(10 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 60), 0, 0); // Random giờ từ 10h sáng - 6h tối
+      
+      const randomProduct = allProducts[Math.floor(Math.random() * allProducts.length)];
+      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      const quantity = 1 + Math.floor(Math.random() * 2); // Mua 1 hoặc 2 chiếc
+      
+      const order = await prisma.order.create({
+        data: {
+          customerId: customer2.id,
+          totalPrice: randomProduct.price * quantity,
+          status: randomStatus,
+          createdAt: orderDate,
+        }
+      });
+      
+      await prisma.orderItem.create({
+        data: {
+          orderId: order.id,
+          productId: randomProduct.id,
+          quantity: quantity,
+          price: randomProduct.price,
+        }
+      });
+    }
+  }
 
   console.log('Gieo hạt dữ liệu thành công! 🌱');
 }
