@@ -115,6 +115,36 @@ async function main() {
     },
   });
 
+  const driver1 = await prisma.user.create({
+    data: {
+      username: 'driver1',
+      email: 'driver1@example.com',
+      password: hashedPassword,
+      roles: [Role.DRIVER],
+      isApprovedDriver: true,
+    },
+  });
+
+  const driver2 = await prisma.user.create({
+    data: {
+      username: 'driver2',
+      email: 'driver2@example.com',
+      password: hashedPassword,
+      roles: [Role.DRIVER],
+      isApprovedDriver: true,
+    },
+  });
+
+  const driver3 = await prisma.user.create({
+    data: {
+      username: 'driver3',
+      email: 'driver3@example.com',
+      password: hashedPassword,
+      roles: [Role.DRIVER],
+      isApprovedDriver: true,
+    },
+  });
+
   // 2. Tạo Category cơ bản
   const defaultCategory = await prisma.category.create({
     data: { name: 'Ô tô' },
