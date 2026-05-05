@@ -454,8 +454,8 @@ export default function ProfilePage() {
             try {
                 const [profileRes, productsRes] = await Promise.all([
                     http.get('/users/profile'),
-                    // Just an example endpoint: adjust based on user role if needed
-                    http.get('/products/vendor/me').catch(() => ({ data: [] }))
+                    // Fetch actual favorites data
+                    http.get('/favorites').catch(() => ({ data: [] }))
                 ]);
                 setUser(profileRes.data);
                 setProducts(productsRes.data || []);
@@ -1147,7 +1147,20 @@ export default function ProfilePage() {
                                             <Link href={`/products/${product.id}`} className="block flex-1">
                                                 <div className="h-56 relative overflow-hidden bg-slate-100">
                                                     <img alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src={product.imageUrl || "/images/static/car-placeholder.png"} />
-                                                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur text-red-500 p-2.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div 
+                                                        onClick={async (e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            try {
+                                                                await http.post(`/favorites/toggle/${product.id}`);
+                                                                setProducts(prev => prev.filter(p => p.id !== product.id));
+                                                                toast.success('Đã xóa khỏi danh sách yêu thích');
+                                                            } catch (error) {
+                                                                toast.error('Có lỗi xảy ra khi xóa yêu thích');
+                                                            }
+                                                        }}
+                                                        className="absolute top-4 right-4 bg-white/90 backdrop-blur text-red-500 p-2.5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                                                    >
                                                         <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>favorite</span>
                                                     </div>
                                                 </div>

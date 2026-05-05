@@ -86,7 +86,7 @@ export default function Home() {
     <div className="bg-surface text-on-surface font-body selection:bg-surface-container-highest min-h-screen">
 
 
-      <main className="pt-24">
+      <main>
         {/* Hero Search Section */}
         <section className="relative h-[870px] flex items-center overflow-hidden">
           <div className="absolute inset-0 z-0 bg-black">
