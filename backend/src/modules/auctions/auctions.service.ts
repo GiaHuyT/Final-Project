@@ -36,12 +36,16 @@ export class AuctionsService {
                 items: {
                     create: dto.items.map(i => ({
                         productId: i.productId,
-                        orderIndex: i.orderIndex || 0
+                        orderIndex: i.orderIndex || 0,
+                        startPrice: i.startPrice || dto.startPrice,
+                        currentPrice: i.startPrice || dto.startPrice,
+                        bidStep: i.bidStep || dto.bidStep || 0,
+                        itemDescription: i.itemDescription || null
                     }))
                 }
             },
             include: {
-                items: { include: { product: true } }
+                items: { include: { product: { include: { images: true } } } }
             }
         });
     }
@@ -54,7 +58,7 @@ export class AuctionsService {
             where,
             include: {
                 vendor: { select: { username: true, email: true } },
-                items: { include: { product: true } },
+                items: { include: { product: { include: { images: true } } } },
                 registrations: { select: { userId: true, status: true } },
                 _count: { select: { bids: true } }
             },
@@ -67,7 +71,7 @@ export class AuctionsService {
             where: { vendorId },
             include: {
                 vendor: { select: { username: true, email: true } },
-                items: { include: { product: true } },
+                items: { include: { product: { include: { images: true } } } },
                 registrations: { select: { userId: true, status: true } },
                 _count: { select: { bids: true } }
             },
@@ -109,11 +113,15 @@ export class AuctionsService {
                     items: {
                         create: dto.items.map(i => ({
                             productId: i.productId,
-                            orderIndex: i.orderIndex || 0
+                            orderIndex: i.orderIndex || 0,
+                            startPrice: i.startPrice || dto.startPrice,
+                            currentPrice: i.startPrice || dto.startPrice,
+                            bidStep: i.bidStep || dto.bidStep || 0,
+                            itemDescription: i.itemDescription || null
                         }))
                     }
                 },
-                include: { items: { include: { product: true } } }
+                include: { items: { include: { product: { include: { images: true } } } } }
             });
         }
 
@@ -131,7 +139,7 @@ export class AuctionsService {
                 startTime: dto.startTime,
                 endTime: dto.endTime,
             },
-            include: { items: { include: { product: true } } }
+            include: { items: { include: { product: { include: { images: true } } } } }
         });
     }
 
@@ -140,7 +148,7 @@ export class AuctionsService {
             where: { id },
             include: {
                 vendor: { select: { id: true, username: true, email: true } },
-                items: { include: { product: true } },
+                items: { include: { product: { include: { images: true } } } },
                 registrations: { select: { userId: true, status: true } },
                 winner: { select: { id: true, username: true, email: true } },
                 bids: {
@@ -172,8 +180,24 @@ export class AuctionsService {
             throw new BadRequestException('Bạn chưa được duyệt để tham gia phiên đấu giá này.');
         }
 
-        const latestBid = auction.currentPrice || auction.startPrice;
-        const requiredBid = latestBid + auction.bidStep;
+        let latestBid: number;
+        let requiredBid: number;
+        let activeItemId: number | null = null;
+
+        if (auction.type === 'LIVESTREAM') {
+            if (!auction.currentActiveItemId) {
+                throw new BadRequestException('Chưa có xe nào đang được lên sóng để đấu giá.');
+            }
+            activeItemId = auction.currentActiveItemId;
+            const activeItem = auction.items.find(i => i.id === activeItemId);
+            if (!activeItem) throw new BadRequestException('Lỗi dữ liệu xe đang đấu giá.');
+
+            latestBid = activeItem.currentPrice || activeItem.startPrice || 0;
+            requiredBid = latestBid + (activeItem.bidStep || 0);
+        } else {
+            latestBid = auction.currentPrice || auction.startPrice;
+            requiredBid = latestBid + auction.bidStep;
+        }
 
         if (bidAmount < requiredBid) {
             throw new BadRequestException(`Mức giá phải lớn hơn hoặc bằng ${requiredBid.toLocaleString()} VNĐ`);
@@ -189,23 +213,43 @@ export class AuctionsService {
             newEndTime = new Date(endTime.getTime() + 5 * 60 * 1000);
         }
 
-        const [bid, updatedAuction] = await this.prisma.$transaction([
+        const transactionOperations: any[] = [
             this.prisma.auctionBid.create({
                 data: {
                     auctionId,
                     userId,
                     bidAmount: Number(bidAmount),
+                    auctionItemId: activeItemId,
                 },
                 include: { user: { select: { id: true, username: true } } }
-            }),
-            this.prisma.auction.update({
-                where: { id: parseInt(auctionId.toString()) },
-                data: {
-                    currentPrice: Number(bidAmount),
-                    endTime: newEndTime,
-                },
-            }),
-        ]);
+            })
+        ];
+
+        if (auction.type === 'LIVESTREAM' && activeItemId) {
+            transactionOperations.push(
+                this.prisma.auctionItem.update({
+                    where: { id: activeItemId },
+                    data: { currentPrice: Number(bidAmount) }
+                })
+            );
+            transactionOperations.push(
+                this.prisma.auction.update({
+                    where: { id: auctionId },
+                    data: { currentPrice: Number(bidAmount), endTime: newEndTime }
+                })
+            );
+        } else {
+            transactionOperations.push(
+                this.prisma.auction.update({
+                    where: { id: auctionId },
+                    data: { currentPrice: Number(bidAmount), endTime: newEndTime },
+                })
+            );
+        }
+
+        const results = await this.prisma.$transaction(transactionOperations);
+        const bid = results[0];
+        const updatedAuction = results[results.length - 1];
 
         return { bid, auction: updatedAuction };
     }
@@ -304,5 +348,70 @@ export class AuctionsService {
             depositAmount,
             `Coc xe dau gia ${auction.id}`
         );
+    }
+
+    // --- LIVESTREAM CONTROL METHODS ---
+    async setActiveItem(auctionId: number, vendorId: number, itemId: number) {
+        const auction = await this.findOne(auctionId);
+        if (!auction) throw new NotFoundException('Không tìm thấy phiên đấu giá.');
+        if (auction.vendorId !== vendorId) throw new BadRequestException('Bạn không có quyền.');
+        if (auction.type !== 'LIVESTREAM') throw new BadRequestException('Chỉ áp dụng cho Livestream.');
+        if (auction.status !== 'ACTIVE') throw new BadRequestException('Phiên đấu giá không trong trạng thái ACTIVE.');
+
+        const item = auction.items.find(i => i.id === itemId);
+        if (!item) throw new NotFoundException('Không tìm thấy xe trong phiên.');
+        if (item.status === 'SOLD' || item.status === 'PASSED') {
+            throw new BadRequestException('Xe này đã được chốt giá hoặc bỏ qua.');
+        }
+
+        if (auction.currentActiveItemId && auction.currentActiveItemId !== itemId) {
+            throw new BadRequestException('Vui lòng chốt xe đang đấu trước khi chuyển sang xe mới.');
+        }
+
+        await this.prisma.$transaction([
+            this.prisma.auction.update({
+                where: { id: auctionId },
+                data: { currentActiveItemId: itemId }
+            }),
+            this.prisma.auctionItem.update({
+                where: { id: itemId },
+                data: { status: 'ACTIVE' }
+            })
+        ]);
+
+        return this.findOne(auctionId);
+    }
+
+    async endActiveItem(auctionId: number, vendorId: number, itemId: number) {
+        const auction = await this.findOne(auctionId);
+        if (!auction) throw new NotFoundException('Không tìm thấy phiên đấu giá.');
+        if (auction.vendorId !== vendorId) throw new BadRequestException('Bạn không có quyền.');
+        if (auction.currentActiveItemId !== itemId) throw new BadRequestException('Xe này không phải là xe đang được đấu.');
+
+        const item = auction.items.find(i => i.id === itemId);
+        if (!item) throw new NotFoundException('Không tìm thấy xe.');
+
+        const highestBid = await this.prisma.auctionBid.findFirst({
+            where: { auctionId, auctionItemId: itemId },
+            orderBy: { bidAmount: 'desc' }
+        });
+
+        let newStatus = highestBid ? 'SOLD' : 'PASSED';
+
+        await this.prisma.$transaction([
+            this.prisma.auctionItem.update({
+                where: { id: itemId },
+                data: { 
+                    status: newStatus,
+                    winnerId: highestBid ? highestBid.userId : null
+                }
+            }),
+            this.prisma.auction.update({
+                where: { id: auctionId },
+                data: { currentActiveItemId: null }
+            })
+        ]);
+
+        return this.findOne(auctionId);
     }
 }

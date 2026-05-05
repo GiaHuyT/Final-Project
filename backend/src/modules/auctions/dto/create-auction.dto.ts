@@ -13,6 +13,20 @@ export class AuctionItemDto {
   @IsNumber()
   @IsOptional()
   orderIndex?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  startPrice?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  bidStep?: number;
+
+  @IsString()
+  @IsOptional()
+  itemDescription?: string;
 }
 
 export class CreateAuctionDto {

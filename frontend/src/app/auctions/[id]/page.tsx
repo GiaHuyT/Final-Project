@@ -537,6 +537,12 @@ export default function AuctionDetailPage() {
                                                     </Button>
                                                 </Link>
                                             </div>
+                                        ) : (auction.endTime && new Date().getTime() >= new Date(auction.endTime).getTime()) ? (
+                                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center space-y-3 mt-4">
+                                                <Clock className="w-8 h-8 text-slate-400 mx-auto" />
+                                                <h3 className="font-bold text-slate-800">Phiên đấu giá đang được chốt</h3>
+                                                <p className="text-sm text-slate-500">Hệ thống đang tổng hợp kết quả. Vui lòng chờ trong giây lát...</p>
+                                            </div>
                                         ) : (!auction?.registrations?.find((r: any) => r.userId === currentUser?.id) || auction?.registrations?.find((r: any) => r.userId === currentUser?.id)?.status !== 'APPROVED') && !isWinner ? (
                                             <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-center space-y-3 mt-4">
                                                 <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />

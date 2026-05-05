@@ -35,6 +35,7 @@ model User {
   orders            Order[]
   auctions          Auction[]       @relation("VendorAuctions")
   wonAuctions       Auction[]       @relation("WinnerAuctions")
+  wonAuctionItems   AuctionItem[]   @relation("WinnerAuctionItems")
   bids              AuctionBid[]    
   serviceProfiles   ServiceProfile? 
   reviews           Review[]
@@ -247,6 +248,8 @@ model Auction {
   // Trạng thái: PENDING, ACTIVE, WAITING_PAYMENT (chờ cọc), COMPLETED, CANCELLED
   status         String   @default("PENDING") 
   
+  currentActiveItemId Int? // Dành cho Livestream: ID của AuctionItem đang được đấu giá
+  
   vendorId       Int
   vendor         User     @relation("VendorAuctions", fields: [vendorId], references: [id])
   winnerId       Int?     
@@ -265,12 +268,24 @@ model AuctionItem {
   productId   Int
   product     Product  @relation(fields: [productId], references: [id])
   orderIndex  Int      @default(0) // Thứ tự xuất hiện trong livestream
+  
+  startPrice    Float?
+  currentPrice  Float?
+  bidStep       Float?
+  itemDescription String?
+  status        String   @default("PENDING") // PENDING, ACTIVE, SOLD, PASSED
+  winnerId      Int?
+  winner        User?    @relation("WinnerAuctionItems", fields: [winnerId], references: [id])
+  
+  bids          AuctionBid[]
 }
 
 model AuctionBid {
   id          Int      @id @default(autoincrement())
   auctionId   Int
   auction     Auction  @relation(fields: [auctionId], references: [id])
+  auctionItemId Int?
+  auctionItem   AuctionItem? @relation(fields: [auctionItemId], references: [id], onDelete: Cascade)
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
   bidAmount   Float

@@ -62,4 +62,16 @@ export class AuctionsController {
   async rejectRegistration(@Request() req, @Param('id') id: string, @Param('regId') regId: string) {
     return this.auctionsService.rejectRegistration(+id, +regId, req.user.id);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/items/:itemId/start')
+  async startItemBidding(@Request() req, @Param('id') id: string, @Param('itemId') itemId: string) {
+    return this.auctionsService.setActiveItem(+id, req.user.id, +itemId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(':id/items/:itemId/end')
+  async endItemBidding(@Request() req, @Param('id') id: string, @Param('itemId') itemId: string) {
+    return this.auctionsService.endActiveItem(+id, req.user.id, +itemId);
+  }
 }

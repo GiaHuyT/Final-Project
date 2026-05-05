@@ -6,9 +6,10 @@ import http from "@/lib/http";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { initSocket, disconnectSocket } from '@/lib/socket';
 
 export default function AuctionListingPage() {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, token } = useAuth();
   const router = useRouter();
   const [auctions, setAuctions] = useState<any[]>([]);
   const [filteredAuctions, setFilteredAuctions] = useState<any[]>([]);
@@ -22,22 +23,22 @@ export default function AuctionListingPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  useEffect(() => {
-    const fetchAuctions = async () => {
-      try {
-        const res = await http.get('/auctions');
-        const data = res.data;
-        if (Array.isArray(data)) {
-          setAuctions(data);
-          setFilteredAuctions(data);
-        }
-      } catch (error) {
-        console.error("Error fetching auctions:", error);
-      } finally {
-        setLoading(false);
+  const fetchAuctions = async () => {
+    try {
+      const res = await http.get('/auctions');
+      const data = res.data;
+      if (Array.isArray(data)) {
+        setAuctions(data);
+        setFilteredAuctions(data);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching auctions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchAuctions();
     
     const interval = setInterval(() => {
@@ -46,6 +47,24 @@ export default function AuctionListingPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Socket listener cho real-time updates
+  useEffect(() => {
+    if (isLoggedIn && token && user?.id) {
+       const socket = initSocket('notifications', token, user.id);
+       const handleNotification = (data: any) => {
+           if (data?.type === 'AUCTION') {
+               // Có thao tác liên quan tới đấu giá (Duyệt/Từ chối), load lại DS
+               fetchAuctions();
+           }
+       };
+       socket.on('notification', handleNotification);
+       
+       return () => {
+           socket.off('notification', handleNotification);
+       }
+    }
+  }, [isLoggedIn, token, user?.id]);
 
   const handleApplyFilters = () => {
     let result = [...auctions];
@@ -131,7 +150,7 @@ export default function AuctionListingPage() {
   };
 
   const getTimeLeft = (startTime: string, endTime: string, status: string) => {
-    if (status === 'COMPLETED' || status === 'CANCELLED') return "ĐÃ KẾT THÚC";
+    if (status === 'COMPLETED' || status === 'CANCELLED' || status === 'WAITING_PAYMENT') return "ĐÃ KẾT THÚC";
 
     const startMs = new Date(startTime).getTime();
     if (now < startMs) {
@@ -264,7 +283,7 @@ export default function AuctionListingPage() {
                 <button onClick={handleClearFilters} className="text-primary underline text-sm mt-2">Xoá lọc và xem tất cả</button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {filteredAuctions.map((auction, index) => {
                   const timeLeft = getTimeLeft(auction.startTime, auction.endTime, auction.status);
                   const isEnded = timeLeft === "ĐÃ KẾT THÚC";
@@ -333,6 +352,10 @@ export default function AuctionListingPage() {
                                 {isEnded ? (
                                     <Link href={`/auctions/${auction.id}`} className="block w-full text-center py-3 rounded-full font-headline font-bold text-sm tracking-widest transition-all bg-surface-variant text-on-surface-variant hover:opacity-90">
                                         KẾT QUẢ
+                                    </Link>
+                                ) : auction.vendorId === user?.id ? (
+                                    <Link href={`/vendor/auctions/${auction.id}/registrations`} className="block w-full text-center py-3 rounded-full font-headline font-bold text-sm tracking-widest transition-all bg-indigo-500 text-white hover:bg-indigo-600 active:scale-95">
+                                        QUẢN LÝ
                                     </Link>
                                 ) : (
                                     <button 
