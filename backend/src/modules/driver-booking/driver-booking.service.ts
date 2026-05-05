@@ -119,13 +119,37 @@ export class DriverBookingService {
     });
   }
 
-  async getPendingBookings() {
-    return this.prisma.driverBooking.findMany({
+  async getPendingBookings(latStr?: string, lngStr?: string) {
+    const bookings = await this.prisma.driverBooking.findMany({
       where: { status: 'PENDING' },
       orderBy: { createdAt: 'desc' },
       include: {
         customer: { select: { id: true, username: true, phonenumber: true, avatar: true } }
       }
     });
+
+    if (latStr && lngStr) {
+      const driverLat = parseFloat(latStr);
+      const driverLng = parseFloat(lngStr);
+      
+      if (!isNaN(driverLat) && !isNaN(driverLng)) {
+        return bookings.filter(b => {
+          if (!b.pickupLat || !b.pickupLng) return true; // keep if no location
+          const R = 6371; // Radius of the earth in km
+          const dLat = (b.pickupLat - driverLat) * (Math.PI / 180);
+          const dLon = (b.pickupLng - driverLng) * (Math.PI / 180);
+          const a = 
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(driverLat * (Math.PI / 180)) * Math.cos(b.pickupLat * (Math.PI / 180)) * 
+            Math.sin(dLon / 2) * Math.sin(dLon / 2); 
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
+          const distance = R * c; // Distance in km
+          
+          return distance <= 5; // within 5km
+        });
+      }
+    }
+
+    return bookings;
   }
 }

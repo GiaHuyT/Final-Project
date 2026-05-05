@@ -31,7 +31,7 @@ const FAQS = [
         id: 'faq-s1',
         category: 'suggest',
         title: '[Gợi ý] Làm sao để nhận được nhiều cuốc xe Lái xe hộ hơn?',
-        content: 'Để tăng cơ hội nhận cuốc xe, bạn nên: \n1. Bật tính năng "Tự động nhận đơn" trong phần Hiệu suất hoạt động.\n2. Đăng ký nhận cuốc ở các khu vực trung tâm, đặc biệt là gần các nhà hàng, quán nhậu vào khung giờ tối (19:00 - 23:00).\n3. Giữ thái độ phục vụ chuyên nghiệp để nhận đánh giá 5 sao từ khách hàng.'
+        content: 'Để tăng cơ hội nhận cuốc xe, bạn nên: \n1. Đăng ký nhận cuốc ở các khu vực trung tâm, đặc biệt là gần các nhà hàng, quán nhậu vào khung giờ tối (19:00 - 23:00).\n2. Giữ thái độ phục vụ chuyên nghiệp để nhận đánh giá 5 sao từ khách hàng.'
     },
     {
         id: 'faq-s2',

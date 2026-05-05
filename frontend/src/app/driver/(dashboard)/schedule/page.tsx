@@ -126,7 +126,11 @@ export default function SchedulePage() {
 
     const toggleRegistration = (id: number) => {
         if (registeredShiftIds.includes(id)) {
-            setRegisteredShiftIds(registeredShiftIds.filter(shiftId => shiftId !== id));
+            const newIds = registeredShiftIds.filter(shiftId => shiftId !== id);
+            setRegisteredShiftIds(newIds);
+            localStorage.setItem('registered_shifts', JSON.stringify(newIds));
+            const newRegShifts = shifts.filter(s => newIds.includes(s.id));
+            localStorage.setItem('registered_shift_details', JSON.stringify(newRegShifts));
             return;
         }
 
@@ -198,7 +202,11 @@ export default function SchedulePage() {
         }
 
         setValidationError(null);
-        setRegisteredShiftIds([...registeredShiftIds, id]);
+        const newIds = [...registeredShiftIds, id];
+        setRegisteredShiftIds(newIds);
+        localStorage.setItem('registered_shifts', JSON.stringify(newIds));
+        const newRegShifts = shifts.filter(s => newIds.includes(s.id));
+        localStorage.setItem('registered_shift_details', JSON.stringify(newRegShifts));
     };
 
 
@@ -209,6 +217,13 @@ export default function SchedulePage() {
             try {
                 dests = JSON.parse(savedDest);
                 setRegisteredDestinations(dests);
+            } catch (e) {}
+        }
+
+        const savedShifts = localStorage.getItem('registered_shifts');
+        if (savedShifts) {
+            try {
+                setRegisteredShiftIds(JSON.parse(savedShifts));
             } catch (e) {}
         }
 

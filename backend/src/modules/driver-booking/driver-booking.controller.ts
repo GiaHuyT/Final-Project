@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request, Query } from '@nestjs/common';
 import { DriverBookingService } from './driver-booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
@@ -35,8 +35,8 @@ export class DriverBookingController {
   @Get('pending')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DRIVER')
-  getPendingBookings() {
-    return this.bookingService.getPendingBookings();
+  getPendingBookings(@Query('lat') lat?: string, @Query('lng') lng?: string) {
+    return this.bookingService.getPendingBookings(lat, lng);
   }
 
   @Post(':id/accept')

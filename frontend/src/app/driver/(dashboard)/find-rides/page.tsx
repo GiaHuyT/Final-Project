@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, Clock, User, CheckCircle2, Navigation as NavigationIcon, Phone, Loader2 } from 'lucide-react';
+import { MapPin, Navigation, Clock, User, CheckCircle2, Navigation as NavigationIcon, Phone, Loader2, AlertCircle, LocateFixed } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import http from '@/lib/http';
 import { useRouter } from 'next/navigation';
@@ -28,22 +28,71 @@ export default function FindRidesPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("pending");
     const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+    const locationRef = useRef<[number, number] | null>(null);
     const [selectedRideId, setSelectedRideId] = useState<number | null>(null);
     const [acceptingId, setAcceptingId] = useState<number | null>(null);
+    const [isRegisteredShift, setIsRegisteredShift] = useState<boolean | null>(null);
     const router = useRouter();
 
     useEffect(() => {
-        // Try to get user location
+        const savedDetails = localStorage.getItem('registered_shift_details');
+        if (savedDetails) {
+            try {
+                const shifts = JSON.parse(savedDetails);
+                if (shifts.length === 0) {
+                    setIsRegisteredShift(false);
+                } else {
+                    const now = new Date();
+                    const currentTotalMinutes = now.getHours() * 60 + now.getMinutes();
+
+                    const isCurrentlyInShift = shifts.some((s: any) => {
+                        if (!s.startTime || !s.endTime) return false;
+                        const [startH, startM] = s.startTime.split(':').map(Number);
+                        const [endH, endM] = s.endTime.split(':').map(Number);
+                        const startTotal = startH * 60 + startM;
+                        const endTotal = endH * 60 + endM;
+                        
+                        if (endTotal <= startTotal) {
+                            // Overnight shift (e.g., 18:00 to 06:00)
+                            return currentTotalMinutes >= startTotal || currentTotalMinutes <= endTotal;
+                        } else {
+                            return currentTotalMinutes >= startTotal && currentTotalMinutes <= endTotal;
+                        }
+                    });
+                    
+                    setIsRegisteredShift(isCurrentlyInShift);
+                }
+            } catch (e) {
+                setIsRegisteredShift(false);
+            }
+        } else {
+            setIsRegisteredShift(false);
+        }
+        // Try to get user location using watchPosition for real-time tracking
+        let watchId: number;
         if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                setUserLocation([position.coords.latitude, position.coords.longitude]);
+            watchId = navigator.geolocation.watchPosition((position) => {
+                const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
+                setUserLocation(loc);
+                locationRef.current = loc;
+                fetchPendingRides(); // Fetch immediately when location updates
             }, (error) => {
                 console.warn("Geolocation error:", error);
                 // Default to Hanoi if denied
-                setUserLocation([21.028511, 105.804817]);
+                const defaultLoc: [number, number] = [21.028511, 105.804817];
+                if (!locationRef.current) {
+                    setUserLocation(defaultLoc);
+                    locationRef.current = defaultLoc;
+                }
+            }, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
             });
         } else {
-            setUserLocation([21.028511, 105.804817]);
+            const defaultLoc: [number, number] = [21.028511, 105.804817];
+            setUserLocation(defaultLoc);
+            locationRef.current = defaultLoc;
         }
 
         fetchPendingRides();
@@ -79,6 +128,9 @@ export default function FindRidesPage() {
         return () => {
             clearInterval(interval);
             disconnectSocket('rides');
+            if (watchId !== undefined) {
+                navigator.geolocation.clearWatch(watchId);
+            }
         };
     }, []);
 
@@ -98,7 +150,11 @@ export default function FindRidesPage() {
 
     const fetchPendingRides = async () => {
         try {
-            const res = await http.get('/driver-booking/pending');
+            let url = '/driver-booking/pending';
+            if (locationRef.current) {
+                url += `?lat=${locationRef.current[0]}&lng=${locationRef.current[1]}`;
+            }
+            const res = await http.get(url);
             if (res.data) {
                 setRides(res.data);
             }
@@ -156,6 +212,10 @@ export default function FindRidesPage() {
         return "Hoàn thành";
     };
 
+    if (isRegisteredShift === null) return <div className="p-10 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>;
+
+
+
     return (
         <div className="space-y-6 h-full flex flex-col pb-6">
             <div>
@@ -171,6 +231,59 @@ export default function FindRidesPage() {
                     onMarkerClick={handleMarkerClick}
                 />
                 
+                <div className="absolute top-4 left-4 z-[400] flex flex-col gap-2">
+                    <Button 
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                            if (locationRef.current) {
+                                const newLoc: [number, number] = [
+                                    locationRef.current[0] + 0.005, 
+                                    locationRef.current[1] + 0.005
+                                ];
+                                setUserLocation(newLoc);
+                                locationRef.current = newLoc;
+                                fetchPendingRides();
+                                toast.success('Đã giả lập di chuyển (+500m)');
+                            }
+                        }}
+                        className="shadow-md bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 font-medium text-xs justify-start"
+                    >
+                        <NavigationIcon className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                        Giả lập hành trình
+                    </Button>
+                </div>
+                
+                <div className="absolute bottom-6 right-4 z-[400]">
+                    <Button 
+                        size="icon"
+                        variant="secondary"
+                        onClick={() => {
+                            if (navigator.geolocation) {
+                                const toastId = toast.loading('Đang định vị...');
+                                navigator.geolocation.getCurrentPosition(
+                                    (pos) => {
+                                        const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+                                        setUserLocation(newLoc);
+                                        locationRef.current = newLoc;
+                                        fetchPendingRides();
+                                        toast.success('Đã định vị chỗ bạn', { id: toastId });
+                                    },
+                                    (err) => {
+                                        toast.error('Không thể lấy vị trí. Vui lòng bật GPS.', { id: toastId });
+                                    },
+                                    { enableHighAccuracy: true }
+                                );
+                            } else {
+                                toast.error('Trình duyệt không hỗ trợ GPS');
+                            }
+                        }}
+                        className="w-10 h-10 rounded-full shadow-lg bg-white text-slate-700 hover:bg-slate-50 border border-slate-200"
+                    >
+                        <LocateFixed className="w-5 h-5 text-blue-600" />
+                    </Button>
+                </div>
+
                 <div className="absolute top-4 right-4 z-[400] bg-white px-4 py-2 rounded-full shadow-md border border-slate-100 flex items-center gap-2">
                     <span className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -189,7 +302,21 @@ export default function FindRidesPage() {
                     </TabsList>
                     
                     <TabsContent value="pending" className="mt-0 outline-none">
-                        {loading && rides.length === 0 ? (
+                        {isRegisteredShift === false ? (
+                            <div className="text-center py-12 bg-white rounded-xl border border-dashed border-rose-300">
+                                <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <AlertCircle className="w-8 h-8 text-rose-500" />
+                                </div>
+                                <h3 className="font-bold text-slate-700 text-lg">Ngoài ca làm việc</h3>
+                                <p className="text-slate-500 text-sm mt-1 mb-4">Hiện tại không phải là thời gian ca làm việc bạn đã đăng ký. Vui lòng quay lại trong ca hoặc đăng ký thêm ca mới.</p>
+                                <Button 
+                                    onClick={() => router.push('/driver/schedule')}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                                >
+                                    Đến trang đăng ký
+                                </Button>
+                            </div>
+                        ) : loading && rides.length === 0 ? (
                             <div className="text-center py-10 text-slate-500">Đang quét cuốc xe...</div>
                         ) : rides.length === 0 ? (
                     <div className="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">

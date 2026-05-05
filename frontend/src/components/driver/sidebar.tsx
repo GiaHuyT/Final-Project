@@ -29,7 +29,6 @@ import http from '@/lib/http';
 const menuItems = [
     { label: 'Hồ sơ tài xế', href: '/driver/profile', icon: User, hasNotification: false },
     { label: 'Tìm kiếm cuốc xe', href: '/driver/find-rides', icon: Navigation, hasNotification: false },
-    { label: 'Đăng ký khu vực', href: '/driver/destinations', icon: MapPin, hasNotification: false },
     { label: 'Lịch làm việc', href: '/driver/schedule', icon: Calendar, hasNotification: false },
     { label: 'Hiệu suất hoạt động', href: '/driver', icon: Activity, hasNotification: false },
     { label: 'Thông báo', href: '/driver/notifications', icon: Bell, hasNotification: true },
@@ -136,14 +135,6 @@ export function DriverSidebar() {
                     <Switch 
                         checked={isActive}
                         onCheckedChange={setIsActive}
-                        className="data-[state=checked]:bg-emerald-500"
-                    />
-                </div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[15px] font-medium text-slate-600">Tự động nhận đơn 100%</span>
-                    <Switch 
-                        checked={autoAccept}
-                        onCheckedChange={setAutoAccept}
                         className="data-[state=checked]:bg-emerald-500"
                     />
                 </div>
