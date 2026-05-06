@@ -113,24 +113,33 @@ export class AuthService {
       return null;
     }
 
+    const lockedRoles = (user as any).lockedRoles || [];
+    const activeRoles = user.roles.filter(role => !lockedRoles.includes(role));
+
     return {
       id: user.id,
       username: user.username,
       email: user.email,
       phoneNumber: user.phonenumber,
-      roles: user.roles,
+      roles: activeRoles,
       avatar: user.avatar,
+      isActive: user.isActive,
+      lockReason: (user as any).lockReason,
     };
   }
 
   async validateUserById(id: number) {
     const user = await this.usersService.findById(id);
     if (!user) return null;
+    const lockedRoles = (user as any).lockedRoles || [];
+    const activeRoles = user.roles.filter(role => !lockedRoles.includes(role));
+
     return {
       id: user.id,
       username: user.username,
       email: user.email,
-      roles: user.roles,
+      roles: activeRoles,
+      isActive: user.isActive,
     };
   }
 

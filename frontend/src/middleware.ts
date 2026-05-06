@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
@@ -25,7 +25,12 @@ export function middleware(request: NextRequest) {
         }
     }
 
-    // 3. Kiểm tra quyền truy cập cho từng khu vực
+    // 3. Nếu là Admin, bắt buộc phải ở trang quản trị (trừ khi đang vào trang auth hoặc xem các trang public cần thiết như auctions)
+    if (token && roles.includes('ADMIN') && !pathname.startsWith('/admin') && !pathname.startsWith('/auth') && !pathname.startsWith('/auctions')) {
+        return NextResponse.redirect(new URL('/admin', request.url));
+    }
+
+    // 4. Kiểm tra quyền truy cập cho từng khu vực
     if (pathname.startsWith('/admin') && !roles.includes('ADMIN')) {
         return NextResponse.redirect(new URL('/', request.url));
     }
@@ -41,7 +46,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
 }
 
-// Chỉ chạy middleware cho các đường dẫn này
+// Chạy middleware trên tất cả các route ngoại trừ tài nguyên tĩnh và api
 export const config = {
-    matcher: ['/profile/:path*', '/auth/:path*', '/admin/:path*', '/vendor/:path*', '/driver/:path*'],
+    matcher: ['/((?!api|_next/static|_next/image|favicon.ico|images).*)'],
 }

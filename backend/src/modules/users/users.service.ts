@@ -32,6 +32,14 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
+  async getMainAdminId(): Promise<number | null> {
+    const mainAdmin = await this.prisma.user.findFirst({
+      where: { roles: { has: 'ADMIN' } },
+      orderBy: { id: 'asc' }
+    });
+    return mainAdmin ? mainAdmin.id : null;
+  }
+
   async findAll(vendorRequestPending?: boolean, driverRequestPending?: boolean) {
     const where: Prisma.UserWhereInput = {};
     if (vendorRequestPending !== undefined) {
@@ -41,9 +49,46 @@ export class UsersService {
       where.driverRequestPending = driverRequestPending;
     }
 
-    return this.prisma.user.findMany({
+    const users = await (this.prisma.user as any).findMany({
       where,
       orderBy: { createdAt: 'desc' }
+    });
+
+    const now = new Date();
+    for (const user of users) {
+      if (user.lockUntil && user.lockUntil < now) {
+        user.isActive = true;
+        user.lockedRoles = [];
+        user.lockUntil = null;
+        user.roleLockReasons = null;
+        
+        (this.prisma.user as any).update({
+          where: { id: user.id },
+          data: { isActive: true, lockedRoles: [], roleLockReasons: null, lockUntil: null, lockReason: null }
+        }).catch((e: any) => console.error("Auto unlock error", e));
+      }
+    }
+
+    return users;
+  }
+
+  async searchUsers(query: string) {
+    if (!query) return [];
+    return (this.prisma.user as any).findMany({
+      where: {
+        OR: [
+          { username: { contains: query, mode: 'insensitive' } },
+          { phonenumber: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } }
+        ]
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        phonenumber: true
+      },
+      take: 10
     });
   }
 
@@ -308,11 +353,46 @@ export class UsersService {
     });
   }
 
-  async toggleActive(id: number) {
+  async toggleActive(id: number, reason?: string, lockType: 'FULL' | 'PARTIAL' = 'FULL', lockedRoles?: string[], lockDurationDays?: number, roleReasons?: Record<string, string>) {
     const user = await this.prisma.user.findUnique({ where: { id } }) as any;
+    
+    let lockUntil: Date | null = null;
+    if (lockDurationDays && lockDurationDays > 0) {
+      lockUntil = new Date();
+      lockUntil.setDate(lockUntil.getDate() + lockDurationDays);
+    }
+
+    if (lockType === 'PARTIAL') {
+      const isUnlockingPartial = !lockedRoles || lockedRoles.length === 0;
+      
+      const newRoleLockReasons: any = isUnlockingPartial ? null : {};
+      if (!isUnlockingPartial && lockedRoles) {
+        for (const role of lockedRoles) {
+          newRoleLockReasons[role] = roleReasons?.[role] || reason || 'Vi phạm quy định đối với vai trò này';
+        }
+      }
+
+      return (this.prisma.user as any).update({
+        where: { id },
+        data: {
+          isActive: true, // partial lock means account is still active overall
+          lockedRoles: lockedRoles || [],
+          roleLockReasons: newRoleLockReasons,
+          lockUntil: isUnlockingPartial ? null : lockUntil,
+        }
+      });
+    }
+
+    const newIsActive = !user.isActive;
     return (this.prisma.user as any).update({
       where: { id },
-      data: { isActive: !user.isActive }
+      data: { 
+        isActive: newIsActive,
+        lockReason: newIsActive ? null : (reason || 'Vi phạm chính sách cộng đồng'),
+        lockedRoles: [],
+        roleLockReasons: null,
+        lockUntil: newIsActive ? null : lockUntil
+      }
     });
   }
 
@@ -367,10 +447,16 @@ export class UsersService {
       }
 
 
-      return await this.prisma.user.update({
+      const updatedUser = await (this.prisma.user as any).update({
         where: { id: Number(id) },
         data: updateData,
       });
+
+      if (updatedUser) {
+        // Return updated user directly
+      }
+
+      return updatedUser;
     } catch (error) {
       console.error(`[UsersService] Lỗi cập nhật User ID ${id}:`, error);
       throw new BadRequestException('Không thể cập nhật thông tin người dùng. ' + error.message);
@@ -388,9 +474,10 @@ export class UsersService {
   }
 
   async getProfile(userId: number) {
-    return (this.prisma.user as any).findUnique({
+    const user = await (this.prisma.user as any).findUnique({
       where: { id: userId },
       select: {
+        id: true,
         username: true,
         email: true,
         phonenumber: true,
@@ -401,6 +488,9 @@ export class UsersService {
         isApprovedDriver: true,
         driverRequestPending: true,
         pendingRequestType: true,
+        lockedRoles: true,
+        roleLockReasons: true,
+        lockUntil: true,
         createdAt: true,
         serviceProfiles: {
           select: {
@@ -409,6 +499,21 @@ export class UsersService {
         }
       }
     });
+
+    if (user && user.lockUntil && user.lockUntil < new Date()) {
+      user.isActive = true;
+      user.lockedRoles = [];
+      user.lockUntil = null;
+      user.roleLockReasons = null;
+      
+      (this.prisma.user as any).update({
+        where: { id: userId },
+        data: { isActive: true, lockedRoles: [], roleLockReasons: null, lockUntil: null, lockReason: null }
+      }).catch((e: any) => console.error("Auto unlock error", e));
+    }
+
+    // No longer filtering locked roles so user can view dashboard
+    return user;
   }
 
   async delete(id: number) {

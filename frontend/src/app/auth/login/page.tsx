@@ -45,19 +45,24 @@ export default function LoginPage() {
 
             if (res.status === 200 || res.status === 201) {
                 localStorage.setItem("token", data.accessToken);
-                Cookies.set("token", data.accessToken, { secure: false, sameSite: 'lax' });
-                Cookies.set("user_role", JSON.stringify(data.user.roles), { secure: false, sameSite: 'lax' });
+                Cookies.set("token", data.accessToken, { secure: false, sameSite: 'lax', path: '/' });
+                Cookies.set("user_role", JSON.stringify(data.user.roles), { secure: false, sameSite: 'lax', path: '/' });
                 localStorage.setItem("user", JSON.stringify(data.user));
                 toast.success("Đăng nhập thành công!");
                 setTimeout(() => {
-                   window.location.href = "/";
+                    if (data.user.roles && data.user.roles.includes("ADMIN")) {
+                        window.location.href = "/admin";
+                    } else {
+                        window.location.href = "/";
+                    }
                 }, 500);
             } else {
                 toast.error(data.message || "Sai tên đăng nhập hoặc mật khẩu");
             }
         } catch (error: any) {
             console.error("Error during login:", error);
-            const message = error.response?.data?.message || "Không kết nối được đến máy chủ";
+            const errorData = error.response?.data;
+            const message = errorData?.message || "Không kết nối được đến máy chủ";
             toast.error(message);
         } finally {
             setIsLoading(false);
@@ -68,10 +73,10 @@ export default function LoginPage() {
         <main className="min-h-screen flex relative bg-slate-50 font-sans">
             {/* Split Layout - Left side background */}
             <div className="hidden lg:block lg:w-3/5 relative h-screen sticky top-0">
-                <img 
-                    alt="Sleek Porsche in a dark modern garage" 
-                    className="absolute inset-0 w-full h-full object-cover" 
-                    src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2669&auto=format&fit=crop" 
+                <img
+                    alt="Sleek Porsche in a dark modern garage"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2669&auto=format&fit=crop"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/20"></div>
                 <div className="absolute top-12 left-12">
@@ -118,9 +123,9 @@ export default function LoginPage() {
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">mail</span>
                                 </div>
-                                <input 
+                                <input
                                     className={`w-full pl-12 pr-4 py-4 bg-slate-50 border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none ${errors.identifier ? "border-red-500 focus:border-red-500" : "border-transparent focus:border-blue-600"}`}
-                                    placeholder="name@example.com hoặc 09xxxxxx" 
+                                    placeholder="name@example.com hoặc 09xxxxxx"
                                     type="text"
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
@@ -134,8 +139,8 @@ export default function LoginPage() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
                                 <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Mật khẩu</label>
-                                <Link 
-                                    className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 hover:text-blue-700 hover:underline transition-all" 
+                                <Link
+                                    className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 hover:text-blue-700 hover:underline transition-all"
                                     href="/auth/forgot-password"
                                 >
                                     Quên mật khẩu?
@@ -145,9 +150,9 @@ export default function LoginPage() {
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                     <span className="material-symbols-outlined text-slate-400 text-lg group-focus-within:text-blue-600 transition-colors">lock</span>
                                 </div>
-                                <input 
+                                <input
                                     className={`w-full pl-12 pr-12 py-4 bg-slate-50 border-2 rounded-xl text-sm font-bold text-slate-900 transition-all focus:bg-white outline-none [&::-ms-reveal]:hidden [&::-webkit-reveal]:hidden ${errors.password ? "border-red-500 focus:border-red-500" : "border-transparent focus:border-blue-600"}`}
-                                    placeholder="••••••••" 
+                                    placeholder="••••••••"
                                     type={showPassword ? "text" : "password"}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -170,8 +175,8 @@ export default function LoginPage() {
                             <label className="text-xs text-slate-500 font-bold cursor-pointer" htmlFor="remember">Duy trì đăng nhập trong 30 ngày</label>
                         </div>
 
-                        <button 
-                            className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-600/20 flex justify-center items-center gap-2" 
+                        <button
+                            className="w-full py-4 bg-blue-600 text-white rounded-xl font-bold text-sm tracking-widest uppercase hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-600/20 flex justify-center items-center gap-2"
                             type="submit"
                             disabled={isLoading}
                         >
@@ -188,7 +193,7 @@ export default function LoginPage() {
 
                     <div className="mt-10 pt-8 border-t border-slate-100 text-center">
                         <p className="text-sm text-slate-500 font-medium">
-                            Chưa phải là thành viên AutoBid? 
+                            Chưa phải là thành viên AutoBid?
                             <Link className="text-blue-600 font-black hover:underline underline-offset-4 ml-1 block mt-2 text-base transition-all" href="/auth/register">
                                 Khởi tạo tài khoản
                             </Link>

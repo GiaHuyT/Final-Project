@@ -13,7 +13,19 @@ export const useAuth = () => {
       const storedUser = localStorage.getItem('user');
       if (storedToken && storedUser) {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+        let parsedUser = JSON.parse(storedUser);
+        if (!parsedUser.id) {
+            try {
+                const payload = JSON.parse(atob(storedToken.split('.')[1]));
+                if (payload && payload.sub) {
+                    parsedUser.id = payload.sub;
+                    localStorage.setItem('user', JSON.stringify(parsedUser));
+                }
+            } catch(e) {
+                console.error("Failed to recover user id from token");
+            }
+        }
+        setUser(parsedUser);
       } else {
         setToken(null);
         setUser(null);

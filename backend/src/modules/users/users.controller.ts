@@ -208,6 +208,13 @@ export class UsersController {
     return { status: 'UsersController is active' };
   }
 
+  @Get('search')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Tìm kiếm người dùng bằng tên, email, sđt (Public/Vendor)' })
+  searchUsers(@Query('q') query: string) {
+    return this.usersService.searchUsers(query);
+  }
+
   @Get()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy tất cả người dùng (Admin)' })
@@ -232,6 +239,9 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Lấy chi tiết người dùng cụ thể (Admin)' })
   findOne(@Param('id') id: string) {
+    if (isNaN(+id)) {
+      throw new BadRequestException('ID không hợp lệ');
+    }
     return this.usersService.findById(+id);
   }
 
@@ -258,9 +268,16 @@ export class UsersController {
 
   @Patch(':id/toggle-active')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Khóa/Mở khóa tài khoản (Admin)' })
-  toggleActive(@Param('id') id: string) {
-    return this.usersService.toggleActive(+id);
+  @ApiOperation({ summary: 'Khóa/Mở khóa/Khóa một phần tài khoản (Admin)' })
+  toggleActive(
+    @Param('id') id: string, 
+    @Body('reason') reason?: string,
+    @Body('lockType') lockType?: 'FULL' | 'PARTIAL',
+    @Body('lockedRoles') lockedRoles?: string[],
+    @Body('lockDurationDays') lockDurationDays?: number,
+    @Body('roleReasons') roleReasons?: Record<string, string>
+  ) {
+    return this.usersService.toggleActive(+id, reason, lockType, lockedRoles, lockDurationDays ? Number(lockDurationDays) : undefined, roleReasons);
   }
 
   @Patch(':id')

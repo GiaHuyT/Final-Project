@@ -34,6 +34,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
 
 import { Label } from "@/components/ui/label";
 import {
@@ -59,6 +67,10 @@ interface User {
     vendorRequestPending: boolean;
     avatar: string | null;
     isActive: boolean;
+    lockedRoles?: string[];
+    lockUntil?: string;
+    lockReason?: string;
+    roleLockReasons?: Record<string, string>;
     createdAt: string;
 }
 
@@ -73,6 +85,49 @@ export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boole
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [showEditPassword, setShowEditPassword] = useState(false);
     const [showAddPassword, setShowAddPassword] = useState(false);
+    
+    // States cho khóa tài khoản
+    const [isLockDialogOpen, setIsLockDialogOpen] = useState(false);
+    const [userToLock, setUserToLock] = useState<number | null>(null);
+    const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
+    const [customReason, setCustomReason] = useState("");
+    const [isCustomReason, setIsCustomReason] = useState(false);
+    const [lockType, setLockType] = useState<'FULL' | 'PARTIAL'>('FULL');
+    const [rolesToLock, setRolesToLock] = useState<string[]>([]);
+    const [roleReasonsState, setRoleReasonsState] = useState<Record<string, { selected: string[], custom: string, isCustom: boolean }>>({});
+    const [lockDurationDays, setLockDurationDays] = useState<number>(0);
+    const [userToLockData, setUserToLockData] = useState<User | null>(null);
+
+    // States cho MỞ khóa tài khoản
+    const [isUnlockDialogOpen, setIsUnlockDialogOpen] = useState(false);
+    const [userToUnlock, setUserToUnlock] = useState<User | null>(null);
+    
+    const PREDEFINED_REASONS = [
+        "Vi phạm quy định nền tảng",
+        "Spam tin nhắn/đơn hàng",
+        "Tài khoản có dấu hiệu giả mạo",
+        "Hành vi lừa đảo/gian lận"
+    ];
+
+    const ROLE_REASONS: Record<string, string[]> = {
+        'VENDOR': [
+            "Đăng thông tin xe sai sự thật",
+            "Hủy giao dịch/đơn đặt cọc nhiều lần",
+            "Bàn giao xe chậm trễ thường xuyên",
+            "Bán xe kém chất lượng, xe lỗi",
+        ],
+        'DRIVER': [
+            "Hủy cuốc xe nhiều lần",
+            "Thái độ phục vụ khách kém",
+            "Vi phạm an toàn giao thông",
+            "Thu thêm phụ phí sai quy định",
+        ],
+        'CUSTOMER': [
+            "Hủy lịch hẹn/cọc xe nhiều lần",
+            "Đánh giá/Review sai sự thật",
+            "Spam đặt lịch/hủy lịch",
+        ]
+    };
 
     useEffect(() => {
         if (onSubViewChange) {
@@ -124,10 +179,114 @@ export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boole
         }
     };
 
-    const handleLockAccount = async (userId: number) => {
+    const handleLockAccount = (user: User) => {
+        const isPartiallyLocked = user.lockedRoles && user.lockedRoles.length > 0;
+        
+        if (!user.isActive || isPartiallyLocked) {
+            setUserToUnlock(user);
+            setIsUnlockDialogOpen(true);
+        } else {
+            setUserToLock(user.id);
+            setUserToLockData(user);
+            setLockType('FULL');
+            setRolesToLock([]);
+            setRoleReasonsState({});
+            setLockDurationDays(0);
+            setSelectedReasons([]);
+            setCustomReason("");
+            setIsCustomReason(false);
+            setIsLockDialogOpen(true);
+        }
+    };
+
+    const confirmUnlockAccount = () => {
+        if (!userToUnlock) return;
+        http.patch(`/users/${userToUnlock.id}/toggle-active`, { lockType: 'FULL' })
+            .then(() => {
+                toast.success("Đã mở khóa tài khoản thành công");
+                setIsUnlockDialogOpen(false);
+                setUserToUnlock(null);
+                fetchUsers();
+            })
+            .catch(() => toast.error("Thao tác thất bại"));
+    };
+
+    const handleUnlockSingleRole = (roleToUnlock: string) => {
+        if (!userToUnlock || !userToUnlock.lockedRoles) return;
+
+        const newLockedRoles = userToUnlock.lockedRoles.filter(r => r !== roleToUnlock);
+        const newRoleReasons = { ...userToUnlock.roleLockReasons };
+        delete newRoleReasons[roleToUnlock];
+
+        http.patch(`/users/${userToUnlock.id}/toggle-active`, { 
+            lockType: 'PARTIAL',
+            lockedRoles: newLockedRoles,
+            roleReasons: newRoleReasons
+        })
+        .then(() => {
+            toast.success(`Đã gỡ khóa vai trò ${roleToUnlock}`);
+            
+            if (newLockedRoles.length === 0) {
+                setIsUnlockDialogOpen(false);
+                setUserToUnlock(null);
+            } else {
+                setUserToUnlock({ 
+                    ...userToUnlock, 
+                    lockedRoles: newLockedRoles,
+                    roleLockReasons: newRoleReasons
+                });
+            }
+            fetchUsers();
+        })
+        .catch(() => toast.error("Thao tác thất bại"));
+    };
+
+    const confirmLockAccount = async () => {
+        if (!userToLock) return;
+        
+        let finalReason = "";
+        let finalRoleReasons: Record<string, string> = {};
+
+        if (lockType === 'FULL') {
+            finalReason = selectedReasons.join(", ");
+            if (isCustomReason && customReason.trim()) {
+                finalReason = finalReason ? `${finalReason}, ${customReason.trim()}` : customReason.trim();
+            }
+            if (!finalReason.trim()) {
+                toast.error("Vui lòng chọn hoặc nhập lý do khóa tài khoản");
+                return;
+            }
+        } else {
+            if (rolesToLock.length === 0) {
+                if (!window.confirm("Bạn đang mở khóa cho tất cả các vai trò (Xóa trạng thái khóa một phần)?")) return;
+            } else {
+                for (const role of rolesToLock) {
+                    const state = roleReasonsState[role];
+                    let rReason = state?.selected.join(", ") || "";
+                    if (state?.isCustom && state?.custom.trim()) {
+                        rReason = rReason ? `${rReason}, ${state.custom.trim()}` : state.custom.trim();
+                    }
+                    if (!rReason.trim()) {
+                        toast.error(`Vui lòng chọn/nhập lý do khóa cho vai trò ${role}`);
+                        return;
+                    }
+                    finalRoleReasons[role] = rReason;
+                }
+            }
+        }
+
         try {
-            await http.patch(`/users/${userId}/toggle-active`);
-            toast.success("Đã thay đổi trạng thái tài khoản");
+            await http.patch(`/users/${userToLock}/toggle-active`, { 
+                reason: finalReason,
+                lockType,
+                lockedRoles: rolesToLock,
+                lockDurationDays,
+                roleReasons: finalRoleReasons
+            });
+            toast.success("Thao tác thành công");
+            setIsLockDialogOpen(false);
+            setUserToLock(null);
+            setUserToLockData(null);
             fetchUsers();
         } catch (error) {
             toast.error("Thao tác thất bại");
@@ -249,9 +408,14 @@ export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boole
                         <h3 className="text-3xl font-black text-gray-900 tracking-tight leading-none">{selectedUser.username}</h3>
                         <div className="flex gap-2.5 mt-4">
                              <Badge variant="secondary" className="bg-gray-100 text-gray-900 border-gray-200 border-2 font-black uppercase text-[10px] rounded-full px-4 py-1">{selectedUser?.roles?.join(', ')}</Badge>
-                             <Badge className={`font-black uppercase text-[10px] rounded-full px-4 py-1 border-2 shadow-sm ${selectedUser.isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-600 border-red-200"}`}>
-                                {selectedUser.isActive ? "Đang hoạt động" : "Tạm khóa"}
+                             <Badge className={`font-black uppercase text-[10px] rounded-full px-4 py-1 border-2 shadow-sm ${!selectedUser.isActive ? "bg-red-50 text-red-600 border-red-200" : (selectedUser.lockedRoles && selectedUser.lockedRoles.length > 0) ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-green-50 text-green-700 border-green-200"}`}>
+                                {!selectedUser.isActive ? "Tạm khóa (Toàn bộ)" : (selectedUser.lockedRoles && selectedUser.lockedRoles.length > 0) ? `Khóa: ${selectedUser.lockedRoles.join(', ')}` : "Đang hoạt động"}
                              </Badge>
+                             {selectedUser.lockUntil && (
+                                <Badge className="bg-gray-100 text-gray-700 border-gray-200 border-2 font-bold text-[10px] rounded-full px-4 py-1">
+                                    Đến {new Date(selectedUser.lockUntil).toLocaleDateString('vi-VN')}
+                                </Badge>
+                             )}
                         </div>
 
                         <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -652,7 +816,7 @@ export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boole
                                                                 <Edit className="h-4 w-4" /> Chỉnh sửa thông tin
                                                             </DropdownMenuItem>
                                                             
-                                                            {(user.vendorRequestPending || user.isApprovedVendor || user.roles?.includes('VENDOR')) && (
+                                                            {!user.isApprovedVendor && (user.vendorRequestPending || user.roles?.includes('VENDOR')) && (
                                                                 <DropdownMenuItem
                                                                     className={cn(
                                                                         "rounded-xl focus:text-white cursor-pointer font-bold px-4 py-3",
@@ -661,20 +825,20 @@ export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boole
                                                                     onClick={() => handleToggleVendorStatus(user.id, user.isApprovedVendor)}
                                                                 >
                                                                     <ShieldCheck className="h-4 w-4" />
-                                                                    {user.isApprovedVendor ? 'Hủy quyền Vendor' : (user.vendorRequestPending ? 'Phê duyệt Vendor ngay' : 'Cấp quyền Vendor')}
+                                                                    {user.vendorRequestPending ? 'Phê duyệt Vendor ngay' : 'Cấp quyền Vendor'}
                                                                 </DropdownMenuItem>
                                                             )}
                                                             
                                                             <DropdownMenuSeparator className="my-2 bg-gray-50" />
                                                             
                                                             <DropdownMenuItem
-                                                                className={`rounded-xl font-bold cursor-pointer px-4 py-3 transition-colors ${user.isActive ? "text-gray-900 focus:bg-gray-100 focus:text-gray-900" : "text-green-600 focus:bg-green-50 focus:text-green-600"}`}
-                                                                onClick={() => handleLockAccount(user.id)}
+                                                                className={`rounded-xl font-bold cursor-pointer px-4 py-3 transition-colors ${(user.isActive && (!user.lockedRoles || user.lockedRoles.length === 0)) ? "text-gray-900 focus:bg-gray-100 focus:text-gray-900" : "text-orange-600 focus:bg-orange-50 focus:text-orange-600"}`}
+                                                                onClick={() => handleLockAccount(user)}
                                                             >
-                                                                {user.isActive ? (
-                                                                    <><Lock className="h-4 w-4" /> Khóa tài khoản ngay</>
+                                                                {(!user.isActive || (user.lockedRoles && user.lockedRoles.length > 0)) ? (
+                                                                    <><Unlock className="h-4 w-4" /> Quản lý Mở khóa</>
                                                                 ) : (
-                                                                    <><Unlock className="h-4 w-4" /> Mở khóa tài khoản</>
+                                                                    <><Lock className="h-4 w-4" /> Khóa tài khoản / Phân quyền</>
                                                                 )}
                                                             </DropdownMenuItem>
                                                             
@@ -698,6 +862,263 @@ export function UsersTab({ onSubViewChange }: { onSubViewChange?: (isOpen: boole
                     )}
                 </CardContent>
             </Card>
+
+            <Dialog open={isLockDialogOpen} onOpenChange={setIsLockDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] rounded-3xl max-h-[85vh] overflow-y-auto scrollbar-hide">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-black uppercase tracking-tighter text-gray-900">Khóa tài khoản</DialogTitle>
+                        <DialogDescription className="font-medium">
+                            Vui lòng cho biết lý do bạn muốn khóa tài khoản này. Người dùng sẽ thấy lý do này khi họ cố gắng đăng nhập.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="space-y-3">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider">Phạm vi khóa</Label>
+                            <div className="flex flex-col gap-2 p-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50">
+                                <Label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                    <input
+                                        type="radio"
+                                        name="lockType"
+                                        className="w-5 h-5 border-gray-300 text-gray-900 focus:ring-gray-900"
+                                        checked={lockType === 'FULL'}
+                                        onChange={() => setLockType('FULL')}
+                                    />
+                                    <span className="font-bold text-sm text-gray-700">Khóa toàn bộ tài khoản</span>
+                                </Label>
+                                <Label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                    <input
+                                        type="radio"
+                                        name="lockType"
+                                        className="w-5 h-5 border-gray-300 text-gray-900 focus:ring-gray-900"
+                                        checked={lockType === 'PARTIAL'}
+                                        onChange={() => setLockType('PARTIAL')}
+                                    />
+                                    <span className="font-bold text-sm text-gray-700">Khóa theo vai trò (Partial Lock)</span>
+                                </Label>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <Label className="text-xs font-black uppercase text-gray-500 tracking-wider">Thời hạn khóa</Label>
+                            <Select value={lockDurationDays.toString()} onValueChange={(val) => setLockDurationDays(Number(val))}>
+                                <SelectTrigger className="w-full h-12 rounded-2xl border-gray-200 focus:ring-4 focus:ring-gray-200 font-bold bg-white">
+                                    <SelectValue placeholder="Chọn thời hạn" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl border-gray-100 shadow-xl font-bold">
+                                    <SelectItem value="1">1 ngày</SelectItem>
+                                    <SelectItem value="3">3 ngày</SelectItem>
+                                    <SelectItem value="7">7 ngày</SelectItem>
+                                    <SelectItem value="30">1 tháng (30 ngày)</SelectItem>
+                                    <SelectItem value="0">Khóa vĩnh viễn (0)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {lockType === 'PARTIAL' && userToLockData && (
+                            <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                <Label className="text-xs font-black uppercase text-gray-500 tracking-wider">Chọn vai trò để khóa & Lý do</Label>
+                                <div className="flex flex-col gap-4">
+                                    {userToLockData.roles.map((role) => (
+                                        <div key={role} className="flex flex-col gap-2 p-4 border-2 border-orange-100 rounded-2xl bg-orange-50/30 transition-all">
+                                            <Label className="flex items-center gap-3 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-5 h-5 rounded border-gray-300 text-orange-600 focus:ring-orange-600"
+                                                    checked={rolesToLock.includes(role)}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        if (checked) {
+                                                            setRolesToLock([...rolesToLock, role]);
+                                                            setRoleReasonsState(prev => ({ ...prev, [role]: { selected: [], custom: "", isCustom: false } }));
+                                                        } else {
+                                                            setRolesToLock(rolesToLock.filter(r => r !== role));
+                                                            setRoleReasonsState(prev => {
+                                                                const newState = { ...prev };
+                                                                delete newState[role];
+                                                                return newState;
+                                                            });
+                                                        }
+                                                    }}
+                                                />
+                                                <span className="font-bold text-sm text-gray-700 uppercase">{role}</span>
+                                            </Label>
+                                            
+                                            {rolesToLock.includes(role) && (
+                                                <div className="mt-2 pl-8 flex flex-col gap-2 animate-in fade-in">
+                                                    {(ROLE_REASONS[role] || PREDEFINED_REASONS).map((reason) => (
+                                                        <Label key={`${role}-${reason}`} className="flex items-center gap-3 cursor-pointer p-1 hover:bg-orange-100/50 rounded-lg transition-colors">
+                                                            <input
+                                                                type="checkbox"
+                                                                className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-600"
+                                                                checked={roleReasonsState[role]?.selected.includes(reason) || false}
+                                                                onChange={(e) => {
+                                                                    const state = roleReasonsState[role] || { selected: [], custom: "", isCustom: false };
+                                                                    const newSelected = e.target.checked 
+                                                                        ? [...state.selected, reason] 
+                                                                        : state.selected.filter(r => r !== reason);
+                                                                    setRoleReasonsState({ ...roleReasonsState, [role]: { ...state, selected: newSelected } });
+                                                                }}
+                                                            />
+                                                            <span className="text-xs font-medium text-gray-700">{reason}</span>
+                                                        </Label>
+                                                    ))}
+                                                    <Label className="flex items-center gap-3 cursor-pointer p-1 hover:bg-orange-100/50 rounded-lg transition-colors">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-600"
+                                                            checked={roleReasonsState[role]?.isCustom || false}
+                                                            onChange={(e) => {
+                                                                const state = roleReasonsState[role] || { selected: [], custom: "", isCustom: false };
+                                                                setRoleReasonsState({ ...roleReasonsState, [role]: { ...state, isCustom: e.target.checked } });
+                                                            }}
+                                                        />
+                                                        <span className="text-xs font-medium text-gray-700">Lý do khác...</span>
+                                                    </Label>
+                                                    {roleReasonsState[role]?.isCustom && (
+                                                        <Input
+                                                            placeholder={`Nhập lý do khóa ${role}...`}
+                                                            value={roleReasonsState[role]?.custom || ""}
+                                                            onChange={(e) => {
+                                                                const state = roleReasonsState[role] || { selected: [], custom: "", isCustom: false };
+                                                                setRoleReasonsState({ ...roleReasonsState, [role]: { ...state, custom: e.target.value } });
+                                                            }}
+                                                            className="h-10 mt-1 rounded-xl border-gray-200 text-xs font-medium"
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {userToLockData.roles.length === 0 && (
+                                        <div className="p-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50">
+                                            <span className="text-xs italic text-gray-500">Tài khoản này chưa có vai trò nào.</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {lockType === 'FULL' && (
+                            <div className="space-y-3">
+                                <Label className="text-xs font-black uppercase text-gray-500 tracking-wider">Chọn lý do khóa toàn bộ</Label>
+                                <div className="flex flex-col gap-2 p-4 border-2 border-gray-100 rounded-2xl bg-gray-50/50">
+                                    {PREDEFINED_REASONS.map((reason) => (
+                                        <Label key={reason} className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                                                checked={selectedReasons.includes(reason)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedReasons([...selectedReasons, reason]);
+                                                    } else {
+                                                        setSelectedReasons(selectedReasons.filter(r => r !== reason));
+                                                    }
+                                                }}
+                                            />
+                                            <span className="font-bold text-sm text-gray-700">{reason}</span>
+                                        </Label>
+                                    ))}
+                                    <Label className="flex items-center gap-3 cursor-pointer p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded border-gray-300 text-gray-900 focus:ring-gray-900"
+                                            checked={isCustomReason}
+                                            onChange={(e) => setIsCustomReason(e.target.checked)}
+                                        />
+                                        <span className="font-bold text-sm text-gray-700">Lý do khác...</span>
+                                    </Label>
+                                </div>
+                                
+                                {isCustomReason && (
+                                    <div className="space-y-2 pt-2 animate-in fade-in slide-in-from-top-2">
+                                        <Label htmlFor="custom-reason" className="text-xs font-black uppercase text-gray-500 tracking-wider">Nhập lý do khác</Label>
+                                        <Input
+                                            id="custom-reason"
+                                            value={customReason}
+                                            onChange={(e) => setCustomReason(e.target.value)}
+                                            placeholder="VD: Vi phạm quy định spam tin nhắn..."
+                                            className="h-12 rounded-xl font-bold border-2 focus:ring-4 focus:ring-gray-200"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsLockDialogOpen(false)} className="rounded-xl font-bold">Hủy</Button>
+                        <Button onClick={confirmLockAccount} className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold">Khóa tài khoản</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Dialog open={isUnlockDialogOpen} onOpenChange={setIsUnlockDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] rounded-3xl overflow-hidden bg-white">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-black uppercase tracking-tighter text-gray-900">Chi tiết khóa tài khoản</DialogTitle>
+                        <DialogDescription className="font-medium text-gray-500">
+                            Thông tin chi tiết về lệnh khóa đối với tài khoản <span className="font-bold text-gray-900">{userToUnlock?.username}</span>
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    {userToUnlock && (
+                        <div className="grid gap-4 py-4">
+                            {!userToUnlock.isActive ? (
+                                <div className="space-y-3 bg-red-50 p-4 rounded-2xl border border-red-100">
+                                    <div className="flex items-center gap-2 text-red-600 font-bold uppercase text-xs tracking-wider">
+                                        <Lock className="w-4 h-4" /> Khóa toàn bộ
+                                    </div>
+                                    <div className="text-sm font-medium text-gray-800">
+                                        <span className="text-gray-500 mr-2">Lý do:</span> 
+                                        {userToUnlock.lockReason || "Không có lý do"}
+                                    </div>
+                                </div>
+                            ) : userToUnlock.lockedRoles && userToUnlock.lockedRoles.length > 0 ? (
+                                <div className="space-y-3 bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                                    <div className="flex items-center gap-2 text-orange-600 font-bold uppercase text-xs tracking-wider">
+                                        <Lock className="w-4 h-4" /> Khóa một phần (Vai trò)
+                                    </div>
+                                    <div className="space-y-2 mt-2">
+                                        {userToUnlock.lockedRoles.map(role => (
+                                            <div key={role} className="bg-white p-3 rounded-xl border border-orange-100/50 relative pr-24">
+                                                <Badge variant="outline" className="mb-2 bg-orange-100 text-orange-700 border-0">{role}</Badge>
+                                                <Button 
+                                                    variant="outline" 
+                                                    size="sm" 
+                                                    className="absolute top-3 right-3 text-emerald-600 border-emerald-200 hover:bg-emerald-50 h-7 text-xs font-bold px-2 rounded-lg"
+                                                    onClick={() => handleUnlockSingleRole(role)}
+                                                >
+                                                    <Unlock className="w-3 h-3 mr-1" /> Gỡ riêng
+                                                </Button>
+                                                <div className="text-sm font-medium text-gray-700">
+                                                    <span className="text-gray-500 text-xs mr-2 block mb-1">Lý do:</span>
+                                                    {userToUnlock.roleLockReasons?.[role] || "Không có lý do"}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            {userToUnlock.lockUntil && (
+                                <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                    <span className="text-gray-500 text-sm font-bold uppercase tracking-wider text-xs">Thời hạn:</span>
+                                    <span className="text-gray-900 font-bold text-sm">
+                                        Đến {new Date(userToUnlock.lockUntil).toLocaleString('vi-VN')}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setIsUnlockDialogOpen(false)} className="rounded-xl font-bold">Đóng</Button>
+                        <Button onClick={confirmUnlockAccount} className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-2">
+                            <Unlock className="w-4 h-4" /> 
+                            {userToUnlock && !userToUnlock.isActive ? "Mở khóa toàn bộ" : "Xóa bỏ khóa vai trò"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

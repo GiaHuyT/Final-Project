@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../../../core/decorators/roles.decorator';
 
@@ -25,6 +25,19 @@ export class RolesGuard implements CanActivate {
         }
 
         // Kiểm tra xem user có ít nhất một role nằm trong danh sách yêu cầu không
-        return requiredRoles.some((role) => user.roles.includes(role));
+        const hasRole = requiredRoles.some((role) => user.roles.includes(role));
+        if (!hasRole) return false;
+
+        // Nếu là request thay đổi dữ liệu (POST, PUT, PATCH, DELETE)
+        // Kiểm tra xem user có đang dùng một role đã bị khóa hay không
+        const req = context.switchToHttp().getRequest();
+        if (req.method !== 'GET' && user.lockedRoles && user.lockedRoles.length > 0) {
+            const isUsingLockedRole = requiredRoles.some(role => user.lockedRoles.includes(role));
+            if (isUsingLockedRole) {
+                throw new ForbiddenException(`Tính năng ${requiredRoles.join(', ')} của bạn đã bị khóa.`);
+            }
+        }
+
+        return true;
     }
 }

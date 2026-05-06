@@ -28,14 +28,26 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     console.log('[JwtStrategy] Tìm thấy user, ID gốc:', user.id);
     
+    // Nếu là ADMIN, quy mọi hoạt động về tài khoản showroom chính (Main Admin)
+    let vendorId = Number(user.id);
+    if (user.roles && user.roles.includes('ADMIN')) {
+      const mainAdminId = await this.usersService.getMainAdminId();
+      if (mainAdminId) {
+        vendorId = mainAdminId;
+      }
+    }
+    
     // Đảm bảo trả về một plain object có chứa id
     return {
       id: Number(user.id),
+      vendorId: vendorId, // ID dùng để query danh sách xe, đấu giá (quy về 1 cho Admin)
       username: user.username,
       email: user.email,
       roles: user.roles,
       avatar: user.avatar,
-      phonenumber: user.phonenumber
+      phonenumber: user.phonenumber,
+      isActive: user.isActive,
+      lockedRoles: (user as any).lockedRoles || []
     };
   }
 }
