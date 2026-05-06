@@ -24,6 +24,10 @@ model User {
   driverRequestPending  Boolean  @default(false)
   pendingRequestType    String?
   isActive          Boolean  @default(true)
+  lockReason        String?
+  lockedRoles       Role[]   @default([])
+  roleLockReasons   Json?
+  lockUntil         DateTime?
   createdAt         DateTime @default(now())
   resetToken        String?   // token reset password
   resetTokenExpires DateTime? // 
@@ -189,6 +193,8 @@ model Product {
   lka               Boolean? @default(false)
   bsm               Boolean? @default(false)
   acc               Boolean? @default(false)
+  
+  depositEndsAt     DateTime?
 
   images            ProductImage[]
   colorVariants     ProductColorVariant[]
@@ -196,6 +202,7 @@ model Product {
   favorites         Favorite[]
   cartItems         CartItem[]
   auctionItems      AuctionItem[]
+  reviews           Review[]
 }
 
 model ProductImage {
@@ -249,6 +256,7 @@ model Auction {
   status         String   @default("PENDING") 
   
   currentActiveItemId Int? // Dành cho Livestream: ID của AuctionItem đang được đấu giá
+  breakEndsAt         DateTime? // Thời gian kết thúc nghỉ giải lao 1 phút
   
   vendorId       Int
   vendor         User     @relation("VendorAuctions", fields: [vendorId], references: [id])
@@ -313,25 +321,13 @@ model ServiceProfile {
   serviceType String
   experience  String?
   isApproved  Boolean  @default(false)
-  vehicles    RentalCar[]
   repairs     RepairService[]
   repairCapacities RepairCapacity[]
   maintenanceServices MaintenanceService[]
   driverRentalServices DriverRentalService[]
 }
 
-model RentalCar {
-  id          Int      @id @default(autoincrement())
-  profileId   Int
-  profile     ServiceProfile @relation(fields: [profileId], references: [id])
-  type        String
-  description String?
-  name        String   @default("Unknown")
-  plate       String   @default("Unknown")
-  price       Float    @default(0)
-  status      String   @default("Sẵn sàng")
-  imageUrl    String?
-}
+
 
 model RepairService {
   id          Int      @id @default(autoincrement())
@@ -493,7 +489,13 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
   content   String
   rating    Int
+  
+  targetType String  @default("VENDOR") // "VENDOR" or "PRODUCT"
   targetId  Int
+  
+  productId Int?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
   createdAt DateTime @default(now())
 }
 

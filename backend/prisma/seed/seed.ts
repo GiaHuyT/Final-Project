@@ -24,7 +24,6 @@ async function main() {
   await prisma.maintenanceService.deleteMany();
   await prisma.repairCapacity.deleteMany();
   await prisma.repairService.deleteMany();
-  await prisma.rentalCar.deleteMany();
   await prisma.serviceProfile.deleteMany();
   await prisma.address.deleteMany();
   await prisma.message.deleteMany();
