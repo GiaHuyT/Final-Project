@@ -102,9 +102,26 @@ export default function MyInvoicesPage() {
                                             <div className="font-bold text-slate-900 shrink-0">x {item.quantity}</div>
                                         </div>
                                     ))}
-                                    <div className="pt-3 border-t border-slate-200 flex justify-between items-end">
-                                        <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Tổng tiền</div>
-                                        <div className="text-xl font-black text-blue-600">{order.totalPrice.toLocaleString('vi-VN')} đ</div>
+                                    <div className="pt-3 border-t border-slate-200 flex flex-col gap-1">
+                                        <div className="flex justify-between items-end">
+                                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Tổng giá trị</div>
+                                            <div className="text-lg font-black text-slate-700">{order.totalPrice.toLocaleString('vi-VN')} đ</div>
+                                        </div>
+                                        {order.status === 'DEPOSITED' && (
+                                            <div className="flex justify-between items-end">
+                                                <div className="text-xs font-bold uppercase tracking-widest text-amber-500">Tiền đã cọc</div>
+                                                <div className="text-xl font-black text-amber-600">{Math.round(order.totalPrice * 0.00001).toLocaleString('vi-VN')} đ</div>
+                                            </div>
+                                        )}
+                                        {order.status === 'PAID' && (
+                                            <div className="flex justify-between items-end">
+                                                <div className="text-xs font-bold uppercase tracking-widest text-emerald-500">Đã thanh toán</div>
+                                                <div className="text-xl font-black text-emerald-600">{order.totalPrice.toLocaleString('vi-VN')} đ</div>
+                                            </div>
+                                        )}
+                                        <Link href={`/invoices/${order.id}`} className="mt-3 block w-full text-center py-2.5 bg-blue-50 text-blue-600 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-blue-100 transition-colors">
+                                            Xem chi tiết
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

@@ -334,11 +334,21 @@ export default function CarModelsPage() {
                                             <img
                                                 src={product.imageUrl || "/images/static/car-placeholder.png"}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                                className={cn(
+                                                    "w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000",
+                                                    product.depositEndsAt && new Date(product.depositEndsAt) > new Date() ? "opacity-60" : ""
+                                                )}
                                                 onError={(e) => {
                                                     e.currentTarget.src = "/images/static/car-placeholder.png";
                                                 }}
                                             />
+                                            {product.depositEndsAt && new Date(product.depositEndsAt) > new Date() && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/10 backdrop-blur-[1px] z-10 pointer-events-none">
+                                                    <div className="bg-orange-500 text-white px-6 py-2 rounded-full font-black text-xs uppercase tracking-widest shadow-lg transform -rotate-12 border-2 border-white">
+                                                        Đã có người cọc
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div className="absolute top-6 left-6 flex flex-col gap-2">
                                                 <span className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-900 border border-white/50 shadow-sm w-fit">
                                                     {product.brand}
@@ -352,6 +362,7 @@ export default function CarModelsPage() {
                                             <CartButton
                                                 productId={product.id}
                                                 className="absolute top-20 right-6"
+                                                disabled={product.depositEndsAt && new Date(product.depositEndsAt) > new Date()}
                                             />
                                             <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
                                                 <div className="bg-black text-white px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl">

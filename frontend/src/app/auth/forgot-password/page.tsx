@@ -30,6 +30,7 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
+            console.log(email);
             const res = await http.post("/auth/forgot-password", { email });
             const data = res.data;
 

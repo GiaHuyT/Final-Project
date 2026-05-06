@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     const protectedRoutes = ['/profile', '/admin', '/vendor', '/driver'];
-    const isProtectedRoute = protectedRoutes.some(path => pathname.startsWith(path));
+    const isProtectedRoute = protectedRoutes.some(path => pathname === path || pathname.startsWith(path + '/'));
 
     // 1. Kiểm tra đăng nhập
     if (isProtectedRoute && !token) {
@@ -39,7 +39,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url));
     }
     
-    if (pathname.startsWith('/driver') && !roles.includes('DRIVER')) {
+    if ((pathname === '/driver' || pathname.startsWith('/driver/')) && !roles.includes('DRIVER')) {
         return NextResponse.redirect(new URL('/', request.url));
     }
 

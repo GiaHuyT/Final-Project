@@ -24,7 +24,8 @@ export class CartService {
                 brand: true,
                 modelName: true,
                 stock: true,
-                status: true
+                status: true,
+                depositEndsAt: true
               }
             }
           },
@@ -49,6 +50,9 @@ export class CartService {
 
     if (!product) throw new NotFoundException('Sản phẩm không tồn tại');
     if (!product.status) throw new BadRequestException('Sản phẩm đã ngừng bán');
+    if (product.depositEndsAt && new Date(product.depositEndsAt) > new Date()) {
+      throw new BadRequestException('Sản phẩm đã được đặt cọc');
+    }
     if (quantity > product.stock) throw new BadRequestException(`Sản phẩm chỉ còn ${product.stock} chiếc trong kho`);
 
     const existingItem = await this.prisma.cartItem.findFirst({
@@ -129,6 +133,15 @@ export class CartService {
     const cart = await this.getCart(userId);
     if (!cart.items || cart.items.length === 0) {
       throw new BadRequestException('Giỏ hàng trống');
+    }
+
+    const depositedItems = cart.items.filter(item => 
+      item.product.depositEndsAt && new Date(item.product.depositEndsAt) > new Date()
+    );
+
+    if (depositedItems.length > 0) {
+      const depositedNames = depositedItems.map(item => item.product.name).join(', ');
+      throw new BadRequestException(`Sản phẩm đã được đặt cọc: ${depositedNames}. Vui lòng xóa khỏi giỏ hàng.`);
     }
 
     let totalPrice = 0;

@@ -10,9 +10,10 @@ interface CartButtonProps {
     productId: number;
     className?: string;
     showText?: boolean;
+    disabled?: boolean;
 }
 
-export default function CartButton({ productId, className, showText = false }: CartButtonProps) {
+export default function CartButton({ productId, className, showText = false, disabled = false }: CartButtonProps) {
     const { addItem } = useCart();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -35,9 +36,10 @@ export default function CartButton({ productId, className, showText = false }: C
         return (
             <button
                 onClick={handleAddToCart}
-                disabled={isLoading}
+                disabled={isLoading || disabled}
                 className={cn(
                     "w-full bg-slate-900 text-white rounded-full font-headline font-black text-sm tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-slate-200 py-5 flex items-center justify-center gap-2",
+                    disabled && "bg-slate-300 hover:opacity-100 active:scale-100 cursor-not-allowed shadow-none border-none text-white",
                     className
                 )}
             >
@@ -50,11 +52,12 @@ export default function CartButton({ productId, className, showText = false }: C
     return (
         <button
             onClick={handleAddToCart}
-            disabled={isLoading}
+            disabled={isLoading || disabled}
             className={cn(
                 "h-10 w-10 rounded-full cursor-pointer flex items-center justify-center transition-all shadow-xl backdrop-blur-md",
                 "bg-white/90 text-slate-800 border-2 border-white/50 hover:bg-slate-900 hover:text-white hover:scale-110",
                 isLoading && "opacity-70 pointer-events-none",
+                disabled && "opacity-50 cursor-not-allowed hover:bg-white/90 hover:text-slate-800 hover:scale-100",
                 className
             )}
             title="Thêm vào giỏ hàng"
