@@ -31,7 +31,9 @@ export class PayosController {
   @Public()
   @Post('cancel/:orderCode')
   async cancelPayment(@Param('orderCode') orderCode: string, @Body('reason') reason?: string) {
-    return await this.payosService.cancelPayment(Number(orderCode), reason);
+    const result = await this.payosService.cancelPayment(Number(orderCode), reason);
+    await this.transactionsService.finalizeTransaction(Number(orderCode), 'FAILED');
+    return result;
   }
 
   @Public()

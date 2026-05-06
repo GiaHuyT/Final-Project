@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, UseGuards, Request, Post } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
@@ -18,7 +18,25 @@ export class OrdersController {
     @Get('vendor/me')
     @ApiOperation({ summary: 'Lấy đơn hàng của nhà cung cấp hiện tại' })
     findByVendor(@Request() req: any) {
-        return this.ordersService.findByVendorId(req.user.id);
+        return this.ordersService.findByVendorId(req.user.vendorId || req.user.id);
+    }
+
+    @Get('customer/me')
+    @ApiOperation({ summary: 'Lấy đơn hàng của khách hàng hiện tại' })
+    findByCustomer(@Request() req: any) {
+        return this.ordersService.findByCustomerId(req.user.id);
+    }
+
+    @Post('vendor/manual')
+    @ApiOperation({ summary: 'Tạo hóa đơn thủ công (Offline)' })
+    createManualInvoice(@Request() req: any, @Body() data: { productId: number; customerId?: number; customerName?: string; price?: number; status: string }) {
+        return this.ordersService.createManualInvoice(req.user.vendorId || req.user.id, data, false);
+    }
+
+    @Post('admin/manual')
+    @ApiOperation({ summary: 'Admin Tạo hóa đơn thủ công' })
+    createAdminManualInvoice(@Request() req: any, @Body() data: { productId: number; customerId?: number; customerName?: string; price?: number; status: string }) {
+        return this.ordersService.createManualInvoice(req.user.id, data, true);
     }
 
     @Get(':id')

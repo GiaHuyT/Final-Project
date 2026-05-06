@@ -12,7 +12,7 @@ export class PayosService {
 
   async createPaymentLink(dto: CreatePaymentLinkDto) {
     try {
-      const { orderCode, amount, description, items, cancelUrl, returnUrl } = dto;
+      const { orderCode, amount, description, items, cancelUrl, returnUrl, expiredAt } = dto;
 
       const body = {
         orderCode,
@@ -21,6 +21,7 @@ export class PayosService {
         items: items || [],
         cancelUrl: cancelUrl || this.configService.get<string>('FRONTEND_URL') + '/cancel',
         returnUrl: returnUrl || this.configService.get<string>('FRONTEND_URL') + '/success',
+        ...(expiredAt && { expiredAt }),
       };
 
       const paymentLinkRes = await this.payos.paymentRequests.create(body);

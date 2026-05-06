@@ -4,11 +4,20 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import http from '@/lib/http';
 
 function CancelPaymentContent() {
     const searchParams = useSearchParams();
     const orderCode = searchParams.get('orderCode');
+
+    useEffect(() => {
+        if (orderCode) {
+            http.post(`/payos/cancel/${orderCode}`).catch(err => {
+                console.error("Failed to cancel payment on backend", err);
+            });
+        }
+    }, [orderCode]);
 
     return (
         <div className="text-center space-y-6">

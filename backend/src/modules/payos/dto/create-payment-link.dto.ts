@@ -24,4 +24,8 @@ export class CreatePaymentLinkDto {
   @IsOptional()
   @IsArray()
   items?: any[];
+
+  @IsOptional()
+  @IsNumber()
+  expiredAt?: number;
 }

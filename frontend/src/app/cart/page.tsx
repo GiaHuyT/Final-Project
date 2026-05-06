@@ -32,8 +32,8 @@ export default function CartPage() {
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
                     <ShoppingCart className="w-10 h-10 text-slate-300" />
                 </div>
-                <h1 className="text-3xl font-black text-slate-900 font-headline mb-4">Giỏ hàng trống</h1>
-                <p className="text-slate-500 mb-8 max-w-sm text-center">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các mẫu xe đẳng cấp ngay hôm nay.</p>
+                <h1 className="text-3xl font-black text-slate-900 font-headline mb-4">Danh sách xe trống</h1>
+                <p className="text-slate-500 mb-8 max-w-sm text-center">Bạn chưa chọn chiếc xe nào. Hãy khám phá các mẫu xe đẳng cấp ngay hôm nay.</p>
                 <Link 
                     href="/categories" 
                     className="bg-slate-900 text-white px-8 py-4 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 transition-transform shadow-xl shadow-slate-900/20"
@@ -47,7 +47,7 @@ export default function CartPage() {
     return (
         <div className="min-h-screen bg-slate-50 pt-24 pb-20">
             <div className="max-w-7xl mx-auto px-6">
-                <h1 className="text-4xl font-black text-slate-900 font-headline mb-10 tracking-tight">Giỏ hàng của bạn</h1>
+                <h1 className="text-4xl font-black text-slate-900 font-headline mb-10 tracking-tight">Danh sách xe chọn mua</h1>
 
                 <div className="flex flex-col lg:flex-row gap-10">
                     {/* Danh sách xe */}
@@ -157,12 +157,12 @@ export default function CartPage() {
                     <div className="w-full lg:w-[420px] shrink-0">
                         <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 lg:sticky lg:top-28 shadow-2xl">
                             <h2 className="text-xl font-black font-headline mb-6 border-b border-white/10 pb-6 uppercase tracking-widest text-slate-100">
-                                Tóm tắt đơn hàng
+                                Hồ sơ đặt xe
                             </h2>
                             
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between items-center text-slate-300 font-medium">
-                                    <span>Tạm tính ({items.length} xe)</span>
+                                    <span>Giá xe ({items.length} chiếc)</span>
                                     <span className="font-bold">{getTotalPrice().toLocaleString('vi-VN')} ₫</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-300 font-medium">
@@ -173,7 +173,7 @@ export default function CartPage() {
 
                             <div className="border-t border-white/10 pt-6 mb-8">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tổng cộng</span>
+                                    <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Tổng giá trị xe</span>
                                     <div className="text-right">
                                         <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
                                             {getTotalPrice().toLocaleString('vi-VN')}
@@ -196,14 +196,21 @@ export default function CartPage() {
                                 disabled={isCheckingOut}
                                 className="group w-full bg-white text-slate-900 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-xl disabled:opacity-70 disabled:hover:scale-100"
                             >
-                                {isCheckingOut ? 'ĐANG CHUYỂN HƯỚNG...' : 'ĐĂNG KÝ THANH TOÁN'}
+                                {isCheckingOut ? 'ĐANG CHUYỂN HƯỚNG...' : 'THANH TOÁN CỌC QUA PAYOS'}
                                 {!isCheckingOut && <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />}
                             </button>
 
-
-                            <p className="text-[10px] text-slate-400 font-medium text-center mt-6 leading-relaxed">
-                                Bạn cần thanh toán số tiền cọc tương đương 0,001% giá trị giỏ hàng thông qua mã QR PayOS để hoàn tất đăng ký mua xe.
-                            </p>
+                            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 mt-6">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-bold text-slate-300">Tiền cọc yêu cầu (0.001%)</span>
+                                    <span className="text-lg font-black text-emerald-400">
+                                        {Math.round(getTotalPrice() * 0.00001).toLocaleString('vi-VN')} ₫
+                                    </span>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-medium leading-relaxed text-justify">
+                                    * Đây là số tiền bạn sẽ thanh toán qua mã QR PayOS để xác nhận giữ xe. Số tiền còn lại sẽ được thanh toán khi làm thủ tục nhận xe tại Showroom.
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-import { Controller, Post, Param, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { JwtAuthGuard } from '../auth/passport/jwt-auth.guard';
 import { RolesGuard } from '../auth/passport/roles.guard';
@@ -7,6 +7,11 @@ import { RolesGuard } from '../auth/passport/roles.guard';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
+
+  @Get(':orderCode')
+  async getTransaction(@Param('orderCode') orderCode: string) {
+    return this.transactionsService.findByOrderCode(Number(orderCode));
+  }
 
   @Post('order/:orderId')
   async createPaymentForOrder(
