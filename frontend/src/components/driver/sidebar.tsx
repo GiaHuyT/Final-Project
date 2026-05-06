@@ -83,7 +83,8 @@ export function DriverSidebar() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        Cookies.remove('token');
+        Cookies.remove('token', { path: '/' });
+        Cookies.remove('user_role', { path: '/' });
         router.push('/auth/login');
     };
 

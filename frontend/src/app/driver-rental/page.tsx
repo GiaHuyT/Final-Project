@@ -41,7 +41,7 @@ export default function RideHailingPage() {
   const [price, setPrice] = useState<number | null>(null);
   const [routeGeometry, setRouteGeometry] = useState<[number, number][] | null>(null);
   
-  const [status, setStatus] = useState<"IDLE" | "SEARCHING" | "ACCEPTED" | "IN_PROGRESS" | "COMPLETED">("IDLE");
+  const [status, setStatus] = useState<"IDLE" | "SEARCHING" | "ACCEPTED" | "ARRIVED_AT_PICKUP" | "CAR_RECEIVED" | "IN_PROGRESS" | "ARRIVED_AT_DROPOFF" | "COMPLETED">("IDLE");
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [socket, setSocket] = useState<any>(null);
 

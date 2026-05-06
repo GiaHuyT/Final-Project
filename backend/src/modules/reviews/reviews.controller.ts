@@ -12,16 +12,28 @@ export class ReviewsController {
     return this.reviewsService.findByVendorId(Number(id));
   }
 
+  @Public()
+  @Get('product/:id')
+  async findByProductId(@Param('id') id: string) {
+    return this.reviewsService.findByProductId(Number(id));
+  }
+
   @Post()
-  async create(@Req() req: any, @Body() body: { targetId: number; rating?: number; content?: string }) {
+  async create(@Req() req: any, @Body() body: { targetId: number; targetType?: string; rating?: number; content?: string }) {
     const userId = req.user.id;
     return this.reviewsService.create(userId, body);
   }
 
-  @Get('user/rating/:vendorId')
+  @Get('user/rating/vendor/:vendorId')
   async getUserRatingForVendor(@Req() req: any, @Param('vendorId') vendorId: string) {
     const userId = req.user.id;
     return this.reviewsService.getUserRatingForVendor(userId, Number(vendorId));
+  }
+
+  @Get('user/rating/product/:productId')
+  async getUserRatingForProduct(@Req() req: any, @Param('productId') productId: string) {
+    const userId = req.user.id;
+    return this.reviewsService.getUserRatingForProduct(userId, Number(productId));
   }
 
   @Delete(':id')

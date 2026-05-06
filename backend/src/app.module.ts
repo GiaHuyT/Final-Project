@@ -13,7 +13,6 @@ import { ProductsModule } from './modules/products/products.module';
 import { AuctionsModule } from './modules/auctions/auctions.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
-import { RentalCarsModule } from './modules/rental-cars/rental-cars.module';
 import { RepairsModule } from './modules/repairs/repairs.module';
 import { BrandsModule } from './modules/brands/brands.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
@@ -25,6 +24,7 @@ import { PayosModule } from './modules/payos/payos.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/passport/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/passport/roles.guard';
+import { ActiveGuard } from './core/guards/active.guard';
 
 import { TransactionsModule } from './modules/transactions/transactions.module';
 import { AiModule } from './modules/ai/ai.module';
@@ -51,7 +51,6 @@ import { DriverBookingModule } from './modules/driver-booking/driver-booking.mod
     AuctionsModule,
     OrdersModule,
     DashboardModule,
-    RentalCarsModule,
     RepairsModule,
     BrandsModule,
     FavoritesModule,
@@ -74,6 +73,10 @@ import { DriverBookingModule } from './modules/driver-booking/driver-booking.mod
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ActiveGuard,
     },
     {
       provide: APP_GUARD,

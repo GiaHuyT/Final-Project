@@ -51,7 +51,8 @@ http.interceptors.response.use(
                 // If refresh fails, clear everything and redirect to login
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                Cookies.remove('token'); // Xóa cả Cookie
+                Cookies.remove('token', { path: '/' }); 
+                Cookies.remove('user_role', { path: '/' });
 
                 // Show a friendly message if possible (optional, but alert is certain)
                 toast.error('Phiên đăng nhập đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại.');

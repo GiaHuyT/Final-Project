@@ -23,6 +23,7 @@ import { initSocket, disconnectSocket } from "@/lib/socket";
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { CurrencySwitcher } from "./CurrencySwitcher";
 
 interface Notification {
     id: number;
@@ -221,8 +222,8 @@ export function Navbar() {
     }, []);
 
     const handleLogout = () => {
-        Cookies.remove("token");
-        Cookies.remove("user_role");
+        Cookies.remove("token", { path: '/' });
+        Cookies.remove("user_role", { path: '/' });
         localStorage.removeItem("token");
         localStorage.removeItem("user");
         disconnectSocket('notifications');
@@ -252,7 +253,6 @@ export function Navbar() {
                         <div className="absolute top-full left-0 mt-1 w-48 bg-white shadow-xl border border-gray-100 rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2">
                             <Link href="/maintenance" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><Wrench className="h-4 w-4" /> Dịch vụ bảo dưỡng</Link>
                             <Link href="/repairs" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Dịch vụ sửa chữa</Link>
-                            <Link href="/car-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><Car className="h-4 w-4" /> Dịch vụ thuê xe</Link>
                             <Link href="/driver-rental" className="px-4 py-2 hover:bg-slate-50 cursor-pointer font-semibold text-sm font-body w-full text-slate-700 hover:text-primary transition-colors flex items-center gap-2"><UserCircle className="h-4 w-4" /> Dịch vụ thuê tài xế</Link>
                         </div>
                     </div>
@@ -261,6 +261,7 @@ export function Navbar() {
                 </div>
 
                 <div className="flex items-center space-x-4">
+                    <CurrencySwitcher />
                     <LanguageSwitcher />
                     {isLoggedIn && (
                         <Link

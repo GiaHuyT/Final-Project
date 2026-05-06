@@ -19,10 +19,11 @@ import {
     Store,
     User
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { toast } from "react-hot-toast";
 import WishlistButton from "@/components/ui/wishlist-button";
 import CartButton from "@/components/ui/cart-button";
+import { cn, formatPrice } from "@/lib/utils";
+import { useCurrency } from "@/hooks/use-currency";
 
 // Custom Dropdown Component
 interface FilterDropdownProps {
@@ -101,6 +102,7 @@ const FilterDropdown = ({ label, icon, options, selected, onSelect, placeholder 
 };
 
 export default function CarModelsPage() {
+    const { currency } = useCurrency();
     const [products, setProducts] = useState<any[]>([]);
     const [brands, setBrands] = useState<any[]>([]);
     const [vendors, setVendors] = useState<any[]>([]);
@@ -367,9 +369,16 @@ export default function CarModelsPage() {
                                                 {product.name}
                                             </h3>
 
-                                            <div className="flex items-baseline gap-1 mb-6">
-                                                <span className="text-3xl font-black text-slate-900">{product.price?.toLocaleString('vi-VN')}</span>
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">VND</span>
+                                            <div className="flex flex-col gap-1 mb-6">
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-3xl font-black text-slate-900">{product.price?.toLocaleString('vi-VN')}</span>
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">VND</span>
+                                                </div>
+                                                {currency !== 'VND' && (
+                                                    <span className="text-xs font-semibold text-slate-500">
+                                                        (≈ {formatPrice(product.price, currency)})
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <div className="flex flex-col gap-1 mb-6">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import http from "@/lib/http";
 import { toast } from "react-hot-toast";
-import { Loader2, Car, Gavel, Bell, User, ArrowRight, Store, ShieldCheck, ChevronRight, ChevronDown, Image as ImageIcon, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Loader2, Car, Gavel, Bell, User, ArrowRight, Store, ShieldCheck, ChevronRight, ChevronDown, Image as ImageIcon, Plus, Trash2, CheckCircle2, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     Dialog,
@@ -518,14 +518,18 @@ export default function ProfilePage() {
                                 <Car className="w-5 h-5 flex-shrink-0" />
                                 <span className="font-bold text-sm tracking-wide">Xe yêu thích</span>
                             </Link>
-                            <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                            <Link href="/invoices" className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                                <Receipt className="w-5 h-5 flex-shrink-0" />
+                                <span className="font-bold text-sm tracking-wide">Hóa đơn của tôi</span>
+                            </Link>
+                            <Link href="/auctions/history" className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
                                 <Gavel className="w-5 h-5 flex-shrink-0" />
                                 <span className="font-bold text-sm tracking-wide">Lịch sử đấu giá</span>
-                            </button>
-                            <button className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
+                            </Link>
+                            <Link href="/notifications" className="flex items-center gap-3 px-5 py-4 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all whitespace-nowrap border-b-2 lg:border-b-0 lg:border-l-4 border-transparent rounded-r-xl">
                                 <Bell className="w-5 h-5 flex-shrink-0" />
                                 <span className="font-bold text-sm tracking-wide">Thông báo</span>
-                            </button>
+                            </Link>
                         </nav>
 
                         {/* Vendor Account Button (as per user image) */}
@@ -546,10 +550,13 @@ export default function ProfilePage() {
                                                 finalUser = updatedUser;
                                             } catch (err: any) {
                                                 console.error(err);
+                                                const lockReason = err.response?.data?.message || 'Tính năng VENDOR của bạn đã bị khóa.';
+                                                toast.error(lockReason);
+                                                return;
                                             }
                                         }
                                         localStorage.setItem('user', JSON.stringify(finalUser));
-                                        Cookies.set('user_role', JSON.stringify(finalUser.roles || []));
+                                        Cookies.set('user_role', JSON.stringify(finalUser.roles || []), { path: '/' });
                                         window.location.href = '/vendor';
                                     } else {
                                         setIsRegModalOpen(true);
@@ -598,10 +605,13 @@ export default function ProfilePage() {
                                                 finalUser = updatedUser;
                                             } catch (err: any) {
                                                 console.error(err);
+                                                const lockReason = err.response?.data?.message || 'Tính năng DRIVER của bạn đã bị khóa.';
+                                                toast.error(lockReason);
+                                                return;
                                             }
                                         }
                                         localStorage.setItem('user', JSON.stringify(finalUser));
-                                        Cookies.set('user_role', JSON.stringify(finalUser.roles || []));
+                                        Cookies.set('user_role', JSON.stringify(finalUser.roles || []), { path: '/' });
                                         window.location.href = '/driver';
                                     } else {
                                         setIsDriverRegModalOpen(true);

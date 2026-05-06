@@ -32,7 +32,6 @@ const menuItems = [
     { icon: Store, label: 'Hồ sơ nhà cung cấp', href: '/vendor/profile' },
     { icon: Box, label: 'Quản lý xe', href: '/vendor/products' },
     { icon: Package, label: 'Quản lý đơn hàng', href: '/vendor/orders' },
-    { icon: Car, label: 'Quản lý xe cho thuê', href: '/vendor/rental-cars' },
     { icon: Gavel, label: 'Quản lý đấu giá', href: '/vendor/auctions' },
     { icon: Wallet, label: 'Doanh thu', href: '/vendor/revenue' },
     { icon: Bell, label: 'Thông báo', href: '/vendor/notifications', hasNotification: true },
@@ -87,7 +86,8 @@ export function VendorSidebar() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        Cookies.remove('token');
+        Cookies.remove('token', { path: '/' });
+        Cookies.remove('user_role', { path: '/' });
         router.push('/auth/login');
     };
 

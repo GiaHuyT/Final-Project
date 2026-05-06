@@ -29,7 +29,7 @@ export class ProductsController {
     @Get('vendor/me')
     @ApiOperation({ summary: 'Lấy sản phẩm của nhà cung cấp hiện tại' })
     findByVendor(@Request() req: any) {
-        return this.productsService.findByVendorId(req.user.id);
+        return this.productsService.findByVendorId(req.user.vendorId || req.user.id);
     }
 
     @Public()
@@ -48,18 +48,14 @@ export class ProductsController {
     @Post()
     @ApiOperation({ summary: 'Thêm sản phẩm mới' })
     create(@Request() req: any, @Body() data: any) {
-        const vendorId = req.user.role === 'ADMIN' && data.vendorId 
-            ? parseInt(data.vendorId) 
-            : req.user.id;
+        const vendorId = req.user.vendorId || req.user.id;
         return this.productsService.create(vendorId, data);
     }
 
     @Patch(':id')
     @ApiOperation({ summary: 'Cập nhật sản phẩm' })
     update(@Param('id') id: string, @Request() req: any, @Body() data: any) {
-        const vendorId = req.user.role === 'ADMIN' && data.vendorId 
-            ? parseInt(data.vendorId) 
-            : req.user.id;
+        const vendorId = req.user.vendorId || req.user.id;
         return this.productsService.update(+id, vendorId, data);
     }
 

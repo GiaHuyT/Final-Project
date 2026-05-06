@@ -10,24 +10,41 @@ export class ReviewsService {
     private notifications: NotificationsService,
   ) {}
 
-  async create(userId: number, data: { targetId: number; rating?: number; content?: string }) {
-    const { targetId, rating, content } = data;
+  async create(userId: number, data: { targetId: number; targetType?: string; rating?: number; content?: string }) {
+    const { targetId, targetType = 'VENDOR', rating, content } = data;
 
     if (!targetId) {
-      throw new BadRequestException('Target ID (Vendor ID) is required');
+      throw new BadRequestException('Target ID is required');
     }
 
     const results = [];
 
     // Case 1: Handle Rating (Updateable)
     if (rating !== undefined && rating >= 1 && rating <= 5) {
-      // Find existing rating record for this user-vendor pair
-      // We define a "rating record" as a record that has a rating > 0
-      // To keep it clean, let's say each user has one "primary" review record for rating
+      // If targetType is PRODUCT, verify if user has bought it
+      if (targetType === 'PRODUCT') {
+        const hasBought = await this.prisma.order.findFirst({
+          where: {
+            customerId: userId,
+            status: { not: 'PENDING' }, // Or any status that signifies a successful transaction
+            items: {
+              some: { productId: targetId }
+            }
+          }
+        });
+
+        if (!hasBought) {
+          throw new BadRequestException('Bạn chỉ có thể đánh giá sao cho sản phẩm đã mua.');
+        }
+      }
+
+      // Find existing rating record for this user-target pair
       const existingRating = await this.prisma.review.findFirst({
         where: {
           userId,
           targetId,
+          targetType,
+          ...(targetType === 'PRODUCT' ? { productId: targetId } : {}),
           rating: { gt: 0 },
         },
       });
@@ -43,6 +60,8 @@ export class ReviewsService {
           data: {
             userId,
             targetId,
+            targetType,
+            ...(targetType === 'PRODUCT' ? { productId: targetId } : {}),
             rating,
             content: '', // Empty content for rating-only record
           },
@@ -51,20 +70,22 @@ export class ReviewsService {
       }
     }
 
-    // Case 2: Handle Comment (Multiple times)
+    // Case 2: Handle Comment (Multiple times, anyone can comment)
     if (content && content.trim() !== '') {
       const created = await this.prisma.review.create({
         data: {
           userId,
           targetId,
-          rating: 0, // 0 means no rating attached to this specific comment record
+          targetType,
+          ...(targetType === 'PRODUCT' ? { productId: targetId } : {}),
+          rating: 0, 
           content: content.trim(),
         },
       });
       results.push({ type: 'comment', data: created });
     }
 
-    // Notify the vendor
+    // Notify the vendor if it's a vendor review, or notify the product owner if product review
     try {
       const reviewer = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -72,12 +93,25 @@ export class ReviewsService {
       });
 
       const messageType = content ? 'bình luận' : 'đánh giá';
-      await this.notifications.create(targetId, {
-        type: NotificationType.REVIEW,
-        content: `Bạn nhận được một ${messageType} mới từ ${reviewer?.username || 'khách hàng'}`,
-        link: `/vendor/${targetId}`,
-        metadata: { reviewerId: userId },
-      });
+      
+      if (targetType === 'VENDOR') {
+        await this.notifications.create(targetId, {
+          type: NotificationType.REVIEW,
+          content: `Bạn nhận được một ${messageType} mới từ ${reviewer?.username || 'khách hàng'}`,
+          link: `/vendor/${targetId}`,
+          metadata: { reviewerId: userId },
+        });
+      } else if (targetType === 'PRODUCT') {
+        const product = await this.prisma.product.findUnique({ where: { id: targetId } });
+        if (product) {
+          await this.notifications.create(product.vendorId, {
+            type: NotificationType.REVIEW,
+            content: `Sản phẩm ${product.name} nhận được một ${messageType} mới từ ${reviewer?.username || 'khách hàng'}`,
+            link: `/products/${targetId}`,
+            metadata: { reviewerId: userId, productId: targetId },
+          });
+        }
+      }
     } catch (err) {
       console.error('Failed to send review notification:', err);
     }
@@ -88,7 +122,7 @@ export class ReviewsService {
   async findByVendorId(vendorId: number) {
     // Get all comments and ratings
     const reviews = await this.prisma.review.findMany({
-      where: { targetId: vendorId },
+      where: { targetId: vendorId, targetType: 'VENDOR' },
       include: {
         user: {
           select: {
@@ -117,11 +151,55 @@ export class ReviewsService {
     };
   }
 
+  async findByProductId(productId: number) {
+    const reviews = await this.prisma.review.findMany({
+      where: { targetId: productId, targetType: 'PRODUCT' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const ratingRecords = reviews.filter((r) => r.rating > 0);
+    const commentRecords = reviews.filter((r) => r.content !== '');
+
+    const avgRating =
+      ratingRecords.length > 0
+        ? ratingRecords.reduce((acc, curr) => acc + curr.rating, 0) / ratingRecords.length
+        : 0;
+
+    return {
+      averageRating: Number(avgRating.toFixed(1)),
+      totalRatings: ratingRecords.length,
+      reviews: commentRecords,
+    };
+  }
+
   async getUserRatingForVendor(userId: number, vendorId: number) {
     const ratingRecord = await this.prisma.review.findFirst({
       where: {
         userId,
         targetId: vendorId,
+        targetType: 'VENDOR',
+        rating: { gt: 0 },
+      },
+      select: { rating: true },
+    });
+    return ratingRecord ? ratingRecord.rating : 0;
+  }
+
+  async getUserRatingForProduct(userId: number, productId: number) {
+    const ratingRecord = await this.prisma.review.findFirst({
+      where: {
+        userId,
+        targetId: productId,
+        targetType: 'PRODUCT',
         rating: { gt: 0 },
       },
       select: { rating: true },

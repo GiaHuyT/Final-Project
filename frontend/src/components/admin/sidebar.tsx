@@ -38,7 +38,6 @@ const menuItems: any[] = [
     subItems: [
       { icon: Wrench, label: 'Dịch vụ bảo dưỡng', href: '/admin/maintenance' },
       { icon: ShieldAlert, label: 'Dịch vụ sửa chữa', href: '/admin/repairs/capacity' },
-      { icon: Car, label: 'Dịch vụ thuê xe', href: '/admin/rental-cars' },
       { icon: UserCircle, label: 'Dịch vụ lái thuê', href: '/admin/driver-rental' }
     ]
   },
@@ -55,7 +54,8 @@ export function AdminSidebar() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    Cookies.remove('token');
+    Cookies.remove('token', { path: '/' });
+    Cookies.remove('user_role', { path: '/' });
     router.push('/auth/login');
   };
 

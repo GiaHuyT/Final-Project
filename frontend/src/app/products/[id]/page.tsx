@@ -8,6 +8,8 @@ import http from "@/lib/http";
 import { VendorChatButton } from "@/components/chat/VendorChatButton";
 import WishlistButton from "@/components/ui/wishlist-button";
 import CartButton from "@/components/ui/cart-button";
+import ProductReviews from "@/components/products/ProductReviews";
+import DepositCountdown from "@/components/products/DepositCountdown";
 
 export default function VehicleDetailsPage() {
   const params = useParams();
@@ -221,12 +223,15 @@ export default function VehicleDetailsPage() {
                             )}
                          </div>
                       </div>
-                   </div>
-                </div>
-             </div>
-          </div>
+                 </div>
+              </div>
 
-          {/* Sidebar (Right) */}
+              {/* Reviews Section */}
+              <ProductReviews productId={product.id} />
+           </div>
+           </div>
+
+           {/* Sidebar (Right) */}
           <div className="lg:col-span-4 lg:sticky lg:top-24 h-fit">
              <div className="bg-surface-container-low rounded-[2.5rem] p-10 shadow-2xl shadow-slate-200/50">
                 <div className="mb-10 text-center">
@@ -241,15 +246,7 @@ export default function VehicleDetailsPage() {
                    </div>
                 </div>
 
-                <div className="space-y-4">
-                  <CartButton productId={product.id} className="w-full bg-slate-900 border-2 border-slate-900 text-white" showText={true} />
-                  <button className="w-full bg-white text-slate-900 border-2 border-slate-900 py-5 rounded-full font-headline font-black text-sm tracking-widest hover:bg-slate-50 transition-all shadow-sm">
-                    MUA NGAY
-                  </button>
-                  <button className="w-full bg-slate-100 text-slate-600 py-5 rounded-full font-headline font-black text-sm tracking-widest hover:bg-slate-200 transition-all">
-                    LIÊN HỆ VỚI NGƯỜI BÁN
-                  </button>
-                </div>
+                <DepositCountdown productId={product.id} depositEndsAt={product.depositEndsAt} />
 
                 <div className="mt-8 pt-8 border-t border-outline/10">
                    <p className="text-[10px] font-bold text-center text-on-surface-variant uppercase tracking-widest mb-6">Người bán đã xác minh</p>
