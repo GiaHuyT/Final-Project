@@ -44,6 +44,11 @@ export class AuctionsGateway implements OnGatewayConnection, OnGatewayDisconnect
     console.log(`Client ${client.id} left room ${roomName}`);
   }
 
+  @SubscribeMessage('newRegistration')
+  handleNewRegistration(@MessageBody() data: { auctionId: number }, @ConnectedSocket() client: Socket) {
+    this.server.to(`auction_${data.auctionId}`).emit('registrationUpdate');
+  }
+
   @SubscribeMessage('placeBid')
   async handlePlaceBid(
     @MessageBody() data: { auctionId: number; userId: number; bidAmount: number },
@@ -56,11 +61,16 @@ export class AuctionsGateway implements OnGatewayConnection, OnGatewayDisconnect
         data.bidAmount,
       );
 
+      const now = new Date().getTime();
+      const endTimeMs = new Date(auction.endTime).getTime();
+      const remainingMs = endTimeMs - now;
+
       // Broadcast new bid to all clients in the room
       this.server.to(`auction_${data.auctionId}`).emit('newBid', {
         bid,
         currentPrice: auction.currentPrice,
         endTime: auction.endTime, // Send potentially extended endTime
+        remainingMs, // Bypass clock drift
       });
 
       return { status: 'success', data: bid };

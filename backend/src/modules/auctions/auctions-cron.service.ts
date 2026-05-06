@@ -118,7 +118,7 @@ export class AuctionsCronService {
         // Không có ai bid luôn -> Kết thúc ế
         await this.prisma.auction.update({
           where: { id: auction.id },
-          data: { status: 'CANCELLED' },
+          data: { status: 'FINISHED' },
         });
         await this.notifications.create(auction.vendorId, {
           type: 'AUCTION' as any,
@@ -151,9 +151,15 @@ export class AuctionsCronService {
           where: { auctionId: auction.id, userId: auction.winnerId }
         });
 
+        // Ban user khỏi phòng live này (đổi trạng thái đăng ký thành BANNED)
+        await this.prisma.auctionRegistration.updateMany({
+          where: { auctionId: auction.id, userId: auction.winnerId },
+          data: { status: 'BANNED' }
+        });
+
         await this.notifications.create(auction.winnerId, {
           type: 'SYSTEM' as any,
-          content: `Bạn đã bị tước quyền thắng đấu giá "${auction.title}" do không thanh toán cọc đúng hạn (5 phút). Kỷ lục đặt giá của bạn trong phiên đã bị xóa.`,
+          content: `Bạn đã bị cấm khỏi phiên đấu giá "${auction.title}" do vi phạm quy chế (không thanh toán cọc đúng hạn). Kỷ lục đặt giá của bạn trong phiên đã bị xóa.`,
           link: `/auctions/${auction.id}`,
         });
       }

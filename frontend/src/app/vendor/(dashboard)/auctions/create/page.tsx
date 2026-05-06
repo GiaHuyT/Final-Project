@@ -79,34 +79,25 @@ export default function CreateAuctionPage() {
             setLoading(true);
             const { streamSourceType, ...restData } = data;
 
-            // Batch create auctions for each item
-            const requests = data.items.map((item: any, index: number) => {
-                const car = products.find(p => p.id === Number(item.productId));
-                const itemTitle = data.items.length > 1 ? `${data.title} - ${car?.name || `Sản phẩm ${index + 1}`}` : data.title;
-
-                const combinedDescription = item.itemDescription 
-                    ? (restData.description ? `${restData.description}\n\n---\n[MÔ TẢ SẢN PHẨM]\n${item.itemDescription}` : item.itemDescription)
-                    : restData.description;
-
-                const payload = {
-                    ...restData,
-                    title: itemTitle,
-                    description: combinedDescription,
+            const payload = {
+                ...restData,
+                title: data.title,
+                description: data.description,
+                startPrice: Number(data.items[0].startPrice.toString().replace(/\./g, '')),
+                bidStep: Number(data.items[0].bidStep.toString().replace(/\./g, '')),
+                startTime: new Date(data.startTime).toISOString(),
+                endTime: new Date(data.endTime).toISOString(),
+                streamUrl: streamSourceType === 'INTERNAL' ? '' : data.streamUrl,
+                items: data.items.map((item: any, index: number) => ({
+                    productId: Number(item.productId),
+                    orderIndex: isLivestream ? index : 0,
                     startPrice: Number(item.startPrice.toString().replace(/\./g, '')),
                     bidStep: Number(item.bidStep.toString().replace(/\./g, '')),
-                    startTime: new Date(data.startTime).toISOString(),
-                    endTime: new Date(data.endTime).toISOString(),
-                    streamUrl: streamSourceType === 'INTERNAL' ? '' : data.streamUrl,
-                    items: [{
-                        productId: Number(item.productId),
-                        orderIndex: 0
-                    }]
-                };
+                    itemDescription: item.itemDescription
+                }))
+            };
 
-                return http.post('/auctions', payload);
-            });
-
-            await Promise.all(requests);
+            await http.post('/auctions', payload);
 
             toast.success('Tạo phiên đấu giá thành công');
             router.push('/vendor/auctions');
@@ -159,7 +150,7 @@ export default function CreateAuctionPage() {
                                         <div className={`border-2 rounded-xl p-4 flex items-start space-x-3 cursor-pointer transition-colors ${field.value === 'OFFLINE' ? 'border-indigo-600 bg-indigo-50/50' : 'border-slate-200 hover:border-slate-300'}`}>
                                             <RadioGroupItem value="OFFLINE" id="offline" className="mt-1" />
                                             <div>
-                                                <Label htmlFor="offline" className="font-bold text-indigo-900 text-base cursor-pointer">Offline (Tiêu chuẩn)</Label>
+                                                <Label htmlFor="offline" className="font-bold text-indigo-900 text-base cursor-pointer">Online (Tiêu chuẩn)</Label>
                                                 <p className="text-sm text-slate-500 mt-1">Đấu giá 1 chiếc xe tĩnh. Khách hàng xem ảnh và đặt giá trên màn hình đếm ngược.</p>
                                             </div>
                                         </div>

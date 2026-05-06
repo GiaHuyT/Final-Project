@@ -203,14 +203,14 @@ export class AuctionsService {
             throw new BadRequestException(`Mức giá phải lớn hơn hoặc bằng ${requiredBid.toLocaleString()} VNĐ`);
         }
 
-        // Sniper protection: If bid is placed within the last 2 minutes, extend by 5 minutes
+        // Sniper protection: If bid is placed within the last 5 minutes, reset remaining time to 5 minutes
         const now = new Date();
         const endTime = new Date(auction.endTime);
         const timeDiff = endTime.getTime() - now.getTime();
         let newEndTime = endTime;
 
-        if (timeDiff > 0 && timeDiff <= 2 * 60 * 1000) {
-            newEndTime = new Date(endTime.getTime() + 5 * 60 * 1000);
+        if (timeDiff > 0 && timeDiff <= 5 * 60 * 1000) {
+            newEndTime = new Date(now.getTime() + 5 * 60 * 1000);
         }
 
         const transactionOperations: any[] = [
@@ -254,6 +254,23 @@ export class AuctionsService {
         return { bid, auction: updatedAuction };
     }
 
+    async getMyAuctionHistory(userId: number) {
+        return this.prisma.auctionRegistration.findMany({
+            where: { userId },
+            include: {
+                auction: {
+                    include: {
+                        vendor: { select: { username: true, email: true } },
+                        items: { include: { product: { include: { images: true } } } },
+                        winner: { select: { id: true, username: true } },
+                        _count: { select: { registrations: true, bids: true } }
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
     async registerForAuction(auctionId: number, userId: number) {
         const auction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
         if (!auction) throw new NotFoundException('Không tìm thấy phiên đấu giá.');
@@ -285,10 +302,10 @@ export class AuctionsService {
         return registration;
     }
 
-    async getRegistrations(auctionId: number, vendorId: number) {
+    async getRegistrations(auctionId: number, vendorId: number, isAdmin: boolean = false) {
         const auction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
         if (!auction) throw new NotFoundException('Không tìm thấy phiên đấu giá.');
-        if (auction.vendorId !== vendorId) throw new BadRequestException('Không có quyền truy cập danh sách này.');
+        if (!isAdmin && auction.vendorId !== vendorId) throw new BadRequestException('Không có quyền truy cập danh sách này.');
 
         return this.prisma.auctionRegistration.findMany({
             where: { auctionId },
@@ -297,10 +314,10 @@ export class AuctionsService {
         });
     }
 
-    async approveRegistration(auctionId: number, registrationId: number, vendorId: number) {
+    async approveRegistration(auctionId: number, registrationId: number, vendorId: number, isAdmin: boolean = false) {
         // Validation check
         const auction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
-        if (!auction || auction.vendorId !== vendorId) throw new BadRequestException('Lỗi quyền truy cập');
+        if (!auction || (!isAdmin && auction.vendorId !== vendorId)) throw new BadRequestException('Lỗi quyền truy cập');
 
         const registration = await this.prisma.auctionRegistration.update({
             where: { id: registrationId },
@@ -316,10 +333,10 @@ export class AuctionsService {
         return registration;
     }
 
-    async rejectRegistration(auctionId: number, registrationId: number, vendorId: number) {
+    async rejectRegistration(auctionId: number, registrationId: number, vendorId: number, isAdmin: boolean = false) {
         // Validation check
         const auction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
-        if (!auction || auction.vendorId !== vendorId) throw new BadRequestException('Lỗi quyền truy cập');
+        if (!auction || (!isAdmin && auction.vendorId !== vendorId)) throw new BadRequestException('Lỗi quyền truy cập');
 
         const registration = await this.prisma.auctionRegistration.update({ // Force TS recheck
             where: { id: registrationId },
@@ -371,7 +388,7 @@ export class AuctionsService {
         await this.prisma.$transaction([
             this.prisma.auction.update({
                 where: { id: auctionId },
-                data: { currentActiveItemId: itemId }
+                data: { currentActiveItemId: itemId, breakEndsAt: null }
             }),
             this.prisma.auctionItem.update({
                 where: { id: itemId },
@@ -398,6 +415,13 @@ export class AuctionsService {
 
         let newStatus = highestBid ? 'SOLD' : 'PASSED';
 
+        const nextItem = await this.prisma.auctionItem.findFirst({
+            where: { auctionId, status: 'PENDING' },
+            orderBy: { orderIndex: 'asc' }
+        });
+
+        const breakEndsAt = nextItem ? new Date(Date.now() + 60000) : null;
+
         await this.prisma.$transaction([
             this.prisma.auctionItem.update({
                 where: { id: itemId },
@@ -408,9 +432,40 @@ export class AuctionsService {
             }),
             this.prisma.auction.update({
                 where: { id: auctionId },
-                data: { currentActiveItemId: null }
+                data: { currentActiveItemId: null, breakEndsAt }
             })
         ]);
+
+        if (nextItem) {
+            setTimeout(async () => {
+                const checkAuction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
+                if (checkAuction && checkAuction.status === 'ACTIVE' && checkAuction.currentActiveItemId === null && checkAuction.breakEndsAt) {
+                    const timeDiff = checkAuction.breakEndsAt.getTime() - Date.now();
+                    // If breakEndsAt is passed and no active item, start next item
+                    if (timeDiff <= 5000) { // 5s buffer
+                        try {
+                            await this.setActiveItem(auctionId, vendorId, nextItem.id);
+                            console.log(`Auto-started next item ${nextItem.id} for auction ${auctionId}`);
+                        } catch (e) {
+                            console.error(`Failed to auto-start next item:`, e);
+                        }
+                    }
+                }
+            }, 60000);
+        } else {
+            // No next item, auto end auction
+            setTimeout(async () => {
+                 const checkAuction = await this.prisma.auction.findUnique({ where: { id: auctionId } });
+                 if (checkAuction && checkAuction.status === 'ACTIVE' && checkAuction.currentActiveItemId === null) {
+                     // Let the Cron job (Step 2) handle the conclusion so it properly assigns winnerId and triggers payment
+                     await this.prisma.auction.update({
+                         where: { id: auctionId },
+                         data: { endTime: new Date() } // Do NOT set WAITING_PAYMENT here
+                     });
+                     console.log(`Set endTime to now for auction ${auctionId} to let Cron job conclude it`);
+                 }
+            }, 5000); // 5 second delay to let clients see the final bid before ending
+        }
 
         return this.findOne(auctionId);
     }

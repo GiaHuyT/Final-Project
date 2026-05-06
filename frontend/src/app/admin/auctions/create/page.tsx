@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
-import { ArrowLeft, Save, Plus, Trash2, Video, Package, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, Video, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,34 +11,30 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'react-hot-toast';
 import http from '@/lib/http';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 
-export default function EditAuctionPage() {
+export default function AdminCreateAuctionPage() {
     const router = useRouter();
-    const params = useParams();
-    const id = params?.id as string;
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [initialLoading, setInitialLoading] = useState(true);
     const [isLivestream, setIsLivestream] = useState(false);
 
-    const { register, handleSubmit, control, watch, setValue, reset, formState: { errors }, trigger } = useForm({
+    const { register, handleSubmit, control, watch, setValue, formState: { errors }, trigger } = useForm({
         mode: 'all',
         criteriaMode: 'all',
         defaultValues: {
             title: '',
             description: '',
-            startPrice: '',
-            bidStep: '',
             type: 'OFFLINE',
             streamSourceType: 'EXTERNAL',
             streamUrl: '',
             startTime: '',
             endTime: '',
-            items: [{ productId: '', orderIndex: 0 }]
+            items: [{ productId: '', startPrice: '', bidStep: '', itemDescription: '' }]
         }
     });
 
@@ -56,61 +52,21 @@ export default function EditAuctionPage() {
     }, [selectedType, streamSourceType, trigger]);
 
     useEffect(() => {
-        const fetchInitialData = async () => {
+        const fetchProducts = async () => {
             try {
-                // 1. Fetch products
-                const productsRes = await http.get('/products/vendor/me');
-                if (productsRes.data && Array.isArray(productsRes.data)) {
-                    setProducts(productsRes.data);
-                }
-
-                // 2. Fetch auction details
-                if (id) {
-                    const auctionRes = await http.get(`/auctions/${id}`);
-                    const auction = auctionRes.data;
-
-                    // Check if auction is too close to start time (5 mins)
-                    const now = new Date();
-                    const startTime = new Date(auction.startTime);
-                    if (startTime.getTime() - now.getTime() < 5 * 60 * 1000) {
-                        toast.error('Chỉ được chỉnh sửa trước giờ bắt đầu 5 phút.');
-                        router.push('/vendor/auctions');
-                        return;
-                    }
-
-                    const toLocalDatetime = (isoStr: string) => {
-                        const date = new Date(isoStr);
-                        date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-                        return date.toISOString().slice(0, 16);
-                    };
-
-                    reset({
-                        title: auction.title,
-                        description: auction.description || '',
-                        startPrice: auction.startPrice.toLocaleString('vi-VN'),
-                        bidStep: auction.bidStep.toLocaleString('vi-VN'),
-                        type: auction.type,
-                        streamSourceType: auction.streamUrl ? 'EXTERNAL' : 'INTERNAL',
-                        streamUrl: auction.streamUrl || '',
-                        startTime: toLocalDatetime(auction.startTime),
-                        endTime: toLocalDatetime(auction.endTime),
-                        items: auction.items.map((i: any) => ({
-                            productId: i.productId.toString(),
-                            orderIndex: i.orderIndex
-                        }))
-                    });
+                const res = await http.get('/products');
+                const data = res.data;
+                
+                if (data && Array.isArray(data)) {
+                    setProducts(data);
                 }
             } catch (error) {
-                console.error("Error fetching data:", error);
-                toast.error('Lỗi tải dữ liệu phiên đấu giá');
-                router.push('/vendor/auctions');
-            } finally {
-                setInitialLoading(false);
+                console.error("Error fetching products:", error);
             }
         };
 
-        fetchInitialData();
-    }, [id, reset, router]);
+        fetchProducts();
+    }, []);
 
     const onSubmit = async (data: any) => {
         const isValid = await trigger();
@@ -121,28 +77,30 @@ export default function EditAuctionPage() {
 
         try {
             setLoading(true);
-            const token = Cookies.get('token');
             const { streamSourceType, ...restData } = data;
 
             const payload = {
                 ...restData,
-                startPrice: Number(data.startPrice.toString().replace(/\./g, '')),
-                bidStep: Number(data.bidStep.toString().replace(/\./g, '')),
+                title: data.title,
+                description: data.description,
+                startPrice: Number(data.items[0].startPrice.toString().replace(/\./g, '')),
+                bidStep: Number(data.items[0].bidStep.toString().replace(/\./g, '')),
                 startTime: new Date(data.startTime).toISOString(),
                 endTime: new Date(data.endTime).toISOString(),
                 streamUrl: streamSourceType === 'INTERNAL' ? '' : data.streamUrl,
                 items: data.items.map((item: any, index: number) => ({
                     productId: Number(item.productId),
-                    orderIndex: isLivestream ? index : 0
+                    orderIndex: isLivestream ? index : 0,
+                    startPrice: Number(item.startPrice.toString().replace(/\./g, '')),
+                    bidStep: Number(item.bidStep.toString().replace(/\./g, '')),
+                    itemDescription: item.itemDescription
                 }))
             };
 
-            const res = await http.put(`/auctions/${id}`, payload);
+            await http.post('/auctions', payload);
 
-            if (res.data) {
-                toast.success('Cập nhật phiên đấu giá thành công');
-                router.push('/vendor/auctions');
-            }
+            toast.success('Tạo phiên đấu giá thành công');
+            router.push('/admin/auctions');
         } catch (error: any) {
             console.error(error);
             toast.error(error.response?.data?.message || 'Lỗi hệ thống');
@@ -160,17 +118,12 @@ export default function EditAuctionPage() {
                     </Button>
                 </Link>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">Chỉnh sửa phiên đấu giá</h1>
-                    <p className="text-slate-500 text-sm">Cập nhật thông số trước khi phiên đấu giá bắt đầu.</p>
+                    <h1 className="text-2xl font-bold text-slate-900">Tạo phiên đấu giá mới</h1>
+                    <p className="text-slate-500 text-sm">Thiết lập các thông số cơ bản và chọn xe để bán.</p>
                 </div>
             </div>
 
-            {initialLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-                </div>
-            ) : (
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <Card>
                     <CardHeader className="bg-slate-50 border-b">
                         <CardTitle className="text-lg">1. Thông tin chung</CardTitle>
@@ -182,7 +135,7 @@ export default function EditAuctionPage() {
                             <Input id="title" placeholder="VD: Đấu giá Siêu xe Mercedes-Benz S450 dọn kho đón Tết..." {...register('title', { required: 'Vui lòng nhập tên phiên đấu giá' })} className="h-11 border-slate-200 focus-visible:ring-blue-500 placeholder:text-slate-400/60" />
                             {errors.title && <span className="text-red-500 text-xs font-medium">{errors.title.message as string}</span>}
                         </div>
-
+                        
                         <div className="space-y-2">
                             <Label className="font-semibold text-slate-700">Hình thức đấu giá <span className="text-red-500">*</span></Label>
                             <Controller
@@ -218,7 +171,7 @@ export default function EditAuctionPage() {
                                 <Label className="font-bold text-amber-900 flex items-center gap-2">
                                     <Video className="w-5 h-5" /> Nguồn Livestream
                                 </Label>
-
+                                
                                 <Controller
                                     name="streamSourceType"
                                     control={control}
@@ -249,7 +202,14 @@ export default function EditAuctionPage() {
                                         <p className="text-sm text-amber-700">Dán link Youtube/Facebook vào đây để phát trực tiếp buổi đấu giá.</p>
                                         <Input placeholder="https://youtube.com/watch?v=..." {...register('streamUrl', {
                                             validate: (val) => {
-                                                if (isLivestream && streamSourceType !== 'INTERNAL' && !val) return 'Vui lòng nhập link livestream';
+                                                if (isLivestream && streamSourceType !== 'INTERNAL') {
+                                                    if (!val) return 'Vui lòng nhập link livestream';
+                                                    const ytRegex = /^(https?:\/\/)?(www\.)?youtube\.com\/live\/[a-zA-Z0-9_-]+.*$/;
+                                                    const fbRegex = /^(https?:\/\/)?(www\.)?facebook\.com\/.*\/videos\/[0-9]+.*$/;
+                                                    if (!ytRegex.test(val) && !fbRegex.test(val)) {
+                                                        return 'Vui lòng nhập đúng link Livestream (Ví dụ: youtube.com/live/... hoặc facebook.com/.../videos/...)';
+                                                    }
+                                                }
                                                 return true;
                                             }
                                         })} className="bg-white border-amber-300 focus-visible:ring-amber-500 placeholder:text-slate-400/60" />
@@ -264,7 +224,7 @@ export default function EditAuctionPage() {
                                 )}
                             </div>
                         )}
-
+                        
                         <div className="space-y-2">
                             <Label htmlFor="description" className="font-semibold text-slate-700">Mô tả/Thể lệ luật chơi</Label>
                             <Textarea id="description" placeholder="Nhập thêm mô tả về tình trạng, nội quy trả giá..." {...register('description')} className="min-h-[100px] border-slate-200 focus-visible:ring-blue-500 placeholder:text-slate-400/60" />
@@ -278,113 +238,121 @@ export default function EditAuctionPage() {
                         <CardDescription>Chọn xe tham gia đấu giá mức giá Khởi Điểm.</CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 space-y-6">
-
+                        
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                                <Label className="font-semibold text-slate-700 text-base flex items-center gap-2"><Package className="w-5 h-5" /> Danh sách xe đấu giá</Label>
+                                <Label className="font-semibold text-slate-700 text-base flex items-center gap-2"><Package className="w-5 h-5" /> Sản phẩm đấu giá</Label>
                                 {isLivestream && (
-                                    <Button type="button" variant="outline" size="sm" onClick={() => append({ productId: '', orderIndex: fields.length })} className="gap-1 border-blue-200 text-blue-600 hover:bg-blue-50">
+                                    <Button type="button" variant="outline" size="sm" onClick={() => append({ productId: '', startPrice: '', bidStep: '', itemDescription: '' })} className="gap-1 border-blue-200 text-blue-600 hover:bg-blue-50">
                                         <Plus className="w-4 h-4" /> Thêm xe
                                     </Button>
                                 )}
                             </div>
-
-                            <div className="space-y-3">
+                            
+                            <div className="space-y-6">
                                 {fields.map((field, index) => (
-                                    <div key={field.id} className="flex items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200 relative">
-                                        {isLivestream && (
-                                            <div className="bg-slate-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                                                {index + 1}
-                                            </div>
-                                        )}
-                                        <div className="flex-1">
-                                            <Controller
-                                                name={`items.${index}.productId`}
-                                                control={control}
-                                                rules={{ required: 'Vui lòng chọn xe' }}
-                                                render={({ field }) => (
-                                                    <div className="space-y-1">
-                                                        <Select onValueChange={field.onChange} value={field.value}>
-                                                            <SelectTrigger className="bg-white">
-                                                                <SelectValue placeholder="-- Chọn một chiếc xe của bạn --" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {products.map(p => (
-                                                                    <SelectItem key={p.id} value={p.id.toString()}>
-                                                                        {p.name} - (Giá gốc: {p.price.toLocaleString('vi-VN')}đ)
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                        {errors?.items?.[index]?.productId && <span className="text-red-500 text-xs font-medium">{errors.items[index].productId?.message as string}</span>}
-                                                    </div>
-                                                )}
-                                            />
-                                        </div>
+                                    <div key={field.id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4 relative">
                                         {isLivestream && index > 0 && (
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0">
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="absolute top-2 right-2 text-red-500 hover:text-red-600 hover:bg-red-50 shrink-0 h-8 w-8">
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
                                         )}
+                                        <div className="flex items-center gap-3">
+                                            {isLivestream && (
+                                                <div className="bg-slate-800 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                                                    {index + 1}
+                                                </div>
+                                            )}
+                                            <div className="flex-1 pr-10">
+                                                <Controller
+                                                    name={`items.${index}.productId`}
+                                                    control={control}
+                                                    rules={{ required: 'Vui lòng chọn xe' }}
+                                                    render={({ field }) => (
+                                                        <div className="space-y-1">
+                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                <SelectTrigger className="bg-white">
+                                                                    <SelectValue placeholder="-- Chọn một chiếc xe của bạn --" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {products.map(p => (
+                                                                        <SelectItem key={p.id} value={p.id.toString()}>
+                                                                            {p.name} - (Giá gốc: {p.price.toLocaleString('vi-VN')}đ)
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors?.items?.[index]?.productId && <span className="text-red-500 text-xs font-medium">{errors.items[index].productId?.message as string}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label className="font-semibold text-slate-700 text-xs uppercase tracking-wider">Giá khởi điểm (VNĐ) <span className="text-red-500">*</span></Label>
+                                                <Controller
+                                                    name={`items.${index}.startPrice`}
+                                                    control={control}
+                                                    rules={{ required: 'Vui lòng nhập giá khởi điểm' }}
+                                                    render={({ field: { onChange, value } }) => (
+                                                        <div className="space-y-1">
+                                                            <Input 
+                                                                type="text" 
+                                                                value={value || ''}
+                                                                onChange={(e) => {
+                                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                                    const formatted = rawValue ? Number(rawValue).toLocaleString('vi-VN') : '';
+                                                                    onChange(formatted);
+                                                                }}
+                                                                placeholder="VD: 500.000.000" 
+                                                                className="font-mono bg-white placeholder:text-slate-400/60 placeholder:font-sans" 
+                                                            />
+                                                            {errors?.items?.[index]?.startPrice && <span className="text-red-500 text-xs font-medium">{errors.items[index].startPrice?.message as string}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="font-semibold text-slate-700 text-xs uppercase tracking-wider">Bước nhảy giá (VNĐ) <span className="text-red-500">*</span></Label>
+                                                <Controller
+                                                    name={`items.${index}.bidStep`}
+                                                    control={control}
+                                                    rules={{ required: 'Vui lòng nhập bước nhảy giá' }}
+                                                    render={({ field: { onChange, value } }) => (
+                                                        <div className="space-y-1">
+                                                            <Input 
+                                                                type="text" 
+                                                                value={value || ''}
+                                                                onChange={(e) => {
+                                                                    const rawValue = e.target.value.replace(/\D/g, '');
+                                                                    const formatted = rawValue ? Number(rawValue).toLocaleString('vi-VN') : '';
+                                                                    onChange(formatted);
+                                                                }}
+                                                                placeholder="VD: 5.000.000" 
+                                                                className="font-mono bg-white placeholder:text-slate-400/60 placeholder:font-sans" 
+                                                            />
+                                                            {errors?.items?.[index]?.bidStep && <span className="text-red-500 text-xs font-medium">{errors.items[index].bidStep?.message as string}</span>}
+                                                        </div>
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2 mt-4">
+                                            <Label className="font-semibold text-slate-700 text-xs uppercase tracking-wider">Mô tả riêng cho xe này (Tùy chọn)</Label>
+                                            <Textarea 
+                                                placeholder="Tình trạng xe, lịch sử bảo dưỡng, số km đã đi..." 
+                                                {...register(`items.${index}.itemDescription`)} 
+                                                className="min-h-[80px] bg-white border-slate-200 focus-visible:ring-blue-500 placeholder:text-slate-400/60" 
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                                 {products.length === 0 && (
                                     <div className="text-sm text-red-500 italic px-2">Bạn không có chiếc xe nào trong kho. Hãy đăng bán một sản phẩm trước!</div>
                                 )}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                            <div className="space-y-2">
-                                <Label htmlFor="startPrice" className="font-semibold text-slate-700">Giá khởi điểm (VNĐ) <span className="text-red-500">*</span></Label>
-                                <Controller
-                                    name="startPrice"
-                                    control={control}
-                                    rules={{ required: 'Vui lòng nhập giá khởi điểm' }}
-                                    render={({ field: { onChange, value } }) => (
-                                        <div className="space-y-1">
-                                            <Input
-                                                id="startPrice"
-                                                type="text"
-                                                value={value}
-                                                onChange={(e) => {
-                                                    const rawValue = e.target.value.replace(/\D/g, '');
-                                                    const formatted = rawValue ? Number(rawValue).toLocaleString('vi-VN') : '';
-                                                    onChange(formatted);
-                                                }}
-                                                placeholder="VD: 500.000.000"
-                                                className="font-mono text-lg placeholder:text-slate-400/60 placeholder:font-sans"
-                                            />
-                                            {errors.startPrice && <span className="text-red-500 text-xs font-medium">{errors.startPrice.message as string}</span>}
-                                        </div>
-                                    )}
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="bidStep" className="font-semibold text-slate-700">Bước nhảy giá tối thiểu (VNĐ) <span className="text-red-500">*</span></Label>
-                                <Controller
-                                    name="bidStep"
-                                    control={control}
-                                    rules={{ required: 'Vui lòng nhập bước nhảy giá' }}
-                                    render={({ field: { onChange, value } }) => (
-                                        <div className="space-y-1">
-                                            <Input
-                                                id="bidStep"
-                                                type="text"
-                                                value={value}
-                                                onChange={(e) => {
-                                                    const rawValue = e.target.value.replace(/\D/g, '');
-                                                    const formatted = rawValue ? Number(rawValue).toLocaleString('vi-VN') : '';
-                                                    onChange(formatted);
-                                                }}
-                                                placeholder="VD: 5.000.000"
-                                                className="font-mono text-lg placeholder:text-slate-400/60 placeholder:font-sans"
-                                            />
-                                            {errors.bidStep && <span className="text-red-500 text-xs font-medium">{errors.bidStep.message as string}</span>}
-                                        </div>
-                                    )}
-                                />
-                                <p className="text-xs text-slate-500">Mỗi lần khách trả giá phải cao hơn giá hiện tại ít nhất bằng mức này.</p>
                             </div>
                         </div>
                     </CardContent>
@@ -398,7 +366,7 @@ export default function EditAuctionPage() {
                     <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="startTime" className="font-semibold text-slate-700">Thời gian Bắt đầu <span className="text-red-500">*</span></Label>
-                            <Input id="startTime" type="datetime-local" {...register('startTime', {
+                            <Input id="startTime" type="datetime-local" {...register('startTime', { 
                                 required: 'Vui lòng chọn thời gian bắt đầu',
                                 validate: {
                                     minTime: (value) => {
@@ -417,11 +385,11 @@ export default function EditAuctionPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="endTime" className="font-semibold text-slate-700">Thời gian Kết thúc dự kiến <span className="text-red-500">*</span></Label>
-                            <Input id="endTime" type="datetime-local" {...register('endTime', {
+                            <Input id="endTime" type="datetime-local" {...register('endTime', { 
                                 required: 'Vui lòng chọn thời gian kết thúc',
                                 validate: {
                                     minDuration: (value, formValues) => {
-                                        if (!formValues.startTime) return true;
+                                        if(!formValues.startTime) return true;
                                         const start = new Date(formValues.startTime).getTime();
                                         const end = new Date(value).getTime();
                                         return end >= start + 10 * 60 * 1000 || 'Thời gian đấu giá tối thiểu phải là 10 phút';
@@ -435,16 +403,15 @@ export default function EditAuctionPage() {
                 </Card>
 
                 <div className="flex justify-end gap-4">
-                    <Link href="/vendor/auctions">
+                    <Link href="/admin/auctions">
                         <Button type="button" variant="outline" className="px-8 border-slate-300">Hủy bỏ</Button>
                     </Link>
                     <Button type="submit" disabled={loading} className="px-8 bg-blue-600 text-white hover:bg-blue-700 gap-2">
                         <Save className="w-4 h-4" />
-                        {loading ? 'Đang lưu...' : 'Lưu Thay Đổi'}
+                        {loading ? 'Đang tạo...' : 'Lưu và Ra Mắt Phiên'}
                     </Button>
                 </div>
             </form>
-            )}
         </div>
     );
 }

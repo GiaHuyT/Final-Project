@@ -14,10 +14,15 @@ import {
     CheckCircle2,
     Calendar,
     DollarSign,
-    User
+    User,
+    Plus,
+    Users,
+    Edit,
+    Video
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AuctionRegistrationsModal from '@/components/auctions/AuctionRegistrationsModal';
 import {
     Card,
     CardContent,
@@ -50,16 +55,24 @@ interface Auction {
     _count: { bids: number };
 }
 
-export function AuctionsTab() {
+export function AuctionsTab({ isVendor = false }: { isVendor?: boolean }) {
     const [auctions, setAuctions] = useState<Auction[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [filter, setFilter] = useState("ALL");
+    const [isRegistrationsModalOpen, setIsRegistrationsModalOpen] = useState(false);
+    const [selectedAuctionId, setSelectedAuctionId] = useState<number | null>(null);
+
+    const openRegistrationsModal = (id: number) => {
+        setSelectedAuctionId(id);
+        setIsRegistrationsModalOpen(true);
+    };
 
     const fetchAuctions = async () => {
         try {
             setLoading(true);
-            const response = await http.get('/auctions');
+            const endpoint = isVendor ? '/auctions/vendor/me' : '/auctions';
+            const response = await http.get(endpoint);
             setAuctions(response.data);
         } catch (error) {
             toast.error("Không thể tải danh sách đấu giá");
@@ -87,9 +100,12 @@ export function AuctionsTab() {
             auction.vendor?.username?.toLowerCase().includes(searchQuery.toLowerCase());
             
         let matchesFilter = true;
-        if (filter === 'ONLINE') matchesFilter = auction.type === 'LIVESTREAM';
-        if (filter === 'OFFLINE') matchesFilter = auction.type === 'OFFLINE';
-        if (filter === 'EXPIRED') matchesFilter = auction.status === 'COMPLETED' || auction.status === 'FINISHED' || auction.status === 'ENDED';
+        const isActiveOrPending = !['COMPLETED', 'FINISHED', 'ENDED', 'CANCELLED'].includes(auction.status);
+
+        if (filter === 'ONLINE') matchesFilter = auction.type === 'LIVESTREAM' && isActiveOrPending;
+        if (filter === 'OFFLINE') matchesFilter = auction.type === 'OFFLINE' && isActiveOrPending;
+        if (filter === 'ACTIVE') matchesFilter = auction.status === 'ACTIVE';
+        if (filter === 'EXPIRED') matchesFilter = ['COMPLETED', 'FINISHED', 'ENDED'].includes(auction.status);
         if (filter === 'CANCELLED') matchesFilter = auction.status === 'CANCELLED';
         
         return matchesSearch && matchesFilter;
@@ -98,8 +114,19 @@ export function AuctionsTab() {
     const now = new Date().getTime();
     const stats = {
         active: auctions.filter(a => a.status === 'ACTIVE' && new Date(a.startTime).getTime() <= now).length,
-        upcoming: auctions.filter(a => a.status === 'ACTIVE' && new Date(a.startTime).getTime() > now).length,
+        upcoming: auctions.filter(a => a.status === 'PENDING' || (a.status === 'ACTIVE' && new Date(a.startTime).getTime() > now)).length,
         finished: auctions.filter(a => a.status === 'FINISHED' || a.status === 'COMPLETED').length
+    };
+
+    const getStatusBadge = (status: string, startTime: string) => {
+        if (status === 'ACTIVE' && new Date(startTime).getTime() > new Date().getTime()) {
+            return { text: 'Sắp diễn ra', className: 'bg-orange-50 text-orange-700 border-orange-200' };
+        }
+        if (status === 'PENDING') return { text: 'Sắp diễn ra', className: 'bg-orange-50 text-orange-700 border-orange-200' };
+        if (status === 'ACTIVE') return { text: 'Đang diễn ra', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+        if (status === 'WAITING_PAYMENT') return { text: 'Chờ cọc', className: 'bg-amber-50 text-amber-700 border-amber-200' };
+        if (status === 'CANCELLED') return { text: 'Đã hủy', className: 'bg-red-50 text-red-700 border-red-200' };
+        return { text: 'Đã kết thúc', className: 'bg-gray-50 text-gray-600 border-gray-200' };
     };
 
     return (
@@ -114,6 +141,12 @@ export function AuctionsTab() {
                         <TrendingUp className="w-3.5 h-3.5 mr-2" />
                         Live: {stats.active} phiên
                     </Badge>
+                    <a href={isVendor ? "/vendor/auctions/create" : "/admin/auctions/create"}>
+                        <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 gap-2 shadow-md shadow-blue-200">
+                            <Plus className="w-4 h-4" />
+                            Tạo phiên đấu giá
+                        </Button>
+                    </a>
                 </div>
             </div>
 
@@ -184,9 +217,10 @@ export function AuctionsTab() {
                     {/* Add Filter Row here */}
                     <div className="flex gap-2 mt-6 overflow-x-auto pb-2">
                         <Button variant={filter === 'ALL' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ALL')} className={filter === 'ALL' ? 'bg-blue-600 rounded-xl' : 'rounded-xl'}>Tất cả</Button>
-                        <Button variant={filter === 'ONLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ONLINE')} className={filter === 'ONLINE' ? 'bg-rose-500 hover:bg-rose-600 border-rose-500 rounded-xl' : 'border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl'}>🔴 Online (Live)</Button>
-                        <Button variant={filter === 'OFFLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('OFFLINE')} className={filter === 'OFFLINE' ? 'bg-indigo-500 hover:bg-indigo-600 border-indigo-500 rounded-xl' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded-xl'}>📦 Offline</Button>
-                        <Button variant={filter === 'EXPIRED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('EXPIRED')} className={filter === 'EXPIRED' ? 'bg-slate-600 rounded-xl' : 'rounded-xl'}>Hết hạn</Button>
+                        <Button variant={filter === 'ONLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ONLINE')} className={filter === 'ONLINE' ? 'bg-rose-500 hover:bg-rose-600 border-rose-500 rounded-xl' : 'border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl'}>🔴 Livestream</Button>
+                        <Button variant={filter === 'OFFLINE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('OFFLINE')} className={filter === 'OFFLINE' ? 'bg-indigo-500 hover:bg-indigo-600 border-indigo-500 rounded-xl' : 'border-indigo-200 text-indigo-600 hover:bg-indigo-50 rounded-xl'}>📦 Online</Button>
+                        <Button variant={filter === 'ACTIVE' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('ACTIVE')} className={filter === 'ACTIVE' ? 'bg-emerald-500 hover:bg-emerald-600 border-emerald-500 rounded-xl' : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50 rounded-xl'}>🟢 Đang diễn ra</Button>
+                        <Button variant={filter === 'EXPIRED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('EXPIRED')} className={filter === 'EXPIRED' ? 'bg-slate-600 rounded-xl' : 'rounded-xl'}>Đã kết thúc</Button>
                         <Button variant={filter === 'CANCELLED' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('CANCELLED')} className={filter === 'CANCELLED' ? 'bg-red-500 rounded-xl' : 'border-red-200 text-red-600 hover:bg-red-50 rounded-xl'}>Đã hủy</Button>
                     </div>
                 </CardHeader>
@@ -218,7 +252,7 @@ export function AuctionsTab() {
                                         </tr>
                                     ) : (
                                         filteredAuctions.map((auction) => (
-                                            <tr key={auction.id} className="hover:bg-blue-50/10 transition-colors group">
+                                            <tr key={auction.id} onClick={() => window.open(`/auctions/${auction.id}`, '_blank')} className="hover:bg-blue-50/10 transition-colors group cursor-pointer">
                                                 <td className="px-10 py-6 align-middle">
                                                     <div className="flex items-center gap-4">
                                                         <div className="rounded-2xl bg-blue-50/50 p-3 border border-blue-100 group-hover:bg-blue-600 group-hover:border-blue-700 transition-all duration-300">
@@ -263,20 +297,12 @@ export function AuctionsTab() {
                                                 </td>
                                                 <td className="px-10 py-6 align-middle text-center">
                                                     <Badge
-                                                        className={`rounded-full px-4 py-1.5 uppercase text-[9px] font-black shadow-sm border-2 transition-all ${
-                                                            auction.status === 'ACTIVE'
-                                                                ? new Date(auction.startTime).getTime() > new Date().getTime() 
-                                                                    ? 'bg-orange-50 text-orange-700 border-orange-200'
-                                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                                                                : 'bg-gray-50 text-gray-600 border-gray-200'
-                                                        }`}
+                                                        className={`rounded-full px-4 py-1.5 uppercase text-[9px] font-black shadow-sm border-2 transition-all ${getStatusBadge(auction.status, auction.startTime).className}`}
                                                     >
-                                                        {auction.status === 'ACTIVE' 
-                                                            ? (new Date(auction.startTime).getTime() > new Date().getTime() ? 'Sắp diễn ra' : 'Đang diễn ra')
-                                                            : 'Đã kết thúc'}
+                                                        {getStatusBadge(auction.status, auction.startTime).text}
                                                     </Badge>
                                                 </td>
-                                                <td className="px-10 py-6 align-middle text-right">
+                                                <td className="px-10 py-6 align-middle text-right" onClick={(e) => e.stopPropagation()}>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
                                                             <Button variant="ghost" className="h-12 w-12 p-0 rounded-2xl hover:bg-white hover:shadow-2xl border border-transparent hover:border-gray-100 transition-all">
@@ -286,13 +312,29 @@ export function AuctionsTab() {
                                                         <DropdownMenuContent align="end" className="rounded-[1.5rem] border-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-4 min-w-[200px] backdrop-blur-xl bg-white/95">
                                                             <DropdownMenuLabel className="text-[10px] uppercase font-black text-gray-400 px-4 py-3 tracking-widest text-center">Hành động đấu giá</DropdownMenuLabel>
                                                             <DropdownMenuSeparator className="mb-2" />
-                                                            <DropdownMenuItem className="gap-3 rounded-xl px-4 py-3 focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-black text-xs uppercase tracking-tighter">
+                                                            <DropdownMenuItem 
+                                                                className="gap-3 rounded-xl px-4 py-3 focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-black text-xs uppercase tracking-tighter"
+                                                                onClick={() => window.open(`/auctions/${auction.id}`, '_blank')}
+                                                            >
                                                                 <Eye className="h-4 w-4" />
-                                                                Chi tiết phiên thầu
+                                                                Xem Sàn Đấu Giá
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem className="gap-3 rounded-xl px-4 py-3 focus:bg-blue-50 focus:text-blue-600 cursor-pointer font-black text-xs uppercase tracking-tighter">
-                                                                <History className="h-4 w-4" />
-                                                                Lịch sử đặt giá
+
+                                                            {/* Lịch sử đặt giá can be hidden or linked to the same view since it's in the detail page */}
+                                                            <DropdownMenuSeparator className="my-2" />
+                                                            <DropdownMenuItem 
+                                                                className="gap-3 rounded-xl px-4 py-3 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer font-black text-xs uppercase tracking-tighter"
+                                                                onClick={() => openRegistrationsModal(auction.id)}
+                                                            >
+                                                                <Users className="h-4 w-4" />
+                                                                Duyệt người
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem 
+                                                                className="gap-3 rounded-xl px-4 py-3 focus:bg-amber-50 focus:text-amber-600 cursor-pointer font-black text-xs uppercase tracking-tighter"
+                                                                onClick={() => window.location.href = isVendor ? `/vendor/auctions/${auction.id}/edit` : `/admin/auctions/${auction.id}/edit`}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                                Chỉnh sửa
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator className="my-2" />
                                                             <DropdownMenuItem
@@ -315,6 +357,16 @@ export function AuctionsTab() {
                     )}
                 </CardContent>
             </Card>
+
+            <AuctionRegistrationsModal 
+                isOpen={isRegistrationsModalOpen}
+                auctionId={selectedAuctionId}
+                onClose={() => {
+                    setIsRegistrationsModalOpen(false);
+                    setSelectedAuctionId(null);
+                }}
+                onUpdate={fetchAuctions}
+            />
         </div>
     );
 }

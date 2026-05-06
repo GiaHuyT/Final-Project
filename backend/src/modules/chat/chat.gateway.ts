@@ -143,6 +143,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('stream-started')
+  handleStreamStarted(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { auctionId: string },
+  ) {
+    const room = `stream_auction_${data.auctionId}`;
+    client.to(room).emit('stream-started');
+  }
+
   private getUserIdFromSocket(client: Socket): number | null {
     const userId = client.handshake.query.userId || client.handshake.auth.userId;
     return userId ? parseInt(userId as string) : null;

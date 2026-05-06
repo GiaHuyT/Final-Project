@@ -25,7 +25,7 @@ export default function AuctionListingPage() {
 
   const fetchAuctions = async () => {
     try {
-      const res = await http.get('/auctions');
+      const res = await http.get('/auctions', { params: { t: Date.now() } });
       const data = res.data;
       if (Array.isArray(data)) {
         setAuctions(data);
@@ -123,10 +123,11 @@ export default function AuctionListingPage() {
       setProcessingAction(auction.id);
       await http.post(`/auctions/${auction.id}/register`);
       toast.success('Đã gửi yêu cầu đăng ký tham gia!');
+      const currentUserId = user?.id || user?.userId || user?.sub;
       // Update local state temporarily
       const updatedAuctions = auctions.map(a => {
         if (a.id === auction.id) {
-            const updatedRegs = [...(a.registrations || []), { userId: user.id, status: 'PENDING' }];
+            const updatedRegs = [...(a.registrations || []), { userId: currentUserId, status: 'PENDING' }];
             return { ...a, registrations: updatedRegs };
         }
         return a;
@@ -135,7 +136,7 @@ export default function AuctionListingPage() {
       
       const updatedFiltered = filteredAuctions.map(a => {
         if (a.id === auction.id) {
-            const updatedRegs = [...(a.registrations || []), { userId: user.id, status: 'PENDING' }];
+            const updatedRegs = [...(a.registrations || []), { userId: currentUserId, status: 'PENDING' }];
             return { ...a, registrations: updatedRegs };
         }
         return a;
@@ -143,7 +144,24 @@ export default function AuctionListingPage() {
       setFilteredAuctions(updatedFiltered);
 
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký!');
+      const msg = error.response?.data?.message;
+      if (msg === 'Bạn đã gửi yêu cầu đăng ký cho phiên này rồi.') {
+        // Fallback: If backend says already registered, update the UI to match
+        toast.success('Bạn đã đăng ký tham gia phiên này!');
+        const currentUserId = user?.id || user?.userId || user?.sub;
+        const updatedAuctions = auctions.map(a => {
+          if (a.id === auction.id) {
+              const updatedRegs = [...(a.registrations || []), { userId: currentUserId, status: 'PENDING' }];
+              return { ...a, registrations: updatedRegs };
+          }
+          return a;
+        });
+        setAuctions(updatedAuctions);
+        setFilteredAuctions(updatedAuctions);
+        fetchAuctions(); // trigger a fresh fetch
+      } else {
+        toast.error(msg || 'Có lỗi xảy ra khi đăng ký!');
+      }
     } finally {
       setProcessingAction(null);
     }
@@ -301,20 +319,30 @@ export default function AuctionListingPage() {
                   ];
                   const fallbackImage = placeholders[index % placeholders.length];
                   const coverImage = auction.items?.[0]?.product?.images?.[0]?.url || fallbackImage;
+                  const currentUserId = user?.id || user?.userId || user?.sub;
+                  const myReg = auction.registrations?.find((r: any) => {
+                      const rId = r.userId || r.user?.id;
+                      return rId?.toString() === currentUserId?.toString();
+                  });
                   
-                  const myReg = auction.registrations?.find((r: any) => r.userId === user?.id);
-
                   return (
                     <div key={auction.id} className="group bg-surface-container rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col">
                       <Link href={`/auctions/${auction.id}`} className="block relative h-64 overflow-hidden">
                         <img alt={auction.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={coverImage} />
                         
-                        <div className="absolute top-4 left-4 flex gap-2">
-                          <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md
-                            ${auction.status === 'ACTIVE' ? 'bg-primary text-on-primary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : 'bg-black/80 text-white'}
-                          `}>
-                            {auction.type === 'LIVESTREAM' ? '🔴 Live' : 'Offline'}
-                          </span>
+                        <div className="absolute top-4 left-4 flex flex-col gap-2">
+                          <div className="flex gap-2">
+                            <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest backdrop-blur-md
+                              ${auction.status === 'ACTIVE' ? 'bg-primary text-on-primary shadow-[0_0_8px_rgba(0,0,0,0.3)]' : 'bg-black/80 text-white'}
+                            `}>
+                              {auction.type === 'LIVESTREAM' ? '🔴 Live' : 'onlline'}
+                            </span>
+                          </div>
+                          {myReg?.status === 'BANNED' && (
+                              <span className="text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest bg-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.8)] border border-red-400 w-max">
+                                  🚫 CẤM THAM GIA
+                              </span>
+                          )}
                         </div>
                       </Link>
                       
@@ -361,13 +389,18 @@ export default function AuctionListingPage() {
                                     <button 
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            handleRegisterClick(auction);
+                                            if (myReg?.status === 'APPROVED') {
+                                                router.push(`/auctions/${auction.id}`);
+                                            } else if (myReg?.status !== 'BANNED') {
+                                                handleRegisterClick(auction);
+                                            }
                                         }}
-                                        disabled={myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED' || myReg?.status === 'REJECTED' || processingAction === auction.id}
+                                        disabled={myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED' || myReg?.status === 'REJECTED' || myReg?.status === 'BANNED' || processingAction === auction.id}
                                         className={`block w-full text-center py-3 flex items-center justify-center rounded-full font-headline font-bold text-sm tracking-widest transition-all ${
                                             myReg?.status === 'APPROVED' ? 'bg-primary text-on-primary hover:opacity-90' :
                                             (myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED') ? 'bg-orange-500 text-white opacity-80 cursor-not-allowed' :
                                             myReg?.status === 'REJECTED' ? 'bg-error text-white opacity-80 cursor-not-allowed' :
+                                            myReg?.status === 'BANNED' ? 'bg-slate-800 text-red-500 opacity-90 cursor-not-allowed border border-red-900/50' :
                                             'bg-primary text-on-primary hover:opacity-90 active:scale-95'
                                         }`}
                                     >
@@ -376,6 +409,7 @@ export default function AuctionListingPage() {
                                         ) : myReg?.status === 'APPROVED' ? "THAM GIA NGAY" :
                                           (myReg?.status === 'PENDING' || myReg?.status === 'REGISTERED') ? "ĐANG CHỜ" :
                                           myReg?.status === 'REJECTED' ? "BỊ TỪ CHỐI" :
+                                          myReg?.status === 'BANNED' ? "ĐÃ BỊ CẤM" :
                                           "ĐĂNG KÝ"}
                                     </button>
                                 )}

@@ -12,25 +12,34 @@ export class AuctionsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   async create(@Request() req, @Body() createAuctionDto: CreateAuctionDto) {
-    return this.auctionsService.create(req.user.id, createAuctionDto);
+    return this.auctionsService.create(req.user.vendorId || req.user.id, createAuctionDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Put(':id')
   async update(@Request() req, @Param('id') id: string, @Body() updateAuctionDto: Partial<CreateAuctionDto>) {
-    return this.auctionsService.update(+id, req.user.id, updateAuctionDto);
+    return this.auctionsService.update(+id, req.user.vendorId || req.user.id, updateAuctionDto);
   }
 
   @Public()
   @Get()
-  async findAll(@Query('status') status?: string) {
-    return this.auctionsService.findAll(status);
+  async findAll(@Request() req: any, @Query('status') status?: string) {
+    const data = await this.auctionsService.findAll(status);
+    console.log("findAll requested");
+    console.log("Auction 8 regs:", JSON.stringify(data.find((a: any) => a.id === 8)?.registrations));
+    return data;
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('vendor/me')
   async findMyAuctions(@Request() req) {
-    return this.auctionsService.findByVendorId(req.user.id);
+    return this.auctionsService.findByVendorId(req.user.vendorId || req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('customer/me')
+  async getCustomerAuctionHistory(@Request() req) {
+    return this.auctionsService.getMyAuctionHistory(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -42,36 +51,40 @@ export class AuctionsController {
   @Public()
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.auctionsService.findOne(+id);
+    const auction = await this.auctionsService.findOne(+id);
+    return { ...auction, serverTime: new Date().toISOString() };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id/registrations')
   async getRegistrations(@Request() req, @Param('id') id: string) {
-    return this.auctionsService.getRegistrations(+id, req.user.id);
+    const isAdmin = req.user.roles?.includes('ADMIN');
+    return this.auctionsService.getRegistrations(+id, req.user.vendorId || req.user.id, isAdmin);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/registrations/:regId/approve')
   async approveRegistration(@Request() req, @Param('id') id: string, @Param('regId') regId: string) {
-    return this.auctionsService.approveRegistration(+id, +regId, req.user.id);
+    const isAdmin = req.user.roles?.includes('ADMIN');
+    return this.auctionsService.approveRegistration(+id, +regId, req.user.vendorId || req.user.id, isAdmin);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/registrations/:regId/reject')
   async rejectRegistration(@Request() req, @Param('id') id: string, @Param('regId') regId: string) {
-    return this.auctionsService.rejectRegistration(+id, +regId, req.user.id);
+    const isAdmin = req.user.roles?.includes('ADMIN');
+    return this.auctionsService.rejectRegistration(+id, +regId, req.user.vendorId || req.user.id, isAdmin);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/items/:itemId/start')
   async startItemBidding(@Request() req, @Param('id') id: string, @Param('itemId') itemId: string) {
-    return this.auctionsService.setActiveItem(+id, req.user.id, +itemId);
+    return this.auctionsService.setActiveItem(+id, req.user.vendorId || req.user.id, +itemId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/items/:itemId/end')
   async endItemBidding(@Request() req, @Param('id') id: string, @Param('itemId') itemId: string) {
-    return this.auctionsService.endActiveItem(+id, req.user.id, +itemId);
+    return this.auctionsService.endActiveItem(+id, req.user.vendorId || req.user.id, +itemId);
   }
 }

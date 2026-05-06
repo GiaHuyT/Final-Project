@@ -59,7 +59,7 @@ export default function EditAuctionPage() {
         const fetchInitialData = async () => {
             try {
                 // 1. Fetch products
-                const productsRes = await http.get('/products/vendor/me');
+                const productsRes = await http.get('/products');
                 if (productsRes.data && Array.isArray(productsRes.data)) {
                     setProducts(productsRes.data);
                 }
@@ -74,7 +74,7 @@ export default function EditAuctionPage() {
                     const startTime = new Date(auction.startTime);
                     if (startTime.getTime() - now.getTime() < 5 * 60 * 1000) {
                         toast.error('Chỉ được chỉnh sửa trước giờ bắt đầu 5 phút.');
-                        router.push('/vendor/auctions');
+                        router.push('/admin/auctions');
                         return;
                     }
 
@@ -103,7 +103,7 @@ export default function EditAuctionPage() {
             } catch (error) {
                 console.error("Error fetching data:", error);
                 toast.error('Lỗi tải dữ liệu phiên đấu giá');
-                router.push('/vendor/auctions');
+                router.push('/admin/auctions');
             } finally {
                 setInitialLoading(false);
             }
@@ -141,7 +141,7 @@ export default function EditAuctionPage() {
 
             if (res.data) {
                 toast.success('Cập nhật phiên đấu giá thành công');
-                router.push('/vendor/auctions');
+                router.push('/admin/auctions');
             }
         } catch (error: any) {
             console.error(error);
@@ -154,7 +154,7 @@ export default function EditAuctionPage() {
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-20">
             <div className="flex items-center gap-4">
-                <Link href="/vendor/auctions">
+                <Link href="/admin/auctions">
                     <Button variant="ghost" size="icon" className="rounded-full">
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
@@ -435,7 +435,7 @@ export default function EditAuctionPage() {
                 </Card>
 
                 <div className="flex justify-end gap-4">
-                    <Link href="/vendor/auctions">
+                    <Link href="/admin/auctions">
                         <Button type="button" variant="outline" className="px-8 border-slate-300">Hủy bỏ</Button>
                     </Link>
                     <Button type="submit" disabled={loading} className="px-8 bg-blue-600 text-white hover:bg-blue-700 gap-2">
