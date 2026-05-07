@@ -76,7 +76,7 @@ export default function AdminOrdersPage() {
         fetchOrders();
     }, []);
 
-    // Removed handleUpdateStatus because Admin should not update order shipping status
+    // Đã xóa handUpdateStatus vì Quản trị viên không nên cập nhật trạng thái vận chuyển đơn hàng
 
     const filteredOrders = orders.filter(order =>
         order.id.toString().includes(searchQuery) ||

@@ -63,7 +63,7 @@ export default function AdminAddMaintenancePage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-                {/* General Information Card */}
+                {/* Thẻ thông tin chung */}
                 <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 space-y-8 overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-8 opacity-5">
                         <Wrench className="w-48 h-48" />
@@ -119,7 +119,7 @@ export default function AdminAddMaintenancePage() {
                     </div>
                 </div>
 
-                {/* Detailed Description */}
+                {/* Mô tả chi tiết */}
                 <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 space-y-6 relative z-10">
                     <div className="flex items-center gap-3 border-b border-gray-50 pb-4">
                         <div className="p-3 bg-indigo-100 text-indigo-600 rounded-xl">
@@ -140,7 +140,7 @@ export default function AdminAddMaintenancePage() {
                     </div>
                 </div>
 
-                {/* Footer Actions */}
+                {/* Hành động chân trang */}
                 <div className="flex items-center justify-end gap-4 pb-12">
                     <Button
                         type="button"

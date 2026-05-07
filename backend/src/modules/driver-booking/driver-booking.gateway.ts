@@ -127,6 +127,33 @@ export class DriverBookingGateway implements OnGatewayConnection, OnGatewayDisco
     }
   }
 
+  @SubscribeMessage('cancel-ride')
+  async handleCancelRide(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { bookingId: number },
+  ) {
+    const userId = this.getUserIdFromSocket(client);
+    if (!userId) return { error: 'Unauthorized' };
+
+    try {
+      const booking = await this.bookingService.cancelBooking(userId, data.bookingId);
+      
+      // Notify drivers to remove from their UI
+      this.server.to('drivers').emit('ride-cancelled', { bookingId: data.bookingId });
+      
+      // Notify customer (in case driver cancelled)
+      this.server.to(`user_${booking.customerId}`).emit('ride-cancelled', { bookingId: data.bookingId });
+      
+      // Notify the specific driver (in case customer cancelled and driver had already accepted)
+      if (booking.driverId) {
+         this.server.to(`user_${booking.driverId}`).emit('ride-cancelled', { bookingId: data.bookingId });
+      }
+      return booking;
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+
   private getUserIdFromSocket(client: Socket): number | null {
     const userId = client.handshake.query.userId || client.handshake.auth.userId;
     return userId ? parseInt(userId as string) : null;

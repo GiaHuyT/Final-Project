@@ -37,13 +37,13 @@ export default function AdminRevenueReportPage() {
     deliveryData: []
   });
 
-  // Set default dates (last 7 days) on mount
+  // Đặt ngày mặc định (7 ngày qua) khi gắn kết
   useEffect(() => {
     const end = new Date();
     const start = new Date();
     start.setDate(end.getDate() - 6);
 
-    // Format YYYY-MM-DD
+    // Định dạng YYYY-MM-DD
     const formatDate = (date: Date) => {
       const d = new Date(date);
       let month = '' + (d.getMonth() + 1);

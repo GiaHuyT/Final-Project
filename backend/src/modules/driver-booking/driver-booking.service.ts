@@ -99,6 +99,22 @@ export class DriverBookingService {
     });
   }
 
+  async cancelBooking(userId: number, bookingId: number) {
+    const booking = await this.prisma.driverBooking.findUnique({ where: { id: bookingId } });
+    if (!booking) throw new NotFoundException('Không tìm thấy cuốc xe.');
+    if (booking.customerId !== userId && booking.driverId !== userId) {
+      throw new BadRequestException('Bạn không có quyền hủy cuốc xe này.');
+    }
+    if (booking.status === 'COMPLETED' || booking.status === 'CANCELLED') {
+      throw new BadRequestException('Không thể hủy cuốc xe ở trạng thái hiện tại.');
+    }
+
+    return this.prisma.driverBooking.update({
+      where: { id: bookingId },
+      data: { status: 'CANCELLED' }
+    });
+  }
+
   async getCustomerBookings(customerId: number) {
     return this.prisma.driverBooking.findMany({
       where: { customerId },

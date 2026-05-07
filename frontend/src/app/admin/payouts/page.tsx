@@ -46,7 +46,7 @@ export default function AdminPayoutsPage() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     
-    // QR Dialog state
+    // Trạng thái hộp thoại QR
     const [isQrDialogOpen, setIsQrDialogOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<{ id: number, qrUrl: string, amount: number } | null>(null);
 

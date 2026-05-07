@@ -32,7 +32,7 @@ export default function ViewerLivePage() {
         const user = JSON.parse(userStr);
         const socket = initSocket('chat', token, user.id);
 
-        // Join as viewer
+        // Tham gia với tư cách người xem
         socket.emit('join-stream', { auctionId, isVendor: false });
 
         socket.on('webrtc-offer', async (data: { senderId: string, offer: any }) => {
@@ -78,7 +78,7 @@ export default function ViewerLivePage() {
             }
         });
 
-        // Fallback timeout if vendor is not live
+        // Hết thời gian dự phòng nếu nhà cung cấp không hoạt động
         const timeout = setTimeout(() => {
             if (!isConnected) {
                 setIsConnecting(false);

@@ -58,13 +58,13 @@ export default function EditAuctionPage() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                // 1. Fetch products
+                // 1. Lấy sản phẩm
                 const productsRes = await http.get('/products');
                 if (productsRes.data && Array.isArray(productsRes.data)) {
                     setProducts(productsRes.data);
                 }
 
-                // 2. Fetch auction details
+                // 2. Lấy thông tin đấu giá
                 if (id) {
                     const auctionRes = await http.get(`/auctions/${id}`);
                     const auction = auctionRes.data;

@@ -25,7 +25,7 @@ import CartButton from "@/components/ui/cart-button";
 import { cn, formatPrice } from "@/lib/utils";
 import { useCurrency } from "@/hooks/use-currency";
 
-// Custom Dropdown Component
+// Thành phần thả xuống tùy chỉnh
 interface FilterDropdownProps {
     label: string;
     icon: React.ReactNode;
@@ -109,7 +109,7 @@ export default function CarModelsPage() {
     const [loading, setLoading] = useState(true);
     const [filterLoading, setFilterLoading] = useState(false);
 
-    // Filter states
+    // Trạng thái lọc
     const [selectedBrand, setSelectedBrand] = useState("");
     const [selectedModel, setSelectedModel] = useState("");
     const [selectedVendor, setSelectedVendor] = useState("");
@@ -150,7 +150,7 @@ export default function CarModelsPage() {
                 setBrands(brandsRes.data);
                 setVendors(vendorsRes.data);
 
-                // Fetch favorite IDs if logged in
+                // Lấy ID yêu thích nếu đăng nhập
                 const token = localStorage.getItem('token');
                 if (token) {
                     const favsRes = await http.get('/favorites/ids');
@@ -190,7 +190,7 @@ export default function CarModelsPage() {
 
     return (
         <div className="bg-white min-h-screen pt-20">
-            {/* Header Section */}
+            {/* Phần tiêu đề */}
             <div className="relative bg-slate-900 overflow-hidden py-16 px-6 lg:px-12">
                 <div className="absolute inset-0 opacity-20">
                     <img src="/images/static/hero-bg.jpg" className="w-full h-full object-cover" alt="Background" />
@@ -206,13 +206,13 @@ export default function CarModelsPage() {
 
             <main className="max-w-[1400px] mx-auto px-6 lg:px-12 py-12">
                 <div className="flex flex-col lg:flex-row gap-12">
-                    {/* Filter Sidebar */}
+                    {/* Thanh bên bộ lọc */}
                     <aside className={cn(
                         "lg:w-80 space-y-8 lg:block shrink-0 transition-all duration-300",
                         isSidebarOpen ? "block" : "hidden"
                     )}>
                         <div className="sticky top-28 space-y-10 max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar pr-4 pb-8">
-                            {/* Brand Dropdown */}
+                            {/* Thả xuống thương hiệu */}
                             <FilterDropdown
                                 label="Hãng xe"
                                 icon={<Tag className="w-3 h-3" />}
@@ -222,7 +222,7 @@ export default function CarModelsPage() {
                                 placeholder="Chọn hãng xe"
                             />
 
-                            {/* Model Dropdown (Only shown if Brand is selected) */}
+                            {/* Mô hình thả xuống (Chỉ hiển thị nếu Thương hiệu được chọn) */}
                             {selectedBrand && (
                                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                                     <FilterDropdown

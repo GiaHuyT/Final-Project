@@ -64,14 +64,14 @@ export default function AdminContactsPage() {
   const [loading, setLoading] = useState(false);
 
   const fetchContacts = async () => {
-    // API logic commented out to strictly use mock data for testing UI
-    // try {
-    //   const { data } = await http.get('/contacts');
-    //   setContacts(data);
-    // } catch (error) {
-    //   console.error("Failed to load contacts:", error);
-    // } finally {
-    //   setLoading(false);
+    // Logic API đã nhận xét để sử dụng nghiêm ngặt dữ liệu mô phỏng để kiểm tra giao diện người dùng
+    // thử {
+    // const { data } = đang chờ http.get('/contacts');
+    // setLink(dữ liệu);
+    // } bắt (lỗi) {
+    // console.error("Không thể tải danh bạ:", error);
+    // } Cuối cùng {
+    // setLoading(false);
     // }
   };
 

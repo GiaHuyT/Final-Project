@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
-// Mock Data
+// Dữ liệu giả
 const MOCK_EARNINGS = {
     balance: 2450000,
     daily: { total: 450000, completed: 3, canceled: 0 },

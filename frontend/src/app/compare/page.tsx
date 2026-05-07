@@ -195,7 +195,7 @@ function CompareContent() {
         <div className="min-h-screen bg-slate-50 pt-24 pb-20 font-body">
             <div className="max-w-6xl mx-auto px-4 sm:px-6">
                 
-                {/* Header Breadcrumb */}
+                {/* Đường dẫn tiêu đề */}
                 <div className="flex items-center gap-2 mb-8 text-sm font-bold text-slate-500">
                     <button onClick={() => router.back()} className="hover:text-slate-900 flex items-center gap-2 transition-colors">
                         <ArrowLeft className="w-4 h-4" /> Quay lại
@@ -204,13 +204,13 @@ function CompareContent() {
                     <span className="text-slate-900 uppercase tracking-widest">So sánh chi tiết</span>
                 </div>
 
-                {/* Hero Cars */}
+                {/* Xe anh hùng */}
                 <div className="grid grid-cols-2 gap-4 md:gap-8 mb-12">
                     {renderCarCard(car1, 1, "border-blue-500", "bg-blue-50", "text-blue-600")}
                     {renderCarCard(car2, 2, "border-orange-500", "bg-orange-50", "text-orange-600")}
                 </div>
 
-                {/* Specs Comparison Table */}
+                {/* Bảng so sánh thông số kỹ thuật */}
                 <div className="bg-white rounded-[2.5rem] p-4 md:p-8 shadow-xl shadow-slate-200/50 border border-slate-100 mb-10 overflow-hidden">
                     
                     {/* Section 1: Tình trạng & Thông tin pháp lý */}

@@ -71,7 +71,7 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen flex relative bg-slate-50 font-sans">
-            {/* Split Layout - Left side background */}
+            {/* Bố cục tách - Nền bên trái */}
             <div className="hidden lg:block lg:w-3/5 relative h-screen sticky top-0">
                 <img
                     alt="Sleek Porsche in a dark modern garage"
@@ -101,9 +101,9 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* Right side login */}
+            {/* Đăng nhập bên phải */}
             <div className="w-full lg:w-2/5 flex flex-col justify-center items-center px-6 md:px-12 py-24 bg-white relative">
-                {/* Mobile Background Image */}
+                {/* Hình nền di động */}
                 <div className="lg:hidden absolute inset-0 z-0">
                     <img alt="Porsche" className="w-full h-full object-cover" src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=2669&auto=format&fit=crop" />
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>

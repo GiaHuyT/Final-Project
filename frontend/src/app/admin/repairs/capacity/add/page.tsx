@@ -178,7 +178,7 @@ export default function AdminAddRepairCapacityPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-                {/* General Information Card */}
+                {/* Thẻ thông tin chung */}
                 <div className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 space-y-8 overflow-hidden relative">
                     <div className="absolute top-0 right-0 p-8 opacity-5">
                         <Wrench className="w-48 h-48" />
@@ -236,7 +236,7 @@ export default function AdminAddRepairCapacityPage() {
 
                         </div>
 
-                        {/* Image Upload Area */}
+                        {/* Khu vực tải lên hình ảnh */}
                         <div className="space-y-3">
                             <Label className="text-sm font-bold text-gray-700">Ảnh đại diện năng lực (Tối đa 5 ảnh)</Label>
 

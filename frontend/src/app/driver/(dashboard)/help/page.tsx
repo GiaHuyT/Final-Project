@@ -142,7 +142,7 @@ export default function HelpCenterPage() {
         <div className="min-h-screen bg-slate-50/50 p-6">
             <div className="max-w-5xl mx-auto space-y-8">
                 
-                {/* Header & Search */}
+                {/* Tiêu đề & Tìm kiếm */}
                 <div className="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-800">Trung tâm Trợ giúp</h1>
@@ -168,7 +168,7 @@ export default function HelpCenterPage() {
                     </CardContent>
                 </Card>
 
-                {/* Important Alert */}
+                {/* Cảnh báo quan trọng */}
                 <div className="bg-rose-50 border border-rose-200 p-5 rounded-2xl flex items-start md:items-center justify-between gap-4">
                     <div className="flex items-start md:items-center gap-4">
                         <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center shrink-0">
@@ -185,7 +185,7 @@ export default function HelpCenterPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    {/* Sidebar Categories */}
+                    {/* Danh mục thanh bên */}
                     <div className="md:col-span-1 space-y-2">
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 px-3">Danh mục hỗ trợ</h3>
                         {CATEGORIES.map(cat => (
@@ -205,7 +205,7 @@ export default function HelpCenterPage() {
                         ))}
                     </div>
 
-                    {/* FAQ Content */}
+                    {/* Nội dung câu hỏi thường gặp */}
                     <div className="md:col-span-3">
                         <Card className="border-none shadow-sm h-full">
                             <CardContent className="p-6">
@@ -235,7 +235,7 @@ export default function HelpCenterPage() {
                     </div>
                 </div>
 
-                {/* Contact Support */}
+                {/* Liên hệ hỗ trợ */}
                 <Card className="bg-slate-800 border-none shadow-xl text-white mt-12">
                     <CardContent className="p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="flex items-center gap-6">

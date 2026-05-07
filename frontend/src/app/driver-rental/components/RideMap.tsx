@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix Leaflet default icon paths in Next.js
-// Only run on client to avoid SSR issues
+// Sửa đường dẫn biểu tượng mặc định của Tờ rơi trong Next.js
+// Chỉ chạy trên máy khách để tránh sự cố SSR
 if (typeof window !== 'undefined') {
   delete (L.Icon.Default.prototype as any)._getIconUrl;
   L.Icon.Default.mergeOptions({
@@ -59,11 +59,11 @@ export default function RideMap({ pickup, dropoff, routeGeometry, className }: R
 
     const map = mapInstance.current;
 
-    // Clear existing markers
+    // Xóa các điểm đánh dấu hiện có
     markersRef.current.forEach(m => map.removeLayer(m));
     markersRef.current = [];
 
-    // Clear route
+    // Xóa lộ trình
     if (routeRef.current) {
       map.removeLayer(routeRef.current);
       routeRef.current = null;

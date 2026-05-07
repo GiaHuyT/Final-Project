@@ -23,14 +23,14 @@ export default function DriverProfilePage() {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     
-    // User core data (editable)
+    // Dữ liệu cốt lõi của người dùng (có thể chỉnh sửa)
     const [userNameDisplay, setUserNameDisplay] = useState("Tài xế");
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
     const [previewAvatarUrl, setPreviewAvatarUrl] = useState<string | null>(null);
     const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Driver Rental Service data (read-only)
+    // Dữ liệu Dịch vụ cho thuê tài xế (chỉ đọc)
     const [driverInfo, setDriverInfo] = useState<any>(null);
 
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ProfileFormValues>({

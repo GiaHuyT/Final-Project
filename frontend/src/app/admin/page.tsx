@@ -45,15 +45,15 @@ export default function AdminDashboard() {
 
     return (
         <div className="p-8 space-y-8 overflow-y-auto w-full max-w-7xl mx-auto">
-            {/* Header Section */}
+            {/* Phần tiêu đề */}
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Tổng quan hệ thống</h1>
                 <p className="text-slate-500 mt-2">Giám sát doanh thu, người dùng và các giao dịch gần đây.</p>
             </div>
 
-            {/* Hero Metrics (Asymmetric Bento Grid) */}
+            {/* Số liệu anh hùng (Lưới Bento bất đối xứng) */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                {/* Revenue Highlight */}
+                {/* Điểm nổi bật về doanh thu */}
                 <div className="md:col-span-7 bg-white p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden group shadow-xl shadow-blue-900/5 border border-slate-100">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 transition-all duration-700 group-hover:bg-blue-100 group-hover:scale-110"></div>
                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-50 rounded-full blur-3xl -ml-10 -mb-10 transition-all duration-700 group-hover:bg-indigo-100"></div>
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
                                 Cập nhật
                             </button>
                         </div>
-                        {/* Mini Revenue Chart Projection Wrapper */}
+                        {/* Trình bao bọc dự báo biểu đồ doanh thu nhỏ */}
                         <div className="flex items-end gap-2.5 h-28 mt-10">
                             {[30, 45, 35, 60, 50, 75, 100].map((h, i) => (
                                 <div key={i} className="w-full relative group/bar cursor-crosshair" style={{ height: `${h}%` }}>

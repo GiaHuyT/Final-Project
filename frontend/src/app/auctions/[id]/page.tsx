@@ -37,7 +37,7 @@ const getEmbedUrl = (url: string) => {
         }
         
         if (url.includes('facebook.com')) {
-            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
+            return `https:// www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
         }
         
         return url.replace("watch?v=", "embed/");
@@ -65,16 +65,16 @@ export default function AuctionDetailPage() {
     // Nộp cọc state
     const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
-    // Registrations state cho Vendor/Admin
+    // Trạng thái đăng ký cho Nhà cung cấp/Quản trị viên
     const [registrations, setRegistrations] = useState<any[]>([]);
     const [showRegModal, setShowRegModal] = useState(false);
     const [isGeneratingPayment, setIsGeneratingPayment] = useState(false);
 
-    // Viewer States
+    // Trạng thái của người xem
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
     const peerConnection = useRef<RTCPeerConnection | null>(null);
 
-    // Broadcaster States
+    // Đài truyền hình Hoa Kỳ
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [isStreaming, setIsStreaming] = useState(false);
@@ -90,7 +90,7 @@ export default function AuctionDetailPage() {
 
         fetchAuctionDetail();
 
-        // Setup Socket.IO connection
+        // Thiết lập kết nối Socket.IO
         const newSocket = io(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000');
         setSocket(newSocket);
 
@@ -113,7 +113,7 @@ export default function AuctionDetailPage() {
         });
 
         newSocket.on('registrationUpdate', () => {
-            // Refresh registrations if vendor
+            // Làm mới đăng ký nếu nhà cung cấp
             fetchRegistrations();
         });
 
@@ -127,7 +127,7 @@ export default function AuctionDetailPage() {
             const userStr = localStorage.getItem('user');
             if (!userStr) return;
             const u = JSON.parse(userStr);
-            // Only fetch if admin or vendor
+            // Chỉ tìm nạp nếu quản trị viên hoặc nhà cung cấp
             if (u.role === 'ADMIN' || u.id === auction?.vendorId) {
                 const res = await http.get(`/auctions/${params.id}/registrations`);
                 setRegistrations(res.data);

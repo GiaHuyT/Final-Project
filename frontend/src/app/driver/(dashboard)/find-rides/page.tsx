@@ -13,8 +13,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SwipeButton } from '@/components/ui/swipe-button';
 import { initSocket, disconnectSocket } from '@/lib/socket';
 import Cookies from 'js-cookie';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
-// Dynamically import Map with SSR disabled
+// Nhập động Bản đồ với SSR bị tắt
 const MapRides = dynamic(() => import('@/components/driver/MapRides'), { 
     ssr: false,
     loading: () => <div className="w-full h-full flex items-center justify-center bg-slate-100 rounded-xl border border-slate-200">
@@ -32,6 +39,9 @@ export default function FindRidesPage() {
     const [selectedRideId, setSelectedRideId] = useState<number | null>(null);
     const [acceptingId, setAcceptingId] = useState<number | null>(null);
     const [isRegisteredShift, setIsRegisteredShift] = useState<boolean | null>(null);
+    const [socket, setSocket] = useState<any>(null);
+    const [cancellingId, setCancellingId] = useState<number | null>(null);
+    const [cancelDialogOpen, setCancelDialogOpen] = useState<{open: boolean, rideId: number | null}>({open: false, rideId: null});
     const router = useRouter();
 
     useEffect(() => {
@@ -53,7 +63,7 @@ export default function FindRidesPage() {
                         const endTotal = endH * 60 + endM;
                         
                         if (endTotal <= startTotal) {
-                            // Overnight shift (e.g., 18:00 to 06:00)
+                            // Ca qua đêm (ví dụ: 18:00 đến 06:00)
                             return currentTotalMinutes >= startTotal || currentTotalMinutes <= endTotal;
                         } else {
                             return currentTotalMinutes >= startTotal && currentTotalMinutes <= endTotal;
@@ -68,17 +78,17 @@ export default function FindRidesPage() {
         } else {
             setIsRegisteredShift(false);
         }
-        // Try to get user location using watchPosition for real-time tracking
+        // Cố gắng lấy vị trí của người dùng bằng watchPosition để theo dõi thời gian thực
         let watchId: number;
         if ("geolocation" in navigator) {
             watchId = navigator.geolocation.watchPosition((position) => {
                 const loc: [number, number] = [position.coords.latitude, position.coords.longitude];
                 setUserLocation(loc);
                 locationRef.current = loc;
-                fetchPendingRides(); // Fetch immediately when location updates
+                fetchPendingRides(); // Tìm nạp ngay khi cập nhật vị trí
             }, (error) => {
                 console.warn("Geolocation error:", error);
-                // Default to Hanoi if denied
+                // Mặc định về Hà Nội nếu bị từ chối
                 const defaultLoc: [number, number] = [21.028511, 105.804817];
                 if (!locationRef.current) {
                     setUserLocation(defaultLoc);
@@ -98,28 +108,35 @@ export default function FindRidesPage() {
         fetchPendingRides();
         fetchActiveRides();
         
-        // Setup socket to listen for ride updates
+        // Thiết lập ổ cắm để nghe thông tin cập nhật về chuyến đi
         const token = Cookies.get("token");
         const userStr = localStorage.getItem("user");
         if (token && userStr) {
             const userData = JSON.parse(userStr);
-            const socket = initSocket('rides', token, userData.id);
+            const newSocket = initSocket('rides', token, userData.id);
+            setSocket(newSocket);
             
-            socket.on('ride-status-updated', (booking: any) => {
-                // If a booking is updated (e.g. customer confirmed COMPLETED)
+            newSocket.on('ride-status-updated', (booking: any) => {
+                // Nếu lượt đặt chỗ được cập nhật (ví dụ: khách hàng xác nhận ĐÃ HOÀN THÀNH)
                 fetchActiveRides();
             });
             
-            socket.on('new-ride-request', () => {
+            newSocket.on('new-ride-request', () => {
                 fetchPendingRides();
             });
 
-            socket.on('ride-taken', () => {
+            newSocket.on('ride-taken', () => {
                 fetchPendingRides();
+            });
+
+            newSocket.on('ride-cancelled', (data: any) => {
+                fetchPendingRides();
+                fetchActiveRides();
+                toast.error("Một cuốc xe vừa bị khách hàng hủy.");
             });
         }
 
-        // Polling every 10 seconds as backup
+        // Bỏ phiếu cứ sau 10 giây để dự phòng
         const interval = setInterval(() => {
             fetchPendingRides();
             fetchActiveRides();
@@ -195,6 +212,23 @@ export default function FindRidesPage() {
         } catch (error) {
             toast.error("Không thể cập nhật trạng thái.");
         }
+    };
+
+    const handleCancelRide = (rideId: number) => {
+        if (!socket) return;
+        
+        setCancellingId(rideId);
+        socket.emit('cancel-ride', { bookingId: rideId }, (response: any) => {
+            if (response && response.error) {
+                toast.error(response.error);
+            } else {
+                toast.success('Đã hủy chuyến đi thành công.');
+                fetchActiveRides();
+                fetchPendingRides();
+                setCancelDialogOpen({open: false, rideId: null});
+            }
+            setCancellingId(null);
+        });
     };
 
     const handleMarkerClick = (rideId: number) => {
@@ -474,10 +508,20 @@ export default function FindRidesPage() {
                                                             <p className="font-bold text-sm">Đang chờ khách hàng xác nhận hoàn thành...</p>
                                                         </div>
                                                     ) : (
-                                                        <SwipeButton 
-                                                            text={getSwipeText(ride.status)}
-                                                            onConfirm={() => handleUpdateStatus(ride.id, ride.status)}
-                                                        />
+                                                        <div className="flex flex-col gap-3">
+                                                            <SwipeButton 
+                                                                text={getSwipeText(ride.status)}
+                                                                onConfirm={() => handleUpdateStatus(ride.id, ride.status)}
+                                                            />
+                                                            <button 
+                                                                onClick={() => setCancelDialogOpen({open: true, rideId: ride.id})}
+                                                                disabled={cancellingId === ride.id}
+                                                                className="w-full py-2 text-red-500 font-bold hover:bg-red-50 rounded-xl transition-colors text-sm flex justify-center items-center gap-2"
+                                                            >
+                                                                {cancellingId === ride.id ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                                                Hủy chuyến
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
@@ -489,6 +533,42 @@ export default function FindRidesPage() {
                     </TabsContent>
                 </Tabs>
             </div>
+
+            {/* Cancel Confirmation Dialog */}
+            <Dialog open={cancelDialogOpen.open} onOpenChange={(open) => !cancellingId && setCancelDialogOpen({open, rideId: open ? cancelDialogOpen.rideId : null})}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-red-600 flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5" /> Xác nhận hủy chuyến
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <p className="text-slate-600 text-sm">
+                            Bạn có chắc chắn muốn hủy chuyến đi này không? Hệ thống sẽ ghi nhận tỷ lệ hủy chuyến của bạn và hành động này không thể hoàn tác.
+                        </p>
+                    </div>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setCancelDialogOpen({open: false, rideId: null})}
+                            disabled={!!cancellingId}
+                        >
+                            Đóng
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            onClick={() => cancelDialogOpen.rideId && handleCancelRide(cancelDialogOpen.rideId)}
+                            disabled={!!cancellingId}
+                            className="bg-red-600 hover:bg-red-700 gap-2"
+                        >
+                            {cancellingId ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            Xác nhận hủy
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

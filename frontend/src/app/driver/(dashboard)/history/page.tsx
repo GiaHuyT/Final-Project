@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
-// Mock Data
+// Dữ liệu giả
 const MOCK_TRIPS = [
     { 
         id: 'TRP-88219', 

@@ -89,7 +89,7 @@ export default function RegisterPage() {
 
     return (
         <main className="min-h-screen pt-16 flex items-center justify-center lg:justify-start overflow-hidden relative font-sans">
-            {/* Background Asset for Premium Feel */}
+            {/* Tài sản nền cho cảm giác cao cấp */}
             <div className="absolute inset-0 z-0 hidden lg:block">
                 <div className="h-full w-full bg-surface-dim opacity-10"></div>
                 <img 
@@ -100,7 +100,7 @@ export default function RegisterPage() {
                 />
             </div>
 
-            {/* Registration Container */}
+            {/* Vùng chứa đăng ký */}
             <div className="relative z-10 w-full max-w-2xl px-6 lg:pl-24 lg:pr-0">
                 <div className="bg-surface-container-lowest lg:bg-transparent p-8 lg:p-0 rounded-xl lg:rounded-none">
                     <div className="mb-10">
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                     </div>
                     
                     <form onSubmit={handleSubmit} className="space-y-6 max-w-lg">
-                        {/* Name Field */}
+                        {/* Trường tên */}
                         <div className="group">
                             <label className="block text-xs font-semibold uppercase tracking-widest text-on-surface-variant mb-2 ml-1">Họ và tên</label>
                             <div className="relative flex items-center">

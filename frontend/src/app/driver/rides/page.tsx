@@ -22,7 +22,7 @@ export default function DriverRidesPage() {
       
       try {
         const userData = JSON.parse(userStr);
-        // Fetch fresh profile to get exact licenseType
+        // Tìm nạp hồ sơ mới để có được loại giấy phép chính xác
         const { data: profile } = await http.get('/users/profile');
         setUser(profile);
         
@@ -51,7 +51,7 @@ export default function DriverRidesPage() {
           return getLicenseLevel(driverLicense) >= getLicenseLevel(requiredLicense);
         };
         
-        // Initialize rides socket
+        // Khởi tạo ổ cắm cưỡi ngựa
         const newSocket = initSocket('rides', token, profile.id);
         
         newSocket.on('new-ride-request', (booking: any) => {
@@ -67,7 +67,7 @@ export default function DriverRidesPage() {
 
         setSocket(newSocket);
 
-        // Fetch active ride if any
+        // Tìm nạp chuyến đi chủ động nếu có
         const fetchActiveRide = async () => {
           try {
             const res = await http.get('/driver-booking/driver');
@@ -79,7 +79,7 @@ export default function DriverRidesPage() {
           }
         };
         
-        // Fetch pending rides on load
+        // Tìm nạp các chuyến đi đang chờ xử lý khi có tải
         const fetchPendingRides = async () => {
           try {
             const res = await http.get('/driver-booking/pending');
@@ -106,7 +106,7 @@ export default function DriverRidesPage() {
   const handleAcceptRide = (bookingId: number) => {
     if (!socket) return;
     
-    // Optimistic UI update
+    // Cập nhật giao diện người dùng lạc quan
     const rideToAccept = incomingRides.find(r => r.id === bookingId);
     if (rideToAccept) {
       setIncomingRides(prev => prev.filter(r => r.id !== bookingId));
@@ -116,8 +116,8 @@ export default function DriverRidesPage() {
     socket.emit('accept-ride', { bookingId }, (response: any) => {
       if (response && response.error) {
         toast.error(response.error);
-        setActiveRide(null); // Rollback
-        // Refetch pending rides
+        setActiveRide(null); // Khôi phục
+        // Tải lại các chuyến đi đang chờ xử lý
         http.get('/driver-booking/pending').then(res => setIncomingRides(res.data));
       } else {
         toast.success("Nhận cuốc thành công!");
@@ -186,7 +186,7 @@ export default function DriverRidesPage() {
             </div>
 
             <div className="p-6 md:p-8 space-y-8">
-              {/* Customer Info */}
+              {/* Thông tin khách hàng */}
               <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold text-lg shrink-0">

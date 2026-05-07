@@ -14,10 +14,8 @@ export async function GET(request: Request) {
   if (!goongKey && !googleKey) {
     // Fallback về OpenStreetMap (Miễn phí, không cần Key nhưng ít chi tiết nhà cụ thể)
     try {
-      // Làm cho tìm kiếm "khôn" hơn bằng cách tự động thêm "Hà Nội" nếu user gõ ngắn
-      const smartQuery = q.toLowerCase().includes('hà nội') || q.toLowerCase().includes('ha noi') 
-        ? q 
-        : `${q}, Hà Nội, Việt Nam`;
+      // Bỏ tự động thêm "Hà Nội" để khách có thể tìm kiếm ở tất cả các tỉnh thành
+      const smartQuery = q;
 
       const res = await axios.get(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(smartQuery)}&countrycodes=vn&limit=5&addressdetails=1`, {
         headers: {
@@ -45,7 +43,7 @@ export async function GET(request: Request) {
   try {
     if (goongKey) {
       // Dùng Goong Maps (Tuyệt vời cho Việt Nam)
-      const res = await axios.get(`https://rsapi.goong.io/Place/AutoComplete?api_key=${goongKey}&input=${encodeURIComponent(q)}`);
+      const res = await axios.get(`https:// rsapi.goong.io/Place/AutoComplete?api_key=${goongKey}&input=${encodeURIComponent(q)}`);
       
       if (!res.data.predictions) return NextResponse.json([]);
 
@@ -64,7 +62,7 @@ export async function GET(request: Request) {
     
     if (googleKey) {
       // Dùng Google Maps
-      const res = await axios.get(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${googleKey}&region=vn&language=vi`);
+      const res = await axios.get(`https:// maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${googleKey}&khu vực=vn&lingu=vi`);
       const results = res.data.results.map((r: any) => ({
         display_name: r.name + (r.formatted_address ? `, ${r.formatted_address}` : ''),
         lat: r.geometry.location.lat,

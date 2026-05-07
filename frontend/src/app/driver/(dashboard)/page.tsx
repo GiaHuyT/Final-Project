@@ -21,7 +21,7 @@ export default function DriverHubDashboard() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                // 1. Load shifts
+                // 1. Ca phụ tải
                 const savedDetails = localStorage.getItem('registered_shift_details');
                 if (savedDetails) {
                     const parsedShifts = JSON.parse(savedDetails);
@@ -31,11 +31,11 @@ export default function DriverHubDashboard() {
                     }
                 }
 
-                // 2. Load stats from API
+                // 2. Tải số liệu thống kê từ API
                 const res = await http.get('/driver-booking/driver');
                 if (res.data) {
                     const today = new Date().setHours(0, 0, 0, 0);
-                    // Filter bookings for today only
+                    // Lọc đặt chỗ chỉ trong ngày hôm nay
                     const todaysBookings = res.data.filter((b: any) => {
                         return new Date(b.createdAt).setHours(0, 0, 0, 0) === today;
                     });

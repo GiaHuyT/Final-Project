@@ -73,7 +73,7 @@ export default function ContactUsPage() {
 
   return (
     <div className="bg-surface text-on-surface font-body min-h-screen pt-24">
-      {/* Hero Header */}
+      {/* Tiêu đề anh hùng */}
       <section className="bg-slate-900 py-20 relative overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
@@ -92,11 +92,11 @@ export default function ContactUsPage() {
         </div>
       </section>
 
-      {/* Main Content */}
+      {/* Nội dung chính */}
       <section className="py-20 bg-surface-container-low min-h-[600px]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col lg:flex-row gap-16">
 
-          {/* Contact Info Sidebar */}
+          {/* Thanh bên thông tin liên hệ */}
           <div className="lg:w-1/3">
             <h2 className="font-headline text-3xl font-extrabold tracking-tight text-slate-900 mb-8">
               Thông tin liên hệ
@@ -164,10 +164,10 @@ export default function ContactUsPage() {
             </div>
           </div>
 
-          {/* Contact Form */}
+          {/* Mẫu liên hệ */}
           <div className="lg:w-2/3">
             <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl shadow-slate-200/50 border border-slate-100 relative">
-              {/* Form Title & Decorative */}
+              {/* Tiêu đề biểu mẫu & trang trí */}
               <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-blue-600 rounded-t-3xl"></div>
 
               {submitted ? (

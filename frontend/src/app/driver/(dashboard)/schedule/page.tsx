@@ -45,18 +45,18 @@ export default function SchedulePage() {
     const [shifts, setShifts] = useState<any[]>([]);
     const [registeredDestinations, setRegisteredDestinations] = useState<any[]>([]);
     
-    // Interactions state
+    // Trạng thái tương tác
     const [registeredShiftIds, setRegisteredShiftIds] = useState<number[]>([]);
     
-    // Filters state
+    // Trạng thái bộ lọc
     const [filterTime, setFilterTime] = useState('all');
     const [filterType, setFilterType] = useState('all');
     const [filterLocation, setFilterLocation] = useState('all');
     
-    // Validation Error state
+    // Trạng thái lỗi xác thực
     const [validationError, setValidationError] = useState<string | null>(null);
     
-    // Date context state
+    // Trạng thái bối cảnh ngày
     const [selectedDateObj, setSelectedDateObj] = useState(() => {
         const d = new Date();
         d.setHours(0,0,0,0);

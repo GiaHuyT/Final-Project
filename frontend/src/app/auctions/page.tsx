@@ -17,9 +17,9 @@ export default function AuctionListingPage() {
   const [now, setNow] = useState(Date.now());
   const [processingAction, setProcessingAction] = useState<number | null>(null);
 
-  // Filter States
-  const [statusFilter, setStatusFilter] = useState("all"); // all, PENDING, ACTIVE, COMPLETED
-  const [typeFilter, setTypeFilter] = useState("all"); // all, OFFLINE, LIVESTREAM
+  // Lọc các trạng thái
+  const [statusFilter, setStatusFilter] = useState("all"); // tất cả, ĐANG CHỜ, HOẠT ĐỘNG, ĐÃ HOÀN THÀNH
+  const [typeFilter, setTypeFilter] = useState("all"); // tất cả, NGOẠI TUYẾN, LIVESTREAM
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
@@ -48,7 +48,7 @@ export default function AuctionListingPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Socket listener cho real-time updates
+  // Trình nghe socket cho các cập nhật theo thời gian thực
   useEffect(() => {
     if (isLoggedIn && token && user?.id) {
        const socket = initSocket('notifications', token, user.id);
@@ -69,7 +69,7 @@ export default function AuctionListingPage() {
   const handleApplyFilters = () => {
     let result = [...auctions];
 
-    // Status filter
+    // Bộ lọc trạng thái
     if (statusFilter !== "all") {
         if (statusFilter === 'PENDING') {
             result = result.filter(a => a.status === 'PENDING');
@@ -80,17 +80,17 @@ export default function AuctionListingPage() {
         }
     }
 
-    // Type filter
+    // Loại bộ lọc
     if (typeFilter !== "all") {
       result = result.filter(a => a.type === typeFilter);
     }
 
-    // Date filter
+    // Bộ lọc ngày
     if (fromDate) {
       result = result.filter(a => new Date(a.startTime).getTime() >= new Date(fromDate).getTime());
     }
     if (toDate) {
-       // end of day for toDate
+       // cuối ngày cho ngày hôm nay
        const endToDate = new Date(toDate);
        endToDate.setHours(23, 59, 59, 999);
       result = result.filter(a => new Date(a.endTime).getTime() <= endToDate.getTime());

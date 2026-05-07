@@ -22,10 +22,10 @@ export default function VendorStudioPage() {
     const [isMicOn, setIsMicOn] = useState(true);
     const [isVideoOn, setIsVideoOn] = useState(true);
     
-    // Store socket reference
+    // Lưu trữ tham chiếu ổ cắm
     const socketRef = useRef<any>(null);
 
-    // Map of viewerId -> RTCPeerConnection
+    // Bản đồ của ID người xem -> RTCPeerConnection
     const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
 
     useEffect(() => {
@@ -43,7 +43,7 @@ export default function VendorStudioPage() {
 
         socket.emit('join-stream', { auctionId, isVendor: true });
 
-        // Signaling handlers
+        // Bộ xử lý tín hiệu
         socket.on('viewer-joined', async (data: { viewerId: string }) => {
             console.log("New viewer joined:", data.viewerId);
             setViewerCount(prev => prev + 1);

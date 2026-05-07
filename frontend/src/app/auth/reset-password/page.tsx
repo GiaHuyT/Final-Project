@@ -90,13 +90,13 @@ function ResetPasswordForm() {
 
     return (
         <main className="min-h-screen flex items-center justify-center relative font-sans p-6">
-            {/* Full Background Image */}
+            {/* Hình nền đầy đủ */}
             <div className="absolute inset-0 z-0">
                 <img alt="Reset Password Background" className="w-full h-full object-cover" src="/reset_bg.png" />
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
             </div>
 
-            {/* Centered Box */}
+            {/* Hộp ở giữa */}
             <div className="w-full max-w-md bg-white/95 backdrop-blur-xl p-8 md:p-10 rounded-3xl shadow-2xl border border-white/20 z-10">
                 <div className="mb-8 text-center">
                     <h2 className="text-3xl font-black tracking-tight text-slate-900 mb-3 uppercase">Khởi động <span className="text-blue-600">Hành trình</span></h2>

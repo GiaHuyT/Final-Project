@@ -18,7 +18,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-// Dynamically import map to avoid SSR issues with Leaflet
+// Tự động nhập bản đồ để tránh các sự cố SSR với Tờ rơi
 const RideMap = dynamic(() => import("./components/RideMap"), { ssr: false, loading: () => <div className="w-full h-full bg-slate-100 animate-pulse rounded-2xl flex items-center justify-center text-slate-400">Đang tải bản đồ...</div> });
 
 
@@ -28,7 +28,7 @@ export default function RideHailingPage() {
   const [pickupCoords, setPickupCoords] = useState<[number, number] | null>(null);
   const [dropoffCoords, setDropoffCoords] = useState<[number, number] | null>(null);
   
-  // Search state
+  // Trạng thái tìm kiếm
   const [pickupResults, setPickupResults] = useState<any[]>([]);
   const [dropoffResults, setDropoffResults] = useState<any[]>([]);
   const [isSearchingPickup, setIsSearchingPickup] = useState(false);
@@ -45,7 +45,7 @@ export default function RideHailingPage() {
   const [currentBooking, setCurrentBooking] = useState<any>(null);
   const [socket, setSocket] = useState<any>(null);
 
-  // User info and Vehicle info state
+  // Thông tin người dùng và trạng thái thông tin xe
   const [user, setUser] = useState<any>(null);
   const [carBrand, setCarBrand] = useState("");
   const [carType, setCarType] = useState("Xe 4-9 chỗ");
@@ -53,15 +53,18 @@ export default function RideHailingPage() {
   const [licensePlate, setLicensePlate] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   
-  // Review state
+  // Xem lại trạng thái
   const [rating, setRating] = useState(5);
   const [reviewNote, setReviewNote] = useState("");
   const [isReviewed, setIsReviewed] = useState(false);
 
-  // Report state
+  // Trạng thái báo cáo
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState("");
   const [reportOtherText, setReportOtherText] = useState("");
+
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const calculateRequiredLicense = (type: string, trans: string) => {
     if (type === "Xe khách >30 chỗ") return "E";
@@ -73,7 +76,7 @@ export default function RideHailingPage() {
     return "B1";
   };
 
-  // Search using Nominatim API
+  // Tìm kiếm bằng API Nominatim
   const searchLocation = async (query: string, type: 'pickup' | 'dropoff') => {
     if (query.length < 3) {
       type === 'pickup' ? setPickupResults([]) : setDropoffResults([]);
@@ -131,19 +134,19 @@ export default function RideHailingPage() {
     const fetchRoute = async () => {
       if (pickupCoords && dropoffCoords) {
         try {
-          const res = await axios.get(`https://router.project-osrm.org/route/v1/driving/${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}?overview=full&geometries=geojson`);
+          const res = await axios.get(`https:// router.project-osrm.org/route/v1/drive/${pickupCoords[1]},${pickupCoords[0]};${dropoffCoords[1]},${dropoffCoords[0]}?overview=full&geometries=geojson`);
           if (res.data.routes && res.data.routes.length > 0) {
             const route = res.data.routes[0];
             
-            // OSRM returns coordinates in [lon, lat] format, Leaflet needs [lat, lon]
+            // OSRM trả về tọa độ ở định dạng [lon, lat], Tờ rơi cần [lat, lon]
             const geometry: [number, number][] = route.geometry.coordinates.map((c: any[]) => [c[1], c[0]]);
             setRouteGeometry(geometry);
             
-            // Convert distance from meters to km
+            // Chuyển đổi khoảng cách từ mét sang km
             const distKm = Math.max(1, Math.round(route.distance / 100) / 10);
             setDistance(distKm);
             
-            // Premium pricing: 20,000 base + 15,000 / km
+            // Giá cao cấp: 20.000 cơ sở + 15.000/km
             setPrice(20000 + distKm * 15000);
           }
         } catch (error) {
@@ -159,7 +162,7 @@ export default function RideHailingPage() {
     fetchRoute();
   }, [pickupCoords, dropoffCoords]);
 
-  // Setup Socket & User Init
+  // Ổ cắm thiết lập & Khởi tạo người dùng
   useEffect(() => {
     const token = Cookies.get("token");
     const userStr = localStorage.getItem("user");
@@ -186,19 +189,29 @@ export default function RideHailingPage() {
         }
       });
 
+      newSocket.on('ride-cancelled', (data: any) => {
+        toast.error("Tài xế đã hủy chuyến đi của bạn.");
+        setStatus("IDLE");
+        setCurrentBooking(null);
+        setPickup("");
+        setDropoff("");
+        setPickupCoords(null);
+        setDropoffCoords(null);
+      });
+
       setSocket(newSocket);
 
-      // Fetch active bookings on mount
+      // Tìm nạp các lượt đặt chỗ đang hoạt động trên núi
       http.get('/driver-booking/customer')
         .then(res => {
           if (res.data && res.data.length > 0) {
-            // Find the most recent active booking
+            // Tìm đặt chỗ hoạt động gần đây nhất
             const active = res.data.find((b: any) => ['PENDING', 'SEARCHING', 'ACCEPTED', 'ARRIVED_AT_PICKUP', 'CAR_RECEIVED', 'IN_PROGRESS', 'ARRIVED_AT_DROPOFF'].includes(b.status));
             if (active) {
               setCurrentBooking(active);
               setStatus(active.status === 'PENDING' ? 'SEARCHING' : active.status);
               
-              // Restore form data from active booking
+              // Khôi phục dữ liệu biểu mẫu từ đăng ký đang hoạt động
               if (active.pickupAddress && !pickup) setPickup(active.pickupAddress);
               if (active.dropoffAddress && !dropoff) setDropoff(active.dropoffAddress);
               if (active.pickupLat) setPickupCoords([active.pickupLat, active.pickupLng]);
@@ -230,7 +243,7 @@ export default function RideHailingPage() {
 
     setStatus("SEARCHING");
     
-    // Emit ride request
+    // Gửi yêu cầu đi xe
     socket.emit('request-ride', {
       pickupAddress: pickup,
       pickupLat: pickupCoords[0],
@@ -257,19 +270,38 @@ export default function RideHailingPage() {
   };
 
   const handleCancel = () => {
-    setStatus("IDLE");
-    setCurrentBooking(null);
-    setPickup("");
-    setDropoff("");
-    setPickupCoords(null);
-    setDropoffCoords(null);
+    if (socket && currentBooking) {
+      setIsCancelling(true);
+      socket.emit('cancel-ride', { bookingId: currentBooking.id }, (response: any) => {
+        setIsCancelling(false);
+        setCancelDialogOpen(false);
+        if (response && response.error) {
+          toast.error(response.error);
+        } else {
+          toast.success("Đã hủy cuốc xe.");
+          setStatus("IDLE");
+          setCurrentBooking(null);
+          setPickup("");
+          setDropoff("");
+          setPickupCoords(null);
+          setDropoffCoords(null);
+        }
+      });
+    } else {
+      setStatus("IDLE");
+      setCurrentBooking(null);
+      setPickup("");
+      setDropoff("");
+      setPickupCoords(null);
+      setDropoffCoords(null);
+    }
   };
 
   return (
     <div className="bg-slate-50 min-h-screen pt-[144px] pb-12 px-4 md:px-8 font-body">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 h-[calc(100vh-180px)] min-h-[600px]">
         
-        {/* Left Panel: Booking Form */}
+        {/* Bảng điều khiển bên trái: Mẫu đặt chỗ */}
         <div className="w-full lg:w-1/3 bg-white rounded-3xl shadow-xl border border-slate-100 flex flex-col overflow-hidden relative z-10">
           
           <div className="p-6 bg-slate-900 text-white shrink-0">
@@ -301,7 +333,7 @@ export default function RideHailingPage() {
                       />
                       {isSearchingPickup && <Loader2 className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 animate-spin" />}
                     </div>
-                    {/* Search Results */}
+                    {/* Kết quả tìm kiếm */}
                     {pickupResults.length > 0 && !pickupCoords && (
                       <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 shadow-xl rounded-xl max-h-60 overflow-y-auto">
                         {pickupResults.map((loc, idx) => (
@@ -332,7 +364,7 @@ export default function RideHailingPage() {
                       />
                       {isSearchingDropoff && <Loader2 className="absolute right-3 top-3.5 h-4 w-4 text-slate-400 animate-spin" />}
                     </div>
-                    {/* Search Results */}
+                    {/* Kết quả tìm kiếm */}
                     {dropoffResults.length > 0 && !dropoffCoords && (
                       <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 shadow-xl rounded-xl max-h-60 overflow-y-auto">
                         {dropoffResults.map((loc, idx) => (
@@ -660,15 +692,17 @@ export default function RideHailingPage() {
             {status === "SEARCHING" && (
               <button 
                 onClick={handleCancel}
-                className="w-full py-4 bg-red-50 text-red-600 rounded-xl font-bold tracking-widest uppercase hover:bg-red-100 transition-all"
+                disabled={isCancelling}
+                className="w-full py-4 bg-red-50 text-red-600 rounded-xl font-bold tracking-widest uppercase hover:bg-red-100 transition-all flex justify-center items-center gap-2"
               >
+                {isCancelling ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
                 Hủy Yêu Cầu
               </button>
             )}
             {['ACCEPTED', 'ARRIVED_AT_PICKUP', 'CAR_RECEIVED', 'IN_PROGRESS'].includes(status) && (
               <div className="space-y-4">
                 <button 
-                  onClick={handleCancel}
+                  onClick={() => setCancelDialogOpen(true)}
                   className="w-full py-4 bg-red-50 text-red-600 rounded-xl font-bold tracking-widest uppercase hover:bg-red-100 transition-all"
                 >
                   Hủy Chuyến
@@ -709,6 +743,41 @@ export default function RideHailingPage() {
         </div>
         
       </div>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={(open) => !isCancelling && setCancelDialogOpen(open)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" /> Xác nhận hủy chuyến
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-slate-600 text-sm">
+              Bạn có chắc chắn muốn hủy chuyến đi này không? Hệ thống sẽ ghi nhận lịch sử hủy chuyến của bạn và hành động này không thể hoàn tác.
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <button
+              type="button"
+              onClick={() => setCancelDialogOpen(false)}
+              disabled={isCancelling}
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+            >
+              Đóng
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isCancelling}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors flex justify-center items-center gap-2"
+            >
+              {isCancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Xác nhận hủy
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
