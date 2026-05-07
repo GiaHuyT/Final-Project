@@ -21,4 +21,14 @@ export class ReportsController {
     const vendorId = req.user.id;
     return this.reportsService.getVendorRevenueReport(vendorId, startDate, endDate, groupBy);
   }
+
+  @Get('admin/revenue')
+  @Roles(Role.ADMIN)
+  async getAdminRevenue(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('groupBy') groupBy?: string,
+  ) {
+    return this.reportsService.getAdminRevenueReport(startDate, endDate, groupBy);
+  }
 }

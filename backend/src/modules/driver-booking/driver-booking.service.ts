@@ -145,7 +145,7 @@ export class DriverBookingService {
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); 
           const distance = R * c; // Distance in km
           
-          return distance <= 5; // within 5km
+          return distance <= 10; // within 10km
         });
       }
     }

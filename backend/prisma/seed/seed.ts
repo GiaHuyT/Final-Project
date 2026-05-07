@@ -9,12 +9,14 @@ async function main() {
   await prisma.notification.deleteMany();
   await prisma.favorite.deleteMany();
   await prisma.orderItem.deleteMany();
+  await prisma.transaction.deleteMany();
   await prisma.order.deleteMany();
   await prisma.carModel.deleteMany();
   await prisma.brand.deleteMany();
   await prisma.cartItem.deleteMany();
   await prisma.cart.deleteMany();
   await prisma.auctionBid.deleteMany();
+  await prisma.auctionRegistration.deleteMany();
   await prisma.auctionItem.deleteMany();
   await prisma.auction.deleteMany();
   await prisma.product.deleteMany();
@@ -388,41 +390,7 @@ async function main() {
 
 
 
-  console.log('Đang tạo dữ liệu Đơn hàng mẫu (Orders) cho Báo cáo doanh thu...');
-  const allProducts = await prisma.product.findMany();
-  if (allProducts.length > 0) {
-    const statuses = ['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED', 'DELIVERED', 'DELIVERED'];
-    
-    // Tạo 100 đơn hàng mẫu trải dài trong 7 ngày qua để làm đẹp Biểu đồ doanh thu
-    for (let i = 0; i < 100; i++) {
-      const randomDaysAgo = Math.floor(Math.random() * 7); // 0 đến 6 ngày trước
-      const orderDate = new Date();
-      orderDate.setDate(orderDate.getDate() - randomDaysAgo);
-      orderDate.setHours(10 + Math.floor(Math.random() * 8), Math.floor(Math.random() * 60), 0, 0); // Random giờ từ 10h sáng - 6h tối
-      
-      const randomProduct = allProducts[Math.floor(Math.random() * allProducts.length)];
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-      const quantity = 1 + Math.floor(Math.random() * 2); // Mua 1 hoặc 2 chiếc
-      
-      const order = await prisma.order.create({
-        data: {
-          customerId: customer2.id,
-          totalPrice: randomProduct.price * quantity,
-          status: randomStatus,
-          createdAt: orderDate,
-        }
-      });
-      
-      await prisma.orderItem.create({
-        data: {
-          orderId: order.id,
-          productId: randomProduct.id,
-          quantity: quantity,
-          price: randomProduct.price,
-        }
-      });
-    }
-  }
+  console.log('Bỏ qua tạo dữ liệu Đơn hàng mẫu (Orders) theo yêu cầu...');
 
   console.log('Gieo hạt dữ liệu thành công! 🌱');
 }

@@ -112,7 +112,7 @@ export default function MaintenanceManagement() {
       }
   ];
 
-  const [maintenanceServices, setMaintenanceServices] = useState<any[]>(mockData);
+  const [maintenanceServices, setMaintenanceServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
@@ -125,8 +125,15 @@ export default function MaintenanceManagement() {
   });
   
   const fetchServices = async () => {
-      // API call commented out to strictly use initial mock data
-      // setMaintenanceServices(mockData);
+      try {
+          setLoading(true);
+          const { data } = await http.get('/maintenance/public');
+          setMaintenanceServices(data || []);
+      } catch (error) {
+          toast.error('Không thể tải danh sách dịch vụ');
+      } finally {
+          setLoading(false);
+      }
   };
 
   useEffect(() => {

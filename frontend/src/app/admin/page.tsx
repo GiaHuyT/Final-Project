@@ -62,7 +62,7 @@ export default function AdminDashboard() {
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>
-                                    <span className="text-[11px] uppercase tracking-widest font-black text-slate-500">Tổng doanh thu hệ thống</span>
+                                    <span className="text-[11px] uppercase tracking-widest font-black text-slate-500">Doanh thu hoa hồng (10%)</span>
                                 </div>
                                 <h2 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900 drop-shadow-sm">
                                     {(stats?.totalRevenue || 0).toLocaleString('vi-VN')} <span className="text-3xl font-bold text-slate-400">₫</span>

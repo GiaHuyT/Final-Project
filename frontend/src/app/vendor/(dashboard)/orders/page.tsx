@@ -34,6 +34,16 @@ export default function VendorOrdersPage() {
         }
     };
 
+    const handleConfirmPayout = async (id: number) => {
+        try {
+            await http.patch(`/orders/${id}/payout/confirm`);
+            setOrders(prev => prev.map(ord => ord.id === id ? { ...ord, payoutStatus: 'PAID' } : ord));
+            toast.success('Xác nhận thành công! Giao dịch đối soát đã hoàn tất.');
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
+        }
+    };
+
     // Removed handleCreateInvoice as it's moved to the create page
 
     useEffect(() => {
@@ -90,8 +100,9 @@ export default function VendorOrdersPage() {
                                     <th className="px-10 py-6">Mã Hóa đơn</th>
                                     <th className="px-10 py-6">Khách hàng</th>
                                     <th className="px-10 py-6">Ngày lập</th>
-                                    <th className="px-10 py-6">Tổng giá trị xe</th>
-                                    <th className="px-10 py-6">Trạng thái xử lý</th>
+                                    <th className="px-10 py-6">Doanh thu thực nhận (90%)</th>
+                                    <th className="px-10 py-6">Trạng thái Giao hàng</th>
+                                    <th className="px-10 py-6">Trạng thái Tiền</th>
                                     <th className="px-10 py-6 text-right">Hành động</th>
                                 </tr>
                             </thead>
@@ -119,9 +130,14 @@ export default function VendorOrdersPage() {
                                                 {new Date(ord.createdAt).toLocaleDateString('vi-VN')}
                                             </td>
                                             <td className="px-10 py-6 align-middle">
-                                                <div className="font-black text-blue-600 text-base">
-                                                    {ord.totalPrice.toLocaleString('vi-VN')} 
-                                                    <span className="text-[10px] font-black opacity-60 ml-1 uppercase">đ</span>
+                                                <div className="font-black text-blue-600 text-base flex flex-col">
+                                                    <span>
+                                                        {(ord.vendorRevenue || 0).toLocaleString('vi-VN')} 
+                                                        <span className="text-[10px] font-black opacity-60 ml-1 uppercase">đ</span>
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-400 font-bold -mt-0.5" title="Đã trừ 10% hoa hồng hệ thống">
+                                                        Từ {(ord.vendorTotal || 0).toLocaleString('vi-VN')}đ
+                                                    </span>
                                                 </div>
                                             </td>
                                             <td className="px-10 py-6 align-middle">
@@ -134,6 +150,30 @@ export default function VendorOrdersPage() {
                                                         </span>
                                                     );
                                                 })()}
+                                            </td>
+                                            <td className="px-10 py-6 align-middle">
+                                                {ord.payoutStatus === 'PAID' ? (
+                                                    <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 uppercase text-[9px] font-black bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                                        Đã nhận tiền
+                                                    </span>
+                                                ) : ord.payoutStatus === 'TRANSFERRING' ? (
+                                                    <div className="flex flex-col gap-2">
+                                                        <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 uppercase text-[9px] font-black bg-blue-100 text-blue-700 border border-blue-200">
+                                                            Admin báo đã chuyển
+                                                        </span>
+                                                        <Button 
+                                                            size="sm" 
+                                                            onClick={() => handleConfirmPayout(ord.id)}
+                                                            className="bg-emerald-600 hover:bg-emerald-700 text-[10px] uppercase font-black tracking-widest text-white h-7 px-2 shadow-md animate-pulse"
+                                                        >
+                                                            Xác nhận đã nhận
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 uppercase text-[9px] font-black bg-amber-100 text-amber-700 border border-amber-200">
+                                                        Chờ Admin đối soát
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-10 py-6 align-middle text-right flex items-center justify-end gap-3">
                                                 <select

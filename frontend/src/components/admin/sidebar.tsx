@@ -19,7 +19,9 @@ import {
   MessageSquareText,
   Truck,
   ShieldAlert,
-  UserCircle
+  UserCircle,
+  Wallet,
+  Banknote
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,8 @@ const menuItems: any[] = [
   { icon: Car, label: 'Quản lý xe', href: '/admin/products' },
   { icon: Gavel, label: 'Quản lý đấu giá', href: '/admin/auctions' },
   { icon: ShoppingCart, label: 'Quản lý đơn hàng', href: '/admin/orders' },
+  { icon: Banknote, label: 'Đối soát thanh toán', href: '/admin/payouts' },
+  { icon: Wallet, label: 'Báo cáo doanh thu', href: '/admin/revenue' },
   { 
     icon: Wrench, 
     label: 'Dịch vụ', 

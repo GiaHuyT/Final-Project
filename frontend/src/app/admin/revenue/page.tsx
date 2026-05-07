@@ -22,7 +22,7 @@ import { toast } from 'react-hot-toast';
 
 const COLORS = ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6'];
 
-export default function VendorRevenueReportPage() {
+export default function AdminRevenueReportPage() {
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -88,7 +88,7 @@ export default function VendorRevenueReportPage() {
 
     setLoading(true);
     try {
-      const res = await http.get('/reports/vendor/revenue', {
+      const res = await http.get('/reports/admin/revenue', {
         params: { startDate, endDate, groupBy }
       });
       setData(res.data);
@@ -117,7 +117,7 @@ export default function VendorRevenueReportPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold text-gray-800">Báo cáo doanh số</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Báo cáo doanh thu (Hoa hồng 10%)</h1>
           <p className="text-sm text-muted-foreground">Theo dõi hiệu quả kinh doanh và doanh thu của bạn.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg border border-gray-100 shadow-sm">
@@ -191,7 +191,7 @@ export default function VendorRevenueReportPage() {
             <CardHeader className="flex flex-row items-start justify-between pb-6 border-b border-gray-50 bg-gray-50/50">
               <div className="space-y-1">
                 <CardTitle className="text-sm font-bold uppercase text-gray-700 tracking-wider">
-                  Doanh thu cửa hàng
+                  Doanh thu nền tảng (Admin)
                 </CardTitle>
                 <div className="text-xs font-normal text-gray-500">
                   {groupBy === 'day' && `Từ ${startDate.split('-').reverse().join('/')} đến ${endDate.split('-').reverse().join('/')}`}
@@ -204,7 +204,7 @@ export default function VendorRevenueReportPage() {
                   {formatCurrency(data.totalRevenue)}
                 </div>
                 <div className="text-[10px] uppercase font-black tracking-widest text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded-md mt-1 border border-emerald-100">
-                  Đã trừ 10% hoa hồng hệ thống
+                  Thuộc 10% hoa hồng từ các đơn hàng Vendor
                 </div>
               </div>
             </CardHeader>

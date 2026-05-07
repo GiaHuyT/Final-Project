@@ -37,7 +37,29 @@ export class MaintenanceService {
         profile: {
           include: {
             user: {
-              select: { id: true, username: true, email: true },
+              select: { id: true, username: true, email: true, phonenumber: true, avatar: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findByVendor(userId: number) {
+    const profile = await this.prisma.serviceProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) return [];
+
+    return this.prisma.maintenanceService.findMany({
+      where: { profileId: profile.id },
+      include: {
+        profile: {
+          include: {
+            user: {
+              select: { id: true, username: true, email: true, phonenumber: true, avatar: true },
             },
           },
         },

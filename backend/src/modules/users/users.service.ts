@@ -419,6 +419,7 @@ export class UsersService {
       if (data.username !== undefined) updateData.username = data.username;
       if (data.email !== undefined) updateData.email = data.email;
       if (data.avatar !== undefined) updateData.avatar = data.avatar;
+      if (data.qrCodeUrl !== undefined) updateData.qrCodeUrl = data.qrCodeUrl;
 
       if (data.phonenumber !== undefined) {
         updateData.phonenumber = data.phonenumber === "" ? null : data.phonenumber;
@@ -482,6 +483,7 @@ export class UsersService {
         email: true,
         phonenumber: true,
         avatar: true,
+        qrCodeUrl: true,
         roles: true,
         isApprovedVendor: true,
         vendorRequestPending: true,

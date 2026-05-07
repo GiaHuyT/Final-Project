@@ -39,6 +39,7 @@ import { useRouter } from 'next/navigation';
 interface Order {
     id: number;
     totalPrice: number;
+    adminCommission?: number;
     status: string;
     createdAt: string;
     customer: { username: string };
@@ -129,7 +130,9 @@ export default function AdminOrdersPage() {
                                         <th className="px-8 py-5 border-b">Mã hóa đơn</th>
                                         <th className="px-8 py-5 border-b">Khách hàng</th>
                                         <th className="px-8 py-5 border-b">Nhà cung cấp</th>
-                                        <th className="px-8 py-5 border-b">Tổng tiền</th>
+                                        <th className="px-8 py-5 border-b">Tổng tiền thu</th>
+                                        <th className="px-8 py-5 border-b text-emerald-600 font-black">Hoa hồng (10%)</th>
+                                        <th className="px-8 py-5 border-b text-blue-600 font-black">Trả Vendor (90%)</th>
                                         <th className="px-8 py-5 border-b">Ngày đặt</th>
                                         <th className="px-8 py-5 border-b text-center">Trạng thái</th>
                                         <th className="px-8 py-5 border-b text-right">Thao tác</th>
@@ -169,7 +172,17 @@ export default function AdminOrdersPage() {
                                                     </td>
                                                     <td className="px-8 py-5 align-middle">
                                                         <div className="font-black text-orange-600 text-base">
-                                                            {order.totalPrice.toLocaleString('vi-VN')} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
+                                                            {(order.paidAmount || order.totalPrice).toLocaleString('vi-VN')} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 align-middle">
+                                                        <div className="font-black text-emerald-600 text-base bg-emerald-50 inline-block px-3 py-1 rounded-lg border border-emerald-100">
+                                                            +{(order.adminCommission || 0).toLocaleString('vi-VN')} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-5 align-middle">
+                                                        <div className="font-black text-blue-600 text-base bg-blue-50 inline-block px-3 py-1 rounded-lg border border-blue-100">
+                                                            -{( (order.paidAmount || order.totalPrice) - (order.adminCommission || 0) ).toLocaleString('vi-VN')} <span className="text-[10px] font-black opacity-60 ml-0.5 uppercase">vnđ</span>
                                                         </div>
                                                     </td>
                                                     <td className="px-8 py-5 align-middle font-bold text-gray-500">

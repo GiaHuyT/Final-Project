@@ -50,4 +50,16 @@ export class OrdersController {
     updateStatus(@Param('id') id: string, @Body('status') status: string) {
         return this.ordersService.updateStatus(+id, status);
     }
+
+    @Patch(':id/payout/transfer')
+    @ApiOperation({ summary: 'Admin đánh dấu đã chuyển tiền' })
+    transferPayout(@Param('id') id: string) {
+        return this.ordersService.transferPayout(+id);
+    }
+
+    @Patch(':id/payout/confirm')
+    @ApiOperation({ summary: 'Vendor xác nhận đã nhận tiền' })
+    confirmPayout(@Param('id') id: string) {
+        return this.ordersService.confirmPayout(+id);
+    }
 }

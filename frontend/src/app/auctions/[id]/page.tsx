@@ -49,7 +49,7 @@ const getEmbedUrl = (url: string) => {
 export default function AuctionDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { user, isLoggedIn, token, refreshAuth } = useAuth();
+    const { user, isLoggedIn, token } = useAuth();
     const { currency } = useCurrency();
     const [auction, setAuction] = useState<any>(null);
     const [currentPrice, setCurrentPrice] = useState<number>(0);
@@ -679,6 +679,65 @@ export default function AuctionDetailPage() {
                                     {(currentUser?.id === auction.vendorId || currentUser?.role === 'ADMIN') ? (
                                         // Studio View cho Chủ phòng
                                         <>
+                                            {/* Top controls (always visible) */}
+                                            <div className="absolute top-4 right-4 flex items-center gap-3 z-40">
+                                                <Button variant="secondary" onClick={openLiveStudio} className="shadow-md bg-slate-800/80 text-white hover:bg-slate-700">
+                                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                                    Mở Studio Popup
+                                                </Button>
+
+                                                <Dialog open={showRegModal} onOpenChange={setShowRegModal}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="secondary" className="relative shadow-md bg-blue-600 hover:bg-blue-700 text-white border-0">
+                                                            <Users className="w-4 h-4 mr-2" />
+                                                            Duyệt người xem
+                                                            {registrations.filter(r => r.status === 'PENDING').length > 0 && (
+                                                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-bounce shadow-lg ring-2 ring-white">
+                                                                    {registrations.filter(r => r.status === 'PENDING').length}
+                                                                </span>
+                                                            )}
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="max-w-2xl bg-white">
+                                                        <DialogHeader>
+                                                            <DialogTitle className="text-xl">Duyệt người đăng ký tham gia</DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="space-y-4 mt-4 max-h-[60vh] overflow-y-auto pr-2">
+                                                            {registrations.length === 0 ? (
+                                                                <p className="text-slate-500 text-center py-8">Chưa có người đăng ký nào.</p>
+                                                            ) : (
+                                                                registrations.map(reg => (
+                                                                    <div key={reg.id} className="flex justify-between items-center p-4 border rounded-xl bg-slate-50 hover:bg-white transition-colors">
+                                                                        <div className="flex items-center gap-4">
+                                                                            <Avatar className="w-12 h-12">
+                                                                                <AvatarImage src={reg.user?.avatar} />
+                                                                                <AvatarFallback className="bg-blue-100 text-blue-700 font-bold">{reg.user?.username?.charAt(0)?.toUpperCase()}</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <div>
+                                                                                <p className="font-bold text-slate-900 text-lg">{reg.user?.username}</p>
+                                                                                <p className="text-sm text-slate-500">{reg.user?.email || reg.user?.phonenumber || 'Chưa cập nhật'}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3">
+                                                                            {reg.status === 'PENDING' ? (
+                                                                                <>
+                                                                                    <Button size="sm" variant="outline" onClick={() => handleRejectRegistration(reg.id)} className="text-red-600 border-red-500 hover:bg-red-50 font-semibold bg-white">Từ chối</Button>
+                                                                                    <Button size="sm" onClick={() => handleApproveRegistration(reg.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">Duyệt vào phòng</Button>
+                                                                                </>
+                                                                            ) : (
+                                                                                <Badge className={reg.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 px-3 py-1 text-sm' : 'bg-red-100 text-red-700 px-3 py-1 text-sm'}>
+                                                                                    {reg.status === 'APPROVED' ? 'Đã duyệt' : 'Đã từ chối'}
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))
+                                                            )}
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </div>
+
                                             {!localStream && (
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-white space-y-4 z-20 bg-slate-900/80 backdrop-blur-sm">
                                                     <Video className="w-16 h-16 text-slate-400" />
@@ -696,66 +755,6 @@ export default function AuctionDetailPage() {
                                                 muted 
                                                 className={`w-full h-full absolute inset-0 object-cover ${!localStream ? 'hidden' : ''}`} 
                                             />
-
-                                            {localStream && (
-                                                <div className="absolute top-4 right-4 flex items-center gap-3 z-40">
-                                                    <Button variant="secondary" onClick={openLiveStudio} className="shadow-md bg-slate-800/80 text-white hover:bg-slate-700">
-                                                        <ExternalLink className="w-4 h-4 mr-2" />
-                                                        Mở Studio Popup
-                                                    </Button>
-
-                                                    <Dialog open={showRegModal} onOpenChange={setShowRegModal}>
-                                                        <DialogTrigger asChild>
-                                                            <Button variant="secondary" className="relative shadow-md bg-blue-600 hover:bg-blue-700 text-white border-0">
-                                                                <Users className="w-4 h-4 mr-2" />
-                                                                Duyệt người xem
-                                                                {registrations.filter(r => r.status === 'PENDING').length > 0 && (
-                                                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center animate-bounce shadow-lg ring-2 ring-white">
-                                                                        {registrations.filter(r => r.status === 'PENDING').length}
-                                                                    </span>
-                                                                )}
-                                                            </Button>
-                                                        </DialogTrigger>
-                                                        <DialogContent className="max-w-2xl bg-white">
-                                                            <DialogHeader>
-                                                                <DialogTitle className="text-xl">Duyệt người đăng ký tham gia</DialogTitle>
-                                                            </DialogHeader>
-                                                            <div className="space-y-4 mt-4 max-h-[60vh] overflow-y-auto pr-2">
-                                                                {registrations.length === 0 ? (
-                                                                    <p className="text-slate-500 text-center py-8">Chưa có người đăng ký nào.</p>
-                                                                ) : (
-                                                                    registrations.map(reg => (
-                                                                        <div key={reg.id} className="flex justify-between items-center p-4 border rounded-xl bg-slate-50 hover:bg-white transition-colors">
-                                                                            <div className="flex items-center gap-4">
-                                                                                <Avatar className="w-12 h-12">
-                                                                                    <AvatarImage src={reg.user?.avatar} />
-                                                                                    <AvatarFallback className="bg-blue-100 text-blue-700 font-bold">{reg.user?.username?.charAt(0)?.toUpperCase()}</AvatarFallback>
-                                                                                </Avatar>
-                                                                                <div>
-                                                                                    <p className="font-bold text-slate-900 text-lg">{reg.user?.username}</p>
-                                                                                    <p className="text-sm text-slate-500">{reg.user?.email || reg.user?.phonenumber || 'Chưa cập nhật'}</p>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-3">
-                                                                                {reg.status === 'PENDING' ? (
-                                                                                    <>
-                                                                                        <Button size="sm" variant="outline" onClick={() => handleRejectRegistration(reg.id)} className="text-red-600 border-red-500 hover:bg-red-50 font-semibold bg-white">Từ chối</Button>
-                                                                                        <Button size="sm" onClick={() => handleApproveRegistration(reg.id)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm">Duyệt vào phòng</Button>
-                                                                                    </>
-                                                                                ) : (
-                                                                                    <Badge className={reg.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 px-3 py-1 text-sm' : 'bg-red-100 text-red-700 px-3 py-1 text-sm'}>
-                                                                                        {reg.status === 'APPROVED' ? 'Đã duyệt' : 'Đã từ chối'}
-                                                                                    </Badge>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))
-                                                                )}
-                                                            </div>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </div>
-                                            )}
 
                                             {localStream && (
                                                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">

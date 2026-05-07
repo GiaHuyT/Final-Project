@@ -33,6 +33,8 @@ const menuItems = [
     { icon: Box, label: 'Quản lý xe', href: '/vendor/products' },
     { icon: Package, label: 'Quản lý đơn hàng', href: '/vendor/orders' },
     { icon: Gavel, label: 'Quản lý đấu giá', href: '/vendor/auctions' },
+    { icon: Wrench, label: 'Dịch vụ sửa chữa', href: '/vendor/repairs' },
+    { icon: Settings, label: 'Dịch vụ bảo dưỡng', href: '/vendor/maintenance' },
     { icon: Wallet, label: 'Doanh thu', href: '/vendor/revenue' },
     { icon: Bell, label: 'Thông báo', href: '/vendor/notifications', hasNotification: true },
     { icon: HelpCircle, label: 'Trung tâm trợ giúp', href: '/vendor/help' },

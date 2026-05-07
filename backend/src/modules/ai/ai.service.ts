@@ -156,28 +156,30 @@ Hãy trình bày câu trả lời rõ ràng bằng Markdown (in đậm thông ti
     try {
       if (!imageUrl) return { isValid: false, reason: 'Không có đường dẫn ảnh.' };
 
-      // Trích xuất tên file từ URL (vd: http://localhost:3000/uploads/avatars/xxx.png -> xxx.png)
-      const filename = imageUrl.split('/').pop();
-      if (!filename) return { isValid: false, reason: 'Đường dẫn ảnh không hợp lệ.' };
+      let dataUri = imageUrl; // Mặc định dùng luôn URL (OpenAI hỗ trợ URL public như Cloudinary)
 
-      // Đường dẫn tuyệt đối tới file cục bộ
-      const filePath = path.join(process.cwd(), 'public', 'uploads', 'avatars', filename);
+      // Nếu là ảnh upload ở localhost (chạy local chưa có Cloudinary) thì mới phải convert base64
+      if (imageUrl.includes('localhost') || imageUrl.startsWith('/uploads/')) {
+          const filename = imageUrl.split('/').pop();
+          if (!filename) return { isValid: false, reason: 'Đường dẫn ảnh không hợp lệ.' };
 
-      if (!fs.existsSync(filePath)) {
-        console.error(`File không tồn tại: ${filePath}`);
-        return { isValid: false, reason: 'File ảnh không tồn tại trên máy chủ.' };
+          const filePath = path.join(process.cwd(), 'public', 'uploads', 'avatars', filename);
+
+          if (!fs.existsSync(filePath)) {
+            console.error(`File không tồn tại: ${filePath}`);
+            return { isValid: false, reason: 'File ảnh không tồn tại trên máy chủ.' };
+          }
+
+          const imageBuffer = fs.readFileSync(filePath);
+          const base64Image = imageBuffer.toString('base64');
+          const ext = path.extname(filename).toLowerCase().replace('.', '');
+          let mimeType = 'image/jpeg';
+          if (ext === 'png') mimeType = 'image/png';
+          else if (ext === 'webp') mimeType = 'image/webp';
+          else if (ext === 'gif') mimeType = 'image/gif';
+
+          dataUri = `data:${mimeType};base64,${base64Image}`;
       }
-
-      // Đọc file và chuyển sang Base64
-      const imageBuffer = fs.readFileSync(filePath);
-      const base64Image = imageBuffer.toString('base64');
-      const ext = path.extname(filename).toLowerCase().replace('.', '');
-      let mimeType = 'image/jpeg';
-      if (ext === 'png') mimeType = 'image/png';
-      else if (ext === 'webp') mimeType = 'image/webp';
-      else if (ext === 'gif') mimeType = 'image/gif';
-
-      const dataUri = `data:${mimeType};base64,${base64Image}`;
 
       const apiKey = this.configService.get<string>('OPENAI_API_KEY');
       if (!apiKey) return { isValid: true }; // Bỏ qua nếu không có API key (phòng ngừa sập hệ thống khi chưa set key)
@@ -247,7 +249,7 @@ CÁCH TRẢ LỜI (BẮT BUỘC THỰC HIỆN ĐÚNG):
       });
 
       const result = response.choices[0]?.message?.content?.trim() || '';
-      console.log(`[AI Verification] Kiểm tra ${documentType} (${filename}): ${result}`);
+      console.log(`[AI Verification] Kiểm tra ${documentType} (${imageUrl}): ${result}`);
 
       if (result.toUpperCase().startsWith('VALID')) {
         return { isValid: true };

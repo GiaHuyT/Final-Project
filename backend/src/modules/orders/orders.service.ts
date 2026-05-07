@@ -10,7 +10,7 @@ export class OrdersService {
     ) { }
 
     async findAll() {
-        return this.prisma.order.findMany({
+        const orders = await this.prisma.order.findMany({
             include: {
                 customer: {
                     select: { username: true, email: true }
@@ -18,14 +18,52 @@ export class OrdersService {
                 items: {
                     include: {
                         product: {
-                            include: { vendor: { select: { username: true } } }
+                            include: { vendor: { select: { username: true, roles: true, qrCodeUrl: true } } }
                         }
                     }
+                },
+                transactions: {
+                    where: { status: 'SUCCESS' }
                 },
                 _count: {
                     select: { items: true }
                 }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        return orders.map((order: any) => {
+            let actualPaid = 0;
+            if (order.transactions && order.transactions.length > 0) {
+                actualPaid = order.transactions.reduce((sum: number, t: any) => sum + t.amount, 0);
             }
+
+            let adminCommission = 0;
+            let orderTotal = 0;
+            
+            if (order.items) {
+                for (const item of order.items) {
+                    orderTotal += item.price * item.quantity;
+                    const isVendorAdmin = item.product?.vendor?.roles?.includes('ADMIN');
+                    if (!isVendorAdmin) {
+                        // If there is actual paid amount, we calculate commission from that amount later
+                        if (actualPaid === 0) {
+                            adminCommission += (item.price * item.quantity) * 0.1;
+                        }
+                    }
+                }
+            }
+
+            if (actualPaid > 0) {
+                adminCommission = actualPaid * 0.1;
+            }
+
+            return {
+                ...order,
+                orderTotal,
+                paidAmount: actualPaid > 0 ? actualPaid : orderTotal,
+                adminCommission
+            };
         });
     }
 
@@ -36,9 +74,12 @@ export class OrdersService {
                 items: {
                     include: {
                         product: {
-                            include: { vendor: { select: { username: true } } }
+                            include: { vendor: { select: { username: true, qrCodeUrl: true } } }
                         }
                     }
+                },
+                transactions: {
+                    where: { status: 'SUCCESS' }
                 },
                 _count: {
                     select: { items: true }
@@ -49,7 +90,7 @@ export class OrdersService {
     }
 
     async findByVendorId(vendorId: number) {
-        return this.prisma.order.findMany({
+        const orders = await this.prisma.order.findMany({
             where: {
                 items: {
                     some: {
@@ -63,8 +104,37 @@ export class OrdersService {
                 },
                 items: {
                     include: { product: true }
+                },
+                transactions: {
+                    where: { status: 'SUCCESS' }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        return orders.map((order: any) => {
+            let actualPaid = 0;
+            if (order.transactions && order.transactions.length > 0) {
+                actualPaid = order.transactions.reduce((sum: number, t: any) => sum + t.amount, 0);
+            }
+
+            let vendorTotal = 0;
+            if (order.items) {
+                const vendorItems = order.items.filter((item: any) => item.product?.vendorId === vendorId);
+                for (const item of vendorItems) {
+                    vendorTotal += item.price * item.quantity;
                 }
             }
+            
+            const effectiveTotal = actualPaid > 0 ? actualPaid : vendorTotal;
+
+            return {
+                ...order,
+                vendorTotal: effectiveTotal,
+                originalTotal: vendorTotal, // Keep the original car price if needed
+                vendorRevenue: effectiveTotal * 0.9,
+                paidAmount: effectiveTotal
+            };
         });
     }
 
@@ -139,6 +209,47 @@ export class OrdersService {
             await this.prisma.product.update({
                 where: { id: product.id },
                 data: { stock: { decrement: 1 } }
+            });
+        }
+
+        return order;
+    }
+
+    async transferPayout(id: number) {
+        const order = await this.prisma.order.update({
+            where: { id },
+            data: { payoutStatus: 'TRANSFERRING' },
+            include: { items: { include: { product: true } } }
+        });
+
+        // Notify vendor
+        if (order.items && order.items[0]?.product?.vendorId) {
+            const vendorId = order.items[0].product.vendorId;
+            await this.notifications.create(vendorId, {
+                type: 'SYSTEM' as any,
+                content: `Admin đã chuyển khoản thanh toán (Payout) cho hóa đơn #${order.id}. Vui lòng kiểm tra tài khoản và xác nhận.`,
+                link: `/vendor/orders`,
+                metadata: { orderId: order.id, action: 'payout_transfer' }
+            });
+        }
+
+        return order;
+    }
+
+    async confirmPayout(id: number) {
+        const order = await this.prisma.order.update({
+            where: { id },
+            data: { payoutStatus: 'PAID' },
+        });
+
+        // Notify all Admins
+        const admins = await this.prisma.user.findMany({ where: { roles: { has: 'ADMIN' } } });
+        for (const admin of admins) {
+            await this.notifications.create(admin.id, {
+                type: 'SYSTEM' as any,
+                content: `Vendor đã nhận được tiền và xác nhận đối soát thành công cho hóa đơn #${order.id}.`,
+                link: `/admin/payouts`,
+                metadata: { orderId: order.id, action: 'payout_confirm' }
             });
         }
 

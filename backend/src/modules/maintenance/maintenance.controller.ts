@@ -19,6 +19,12 @@ export class MaintenanceController {
     return this.maintenanceService.findAllPublic();
   }
 
+  @Get('vendor/me')
+  @UseGuards(JwtAuthGuard)
+  findByVendor(@Request() req) {
+    return this.maintenanceService.findByVendor(req.user.id);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   update(@Request() req, @Param('id') id: string, @Body() updateDto: UpdateMaintenanceDto) {

@@ -17,6 +17,7 @@ model User {
   password          String
 
   avatar            String?
+  qrCodeUrl         String?   // QR code cho thanh toán/chi hộ (Vendor)
   roles             Role[]   @default([CUSTOMER])
   isApprovedVendor      Boolean  @default(false)
   vendorRequestPending  Boolean  @default(false)
@@ -468,6 +469,7 @@ model Order {
   customer    User     @relation(fields: [customerId], references: [id])
   totalPrice  Float
   status      String   @default("PENDING")
+  payoutStatus String  @default("PENDING") // PENDING, PAID
   createdAt   DateTime @default(now())
   items       OrderItem[]
   transactions Transaction[]

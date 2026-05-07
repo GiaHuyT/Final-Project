@@ -29,6 +29,11 @@ export default function VendorProfilePage() {
     const [avatarFile, setAvatarFile] = useState<File | 'REMOVE' | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const [qrUrl, setQrUrl] = useState<string | null>(null);
+    const [previewQrUrl, setPreviewQrUrl] = useState<string | null>(null);
+    const [qrFile, setQrFile] = useState<File | 'REMOVE' | null>(null);
+    const qrInputRef = useRef<HTMLInputElement>(null);
+
     const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
     });
@@ -41,6 +46,8 @@ export default function VendorProfilePage() {
             setUserNameDisplay(profileData.username || "Nhà cung cấp");
             setAvatarUrl(profileData.avatar || null);
             setPreviewAvatarUrl(profileData.avatar || null);
+            setQrUrl(profileData.qrCodeUrl || null);
+            setPreviewQrUrl(profileData.qrCodeUrl || null);
             reset({
                 email: profileData.email,
                 username: profileData.username,
@@ -84,10 +91,37 @@ export default function VendorProfilePage() {
         }
     };
 
+    const handleQrClick = () => {
+        qrInputRef.current?.click();
+    };
+
+    const handleQrFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast.error('Vui lòng chọn tệp ảnh!');
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error('Ảnh quá lớn (tối đa 2MB)!');
+            return;
+        }
+
+        const localUrl = URL.createObjectURL(file);
+        setPreviewQrUrl(localUrl);
+        setQrFile(file);
+        
+        if (qrInputRef.current) {
+            qrInputRef.current.value = "";
+        }
+    };
+
     const onSubmit = async (values: ProfileFormValues) => {
         setIsSaving(true);
         try {
             let finalAvatarUrl = avatarUrl;
+            let finalQrUrl = qrUrl;
 
             if (avatarFile instanceof File) {
                 const formData = new FormData();
@@ -100,18 +134,35 @@ export default function VendorProfilePage() {
                 }
             }
 
+            if (qrFile instanceof File) {
+                const formData = new FormData();
+                formData.append('file', qrFile);
+                const res = await http.post('/users/avatar', formData, { // Tạm dùng chung endpoint upload
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                if (res.status === 201 || res.status === 200) {
+                    finalQrUrl = res.data.avatarUrl;
+                }
+            }
+
             await http.patch('/users/profile', {
                 username: values.username,
                 phonenumber: values.phonenumber,
-                avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl
+                avatar: avatarFile === 'REMOVE' ? null : finalAvatarUrl,
+                qrCodeUrl: qrFile === 'REMOVE' ? null : finalQrUrl
             });
             
             if (avatarFile === 'REMOVE') finalAvatarUrl = null;
+            if (qrFile === 'REMOVE') finalQrUrl = null;
 
             setUserNameDisplay(values.username);
             setAvatarUrl(finalAvatarUrl);
             setPreviewAvatarUrl(finalAvatarUrl);
             setAvatarFile(null);
+
+            setQrUrl(finalQrUrl);
+            setPreviewQrUrl(finalQrUrl);
+            setQrFile(null);
 
             const storedUser = localStorage.getItem("user");
             if (storedUser) {
@@ -183,6 +234,60 @@ export default function VendorProfilePage() {
                                 if (!previewAvatarUrl) return;
                                 setPreviewAvatarUrl(null);
                                 setAvatarFile('REMOVE');
+                            }}
+                        >
+                            Xóa ảnh
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-6 border-b border-gray-100 pb-8">
+                <h2 className="text-lg font-semibold text-gray-800">Mã QR Thanh toán / Nhận chi hộ</h2>
+                <p className="text-sm text-gray-500">Tải lên hình ảnh mã QR ngân hàng của bạn để Admin chuyển tiền 90% (Payout).</p>
+
+                <div className="flex flex-col gap-4">
+                    {previewQrUrl ? (
+                        <div className="relative w-48 h-48 border-2 border-dashed border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={previewQrUrl} alt="QR Code" className="w-full h-full object-contain" />
+                            {isSaving && qrFile instanceof File && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="w-48 h-48 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                            Chưa có ảnh QR
+                        </div>
+                    )}
+
+                    <div className="flex gap-3 mt-2">
+                        <input
+                            type="file"
+                            ref={qrInputRef}
+                            onChange={handleQrFileChange}
+                            accept="image/*"
+                            className="hidden"
+                        />
+                        <Button
+                            onClick={handleQrClick}
+                            disabled={isSaving}
+                            type="button"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                            {isSaving && qrFile instanceof File ? "Đang tải lên..." : "Tải ảnh QR"}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="text-gray-600 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                            disabled={isSaving || !previewQrUrl}
+                            type="button"
+                            onClick={() => {
+                                if (!previewQrUrl) return;
+                                setPreviewQrUrl(null);
+                                setQrFile('REMOVE');
                             }}
                         >
                             Xóa ảnh

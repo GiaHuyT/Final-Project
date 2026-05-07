@@ -1,15 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   ShieldCheck, Wrench, CircleDollarSign, Smile, ArrowRight, 
   CalendarClock, PenTool, CheckCircle2, AlertTriangle, 
-  Car, Settings, Thermometer, Battery, ChevronDown, ChevronUp
+  Car, Settings, Thermometer, Battery, ChevronDown, ChevronUp, Star, MapPin, Phone, MessageSquare
 } from "lucide-react";
+import http from "@/lib/http";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import toast from "react-hot-toast";
 
 export default function MaintenancePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const { data } = await http.get('/maintenance/public');
+        setServices(data.filter((s: any) => s.status === 'Hoạt động'));
+      } catch (error) {
+        console.error("Failed to fetch maintenance services", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServices();
+  }, []);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -229,6 +248,108 @@ export default function MaintenancePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Services List Section */}
+      <section className="py-24 bg-slate-50 relative border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-primary font-label text-sm uppercase tracking-[0.2em] font-bold mb-2 block">Lựa Chọn Hoàn Hảo</span>
+            <h2 className="font-headline text-4xl font-extrabold tracking-tight text-slate-900">
+              Các gói Dịch vụ Bảo dưỡng
+            </h2>
+            <p className="text-slate-600 mt-4 text-lg">
+              Được cung cấp bởi các chuyên gia và đối tác bảo dưỡng uy tín trên hệ thống AutoBid.
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white rounded-3xl h-[400px] border border-slate-100 animate-pulse"></div>
+              ))}
+            </div>
+          ) : services.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+              <Settings className="w-16 h-16 text-slate-200 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Chưa có gói dịch vụ nào</h3>
+              <p className="text-slate-500">Các gói dịch vụ bảo dưỡng sẽ sớm được cập nhật trên hệ thống.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {services.map((item) => (
+                <div key={item.id} className="bg-white rounded-3xl overflow-hidden border border-slate-200 hover:border-primary/50 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col">
+                  <div className="h-40 bg-blue-50 relative overflow-hidden flex flex-col items-center justify-center">
+                    <Wrench className="w-16 h-16 text-blue-200 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-emerald-600 shadow-sm flex items-center gap-1">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      </span>
+                      Sẵn sàng
+                    </div>
+                  </div>
+
+                  <div className="p-6 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mb-4 border-b border-slate-100 pb-4">
+                      <Avatar className="h-12 w-12 border border-slate-200">
+                        <AvatarImage src={item.profile?.user?.avatar || ""} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold">{item.profile?.user?.username?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="font-bold text-slate-900 group-hover:text-primary transition-colors line-clamp-1">{item.name}</h3>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                          Được cung cấp bởi <span className="font-bold text-slate-700">{item.profile?.user?.username}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6 flex-1">
+                      <p className="text-sm text-slate-600 line-clamp-3 min-h-[60px] leading-relaxed">
+                        {item.description || 'Chưa cung cấp mô tả chi tiết cho dịch vụ này.'}
+                      </p>
+                      <div className="flex justify-between items-center pt-4 border-t border-slate-50">
+                        <div className="flex items-center gap-1 text-blue-400"><Star className="w-4 h-4 fill-current" /><span className="text-sm font-bold text-slate-900">5.0</span></div>
+                        <div className="font-black text-blue-600 text-xl">{(item.price || 0).toLocaleString('vi-VN')} <span className="text-xs opacity-60 ml-1 font-medium">VNĐ</span></div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex gap-2 mt-auto">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.dispatchEvent(new CustomEvent('open-chat', { detail: { vendorId: item.profile?.user?.id } }));
+                        }}
+                        className="flex-1 bg-slate-900 text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors text-xs text-center shadow-md flex items-center justify-center gap-1.5"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" /> Nhắn tin
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toast.success("Đã gửi yêu cầu đặt lịch hẹn!", { icon: "📅" });
+                        }}
+                        className="flex-1 bg-primary text-on-primary font-bold py-2.5 rounded-xl hover:brightness-110 transition-colors text-xs text-center shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-1.5"
+                      >
+                        <CalendarClock className="w-3.5 h-3.5" /> Đặt hẹn
+                      </button>
+                      {(item.profile?.user?.phonenumber) && (
+                        <a
+                          href={`tel:${item.profile.user.phonenumber}`}
+                          className="w-12 h-12 flex items-center justify-center bg-slate-100 text-slate-900 rounded-xl hover:bg-slate-200 hover:text-primary transition-colors shrink-0 border border-slate-200"
+                          title="Gọi tư vấn"
+                        >
+                          <Phone className="w-5 h-5" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

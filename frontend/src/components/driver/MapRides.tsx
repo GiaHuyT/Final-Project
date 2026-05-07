@@ -41,7 +41,7 @@ const defaultCenter: [number, number] = [21.028511, 105.804817];
 export default function MapRides({ rides, userLocation, onMarkerClick }: MapRidesProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
+  const markersRef = useRef<L.Layer[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -68,6 +68,15 @@ export default function MapRides({ rides, userLocation, onMarkerClick }: MapRide
       const uMarker = L.marker(userLocation, { icon: userIcon }).addTo(map);
       uMarker.bindPopup('<div class="font-semibold text-center">Vị trí của bạn</div>');
       markersRef.current.push(uMarker);
+      
+      const uCircle = L.circle(userLocation, {
+        color: '#10b981',
+        fillColor: '#10b981',
+        fillOpacity: 0.1,
+        radius: 10000 // 10km = 10000 meters
+      }).addTo(map);
+      markersRef.current.push(uCircle);
+
       map.setView(userLocation, 13);
     }
 

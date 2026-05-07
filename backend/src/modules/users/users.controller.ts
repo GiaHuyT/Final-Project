@@ -24,6 +24,11 @@ class UpdateProfileDto {
   @Allow()
   @IsOptional()
   avatar?: string | null;
+
+  @ApiProperty({ example: 'url_to_qr_code', required: false })
+  @Allow()
+  @IsOptional()
+  qrCodeUrl?: string | null;
 }
 
 class UpdateUserDto extends UpdateProfileDto {
